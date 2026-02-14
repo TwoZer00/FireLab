@@ -27,8 +27,8 @@ function LogsViewer({ logs, autoScroll, setAutoScroll, onClear }) {
   }, [logs, searchTerm, serviceFilter]);
 
   return (
-    <div className="section">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+    <div className="section" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexShrink: 0 }}>
         <h2 style={{ marginBottom: 0 }}>Logs</h2>
         <div>
           <label style={{ marginRight: '15px' }}>
@@ -44,7 +44,7 @@ function LogsViewer({ logs, autoScroll, setAutoScroll, onClear }) {
         </div>
       </div>
       
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', flexShrink: 0 }}>
         <input
           type="text"
           placeholder="Search logs..."
@@ -58,6 +58,7 @@ function LogsViewer({ logs, autoScroll, setAutoScroll, onClear }) {
           style={{ marginRight: 0, marginBottom: 0 }}
         >
           <option value="all">All Services</option>
+          <option value="firelab">FireLab</option>
           <option value="auth">Auth</option>
           <option value="firestore">Firestore</option>
           <option value="database">Database</option>
@@ -67,7 +68,7 @@ function LogsViewer({ logs, autoScroll, setAutoScroll, onClear }) {
         </select>
       </div>
 
-      <div className="logs">
+      <div className="logs" style={{ flex: 1 }}>
         {filteredLogs.length === 0 ? (
           <div style={{ color: '#888', fontStyle: 'italic' }}>
             {logs.length === 0 ? 'No logs yet. Start the emulator to see logs...' : 'No logs match the current filters.'}

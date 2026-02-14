@@ -17,6 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 let emulatorProcess = null;
+let snapshotInterval = null;
 const projectsDir = path.join(__dirname, '../firebase-projects');
 
 // Initialize project
@@ -87,7 +88,7 @@ service firebase.storage {
 
 // Start emulator with optional snapshot
 app.post('/api/emulator/start', async (req, res) => {
-  const { projectId, importData, snapshotName } = req.body;
+  const { projectId, importData, snapshotName, debug, autoSnapshot } = req.body;
   const projectPath = path.join(projectsDir, projectId);
 
   if (emulatorProcess) {
@@ -96,6 +97,11 @@ app.post('/api/emulator/start', async (req, res) => {
 
   try {
     const args = ['emulators:start'];
+    
+    // Add debug flag if requested
+    if (debug) {
+      args.push('--debug');
+    }
     
     // Add import flag if requested and data exists
     if (importData) {
@@ -132,7 +138,63 @@ app.post('/api/emulator/start', async (req, res) => {
       console.log(message);
       io.emit('logs', message);
       emulatorProcess = null;
+      
+      // Clear snapshot interval
+      if (snapshotInterval) {
+        clearInterval(snapshotInterval);
+        snapshotInterval = null;
+      }
     });
+
+    // Start auto-snapshot timer (every 15 minutes) if enabled
+    if (autoSnapshot !== false) {
+      snapshotInterval = setInterval(async () => {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        const snapshotName = `auto-${timestamp}`;
+        const exportPath = path.join(projectPath, 'emulator-data', snapshotName);
+
+        const exportProcess = spawn('firebase', ['emulators:export', exportPath], {
+          cwd: projectPath,
+          shell: true
+        });
+
+        exportProcess.stdout.on('data', (data) => {
+          io.emit('logs', data.toString());
+        });
+
+        exportProcess.stderr.on('data', (data) => {
+          io.emit('logs', data.toString());
+        });
+
+        exportProcess.on('close', async (code) => {
+          if (code === 0) {
+            io.emit('logs', `✅ Auto-snapshot '${snapshotName}' created`);
+            
+            // Cleanup old auto-snapshots (keep last 5)
+            try {
+              const { readdir, rm } = await import('fs/promises');
+              const snapshotsPath = path.join(projectPath, 'emulator-data');
+              if (existsSync(snapshotsPath)) {
+                const snapshots = await readdir(snapshotsPath, { withFileTypes: true });
+                const autoSnapshots = snapshots
+                  .filter(d => d.isDirectory() && d.name.startsWith('auto-'))
+                  .map(d => d.name)
+                  .sort()
+                  .reverse();
+                
+                for (let i = 5; i < autoSnapshots.length; i++) {
+                  const oldSnapshot = path.join(snapshotsPath, autoSnapshots[i]);
+                  await rm(oldSnapshot, { recursive: true, force: true });
+                  io.emit('logs', `🗑️ Deleted old auto-snapshot: ${autoSnapshots[i]}`);
+                }
+              }
+            } catch (cleanupError) {
+              console.error('Cleanup error:', cleanupError);
+            }
+          }
+        });
+      }, 15 * 60 * 1000);
+    }
 
     res.json({ success: true, message: 'Emulator starting...' });
   } catch (error) {
@@ -140,22 +202,142 @@ app.post('/api/emulator/start', async (req, res) => {
   }
 });
 
-// Stop emulator
-app.post('/api/emulator/stop', (req, res) => {
+// Stop emulator with auto-snapshot
+app.post('/api/emulator/stop', async (req, res) => {
+  const { projectId } = req.body;
+  
   if (!emulatorProcess) {
     return res.status(400).json({ error: 'No emulator running' });
   }
 
-  // Kill the entire process tree
-  if (process.platform === 'win32') {
-    spawn('taskkill', ['/pid', emulatorProcess.pid, '/f', '/t'], { shell: true });
-  } else {
-    emulatorProcess.kill('SIGTERM');
+  // Clear snapshot interval
+  if (snapshotInterval) {
+    clearInterval(snapshotInterval);
+    snapshotInterval = null;
   }
+
+  try {
+    // Create auto-snapshot before stopping
+    if (projectId) {
+      const projectPath = path.join(projectsDir, projectId);
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      const snapshotName = `auto-${timestamp}`;
+      const exportPath = path.join(projectPath, 'emulator-data', snapshotName);
+
+      const exportProcess = spawn('firebase', ['emulators:export', exportPath], {
+        cwd: projectPath,
+        shell: true
+      });
+
+      exportProcess.stdout.on('data', (data) => {
+        io.emit('logs', data.toString());
+      });
+
+      exportProcess.stderr.on('data', (data) => {
+        io.emit('logs', data.toString());
+      });
+
+      exportProcess.on('close', async (code) => {
+        if (code === 0) {
+          io.emit('logs', `✅ Auto-snapshot '${snapshotName}' created`);
+          
+          // Cleanup old auto-snapshots (keep last 5)
+          try {
+            const { readdir, rm } = await import('fs/promises');
+            const snapshotsPath = path.join(projectPath, 'emulator-data');
+            if (existsSync(snapshotsPath)) {
+              const snapshots = await readdir(snapshotsPath, { withFileTypes: true });
+              const autoSnapshots = snapshots
+                .filter(d => d.isDirectory() && d.name.startsWith('auto-'))
+                .map(d => d.name)
+                .sort()
+                .reverse();
+              
+              // Delete all but the last 5
+              for (let i = 5; i < autoSnapshots.length; i++) {
+                const oldSnapshot = path.join(snapshotsPath, autoSnapshots[i]);
+                await rm(oldSnapshot, { recursive: true, force: true });
+                io.emit('logs', `🗑️ Deleted old auto-snapshot: ${autoSnapshots[i]}`);
+              }
+            }
+          } catch (cleanupError) {
+            console.error('Cleanup error:', cleanupError);
+          }
+        }
+      });
+    }
+
+    // Kill the entire process tree
+    if (process.platform === 'win32') {
+      spawn('taskkill', ['/pid', emulatorProcess.pid, '/f', '/t'], { shell: true });
+    } else {
+      emulatorProcess.kill('SIGTERM');
+    }
+    
+    emulatorProcess = null;
+    console.log('Emulator stopped');
+    res.json({ success: true, message: 'Emulator stopped' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Check if ports are available
+app.post('/api/ports/check', async (req, res) => {
+  const { ports } = req.body;
+  const { createServer } = await import('net');
   
-  emulatorProcess = null;
-  console.log('Emulator stopped');
-  res.json({ success: true, message: 'Emulator stopped' });
+  const checkPort = (port) => {
+    return new Promise((resolve) => {
+      const server = createServer();
+      
+      server.once('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+          resolve({ port, available: false });
+        } else {
+          resolve({ port, available: true });
+        }
+      });
+      
+      server.once('listening', () => {
+        server.close();
+        resolve({ port, available: true });
+      });
+      
+      server.listen(port, '0.0.0.0');
+    });
+  };
+
+  const findAlternativePort = async (basePort) => {
+    // Try ports in range: basePort+1 to basePort+100
+    for (let i = 1; i <= 100; i++) {
+      const testPort = basePort + i;
+      const result = await checkPort(testPort);
+      if (result.available) {
+        return testPort;
+      }
+    }
+    return null;
+  };
+  
+  try {
+    const results = await Promise.all(ports.map(checkPort));
+    const conflicts = results.filter(r => !r.available);
+    
+    // Find alternatives for conflicting ports
+    const suggestions = [];
+    for (const conflict of conflicts) {
+      const alternative = await findAlternativePort(conflict.port);
+      suggestions.push({
+        port: conflict.port,
+        alternative
+      });
+    }
+    
+    res.json({ conflicts, suggestions });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Check Firebase login status
@@ -426,6 +608,57 @@ app.get('/api/export/:projectId/exists', (req, res) => {
   const { projectId } = req.params;
   const exportPath = path.join(projectsDir, projectId, 'emulator-data');
   res.json({ exists: existsSync(exportPath) });
+});
+
+// Get rules history
+app.get('/api/rules-history/:projectId/:type', async (req, res) => {
+  const { projectId, type } = req.params;
+  const historyPath = path.join(projectsDir, projectId, '.rules-history', `${type}.json`);
+
+  try {
+    if (!existsSync(historyPath)) {
+      return res.json([]);
+    }
+    const history = await readFile(historyPath, 'utf-8');
+    res.json(JSON.parse(history));
+  } catch (error) {
+    res.json([]);
+  }
+});
+
+// Save rules to history
+app.post('/api/rules-history/:projectId/:type', async (req, res) => {
+  const { projectId, type } = req.params;
+  const { rules } = req.body;
+  const historyDir = path.join(projectsDir, projectId, '.rules-history');
+  const historyPath = path.join(historyDir, `${type}.json`);
+
+  try {
+    if (!existsSync(historyDir)) {
+      await mkdir(historyDir, { recursive: true });
+    }
+
+    let history = [];
+    if (existsSync(historyPath)) {
+      const data = await readFile(historyPath, 'utf-8');
+      history = JSON.parse(data);
+    }
+
+    history.unshift({
+      timestamp: new Date().toISOString(),
+      rules
+    });
+
+    // Keep last 20 versions
+    if (history.length > 20) {
+      history = history.slice(0, 20);
+    }
+
+    await writeFile(historyPath, JSON.stringify(history, null, 2));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 io.on('connection', (socket) => {

@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
+import AnsiToHtml from 'ansi-to-html';
 import './App.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const EMULATOR_HOST = API_URL.replace(':3001', ':4000');
-const socket = io(API_URL);
+const ansiConverter = new AnsiToHtml({ fg: '#d4d4d4', bg: '#1e1e1e' });
 
 function App() {
+  const socketRef = useRef(null);
   const [projectId, setProjectId] = useState(() => localStorage.getItem('projectId') || 'my-project');
   const [isRunning, setIsRunning] = useState(false);
   const [logs, setLogs] = useState(() => {
@@ -35,6 +37,10 @@ function App() {
   }, [logs]);
 
   useEffect(() => {
+    // Initialize socket
+    socketRef.current = io(API_URL);
+    const socket = socketRef.current;
+
     socket.on('connect', () => {
       console.log('Connected to backend');
       setBackendConnected(true);
@@ -467,6 +473,7 @@ function App() {
             <div style={{ color: '#888', fontStyle: 'italic' }}>No logs yet. Start the emulator to see logs...</div>
           ) : (
             logs.map((log, i) => {
+              const htmlLog = ansiConverter.toHtml(log);
               const isError = log.toLowerCase().includes('error') || log.toLowerCase().includes('failed');
               const isWarning = log.toLowerCase().includes('warn');
               const isSuccess = log.toLowerCase().includes('emulator') && log.toLowerCase().includes('started');
@@ -479,9 +486,8 @@ function App() {
                     isWarning ? 'log-warning' : 
                     isSuccess ? 'log-success' : ''
                   }`}
-                >
-                  {log}
-                </div>
+                  dangerouslySetInnerHTML={{ __html: htmlLog }}
+                />
               );
             })
           )}

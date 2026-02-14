@@ -1,3 +1,16 @@
+# 1.0.0 (2026-02-14)
+
+
+### Bug Fixes
+
+* add permissions to GitHub Actions workflow ([a88cb77](https://github.com/TwoZer00/FireLab/commit/a88cb77e07ea8f6c7ef3e7fb579995e9fe608889))
+* update GitHub Actions to use master branch ([fc344e2](https://github.com/TwoZer00/FireLab/commit/fc344e2faccaceb6efabc0d31cd4afcac85e71bd))
+
+
+### Features
+
+* add automatic semantic versioning ([5c1d016](https://github.com/TwoZer00/FireLab/commit/5c1d016c755ad9c5f43be1c13dd902ca5ab180b9))
+
 # Changelog
 
 All notable changes to FireLab will be documented in this file.

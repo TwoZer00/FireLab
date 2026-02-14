@@ -1,6 +1,6 @@
 # FireLab
 
-**Version 1.0.0**
+**Version 1.0.1**
 
 A web-based platform to manage and configure Firebase emulators locally.
 

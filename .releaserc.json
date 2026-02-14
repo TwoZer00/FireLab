@@ -5,7 +5,10 @@
     [
       "@semantic-release/release-notes-generator",
       {
-        "preset": "angular"
+        "preset": "conventionalcommits",
+        "writerOpts": {
+          "transform": "(commit, context) => { if (!commit.committerDate || isNaN(new Date(commit.committerDate))) { commit.committerDate = new Date().toISOString(); } return commit; }"
+        }
       }
     ],
     [

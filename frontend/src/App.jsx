@@ -274,7 +274,7 @@ function App() {
 
   return (
     <div className="app">
-      <h1>🔥 Firebase Emulator Dashboard</h1>
+      <h1>🔥 FireLab</h1>
 
       <div className="section">
         <h2>Project Setup</h2>

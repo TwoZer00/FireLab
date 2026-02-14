@@ -2,7 +2,7 @@
 
 ## One-Line Install:
 ```bash
-git clone --no-checkout <your-repo-url> && cd firedashboard && git sparse-checkout init --cone && git sparse-checkout set backend && git checkout && cd backend && npm install
+git clone --no-checkout <your-repo-url> && cd firelab && git sparse-checkout init --cone && git sparse-checkout set backend && git checkout && cd backend && npm install
 ```
 
 ## Or Step-by-Step:
@@ -10,7 +10,7 @@ git clone --no-checkout <your-repo-url> && cd firedashboard && git sparse-checko
 1. **Clone backend only:**
 ```bash
 git clone --no-checkout <your-repo-url>
-cd firedashboard
+cd firelab
 git sparse-checkout init --cone
 git sparse-checkout set backend
 git checkout

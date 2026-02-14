@@ -1,4 +1,4 @@
-# Firebase Emulator Dashboard
+# FireLab
 
 A web-based platform to manage and configure Firebase emulators locally.
 
@@ -14,7 +14,7 @@ A web-based platform to manage and configure Firebase emulators locally.
 
 ```bash
 git clone <your-repo-url>
-cd firedashboard
+cd firelab
 
 # Install backend
 cd backend
@@ -30,7 +30,7 @@ npm install
 ```bash
 # Clone only backend folder
 git clone --no-checkout <your-repo-url>
-cd firedashboard
+cd firelab
 git sparse-checkout init --cone
 git sparse-checkout set backend
 git checkout
@@ -45,7 +45,7 @@ npm install
 ```bash
 # Clone only frontend folder
 git clone --no-checkout <your-repo-url>
-cd firedashboard
+cd firelab
 git sparse-checkout init --cone
 git sparse-checkout set frontend
 git checkout
@@ -155,7 +155,7 @@ cp -r /path/to/your-firebase-project firebase-projects/my-project
 ## Project Structure
 
 ```
-firedashboard/
+firelab/
 ├── backend/              # Express API + Firebase CLI wrapper
 │   ├── server.js        # Main server with Socket.io
 │   └── package.json

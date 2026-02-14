@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/TwoZer00/FireLab/compare/v1.1.0...v1.2.0) (2026-02-14)
+
+
+### Features
+
+* improve log rendering with ANSI color support ([be6e39a](https://github.com/TwoZer00/FireLab/commit/be6e39aeb4161b3e67a400e83f289bae3e4d4836))
+
 # [1.1.0](https://github.com/TwoZer00/FireLab/compare/v1.0.0...v1.1.0) (2026-02-14)
 
 

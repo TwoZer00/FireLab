@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 function SnapshotsManager({ projectId, snapshots, onExport, onRestore, onDelete, isRunning }) {
   const [snapshotName, setSnapshotName] = useState('');
   const [showNameInput, setShowNameInput] = useState(false);
@@ -12,6 +14,10 @@ function SnapshotsManager({ projectId, snapshots, onExport, onRestore, onDelete,
     } else if (!showNameInput) {
       setShowNameInput(true);
     }
+  };
+
+  const downloadSnapshot = (snapshot) => {
+    window.open(`${API_URL}/api/snapshots/${projectId}/${snapshot}/download`, '_blank');
   };
 
   return (
@@ -69,6 +75,13 @@ function SnapshotsManager({ projectId, snapshots, onExport, onRestore, onDelete,
             >
               <span style={{ fontSize: '13px', fontFamily: 'monospace' }}>{snapshot}</span>
               <div>
+                <button 
+                  onClick={() => downloadSnapshot(snapshot)}
+                  style={{ padding: '4px 8px', fontSize: '11px', marginRight: '4px' }}
+                  title="Download as ZIP"
+                >
+                  ⬇️
+                </button>
                 <button 
                   onClick={() => onRestore(snapshot)}
                   style={{ padding: '4px 8px', fontSize: '11px', marginRight: '4px' }}

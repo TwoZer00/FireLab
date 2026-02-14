@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import ProjectSetup from './components/ProjectSetup';
+import ProjectActions from './components/ProjectActions';
 import EmulatorControls from './components/EmulatorControls';
 import ConfigEditor from './components/ConfigEditor';
 import RulesEditor from './components/RulesEditor';
 import LogsViewer from './components/LogsViewer';
 import SnapshotsManager from './components/SnapshotsManager';
 import ConnectionStatus from './components/ConnectionStatus';
+import DataManager from './components/DataManager';
 import './App.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -169,13 +171,13 @@ function App() {
     }
   };
 
-  const initProject = async (newProjectId) => {
+  const initProject = async (newProjectId, services) => {
     setLogs(prev => [...prev, `[FireLab] Creating project '${newProjectId}'...`]);
     
     const res = await fetch(`${API_URL}/api/init`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId: newProjectId })
+      body: JSON.stringify({ projectId: newProjectId, services })
     });
     const data = await res.json();
     
@@ -687,6 +689,14 @@ function App() {
                 onDelete={deleteSnapshot}
                 isRunning={isRunning}
               />
+
+              <DataManager
+                projectId={projectId}
+                isRunning={isRunning}
+                onRefreshSnapshots={loadSnapshots}
+              />
+
+              <ProjectActions projectId={projectId} />
             </>
           )}
         </div>

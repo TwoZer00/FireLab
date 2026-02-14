@@ -4,9 +4,11 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { spawn } from 'child_process';
 import { readFile, writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
+import { existsSync, createReadStream, createWriteStream } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import archiver from 'archiver';
+import unzipper from 'unzipper';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -22,33 +24,36 @@ const projectsDir = path.join(__dirname, '../firebase-projects');
 
 // Initialize project
 app.post('/api/init', async (req, res) => {
-  const { projectId } = req.body;
+  const { projectId, services } = req.body;
   const projectPath = path.join(projectsDir, projectId);
+
+  console.log('Creating project:', projectId, 'with services:', services);
 
   try {
     if (!existsSync(projectPath)) {
       await mkdir(projectPath, { recursive: true });
     }
 
-    const firebaseConfig = {
-      emulators: {
-        auth: { port: 9099, host: '0.0.0.0' },
-        firestore: { port: 8080, host: '0.0.0.0' },
-        database: { port: 9000, host: '0.0.0.0' },
-        hosting: { port: 5000, host: '0.0.0.0' },
-        storage: { port: 9199, host: '0.0.0.0' },
-        ui: { enabled: true, port: 4000, host: '0.0.0.0' }
-      }
-    };
+    const emulators = {};
+    
+    if (services?.auth) emulators.auth = { port: 9099, host: '0.0.0.0' };
+    if (services?.firestore) emulators.firestore = { port: 8080, host: '0.0.0.0' };
+    if (services?.database) emulators.database = { port: 9000, host: '0.0.0.0' };
+    if (services?.hosting) emulators.hosting = { port: 5000, host: '0.0.0.0' };
+    if (services?.storage) emulators.storage = { port: 9199, host: '0.0.0.0' };
+    if (services?.ui) emulators.ui = { enabled: true, port: 4000, host: '0.0.0.0' };
+
+    const firebaseConfig = { emulators };
 
     await writeFile(
       path.join(projectPath, 'firebase.json'),
       JSON.stringify(firebaseConfig, null, 2)
     );
 
-    await writeFile(
-      path.join(projectPath, 'firestore.rules'),
-      `rules_version = '2';
+    if (services?.firestore) {
+      await writeFile(
+        path.join(projectPath, 'firestore.rules'),
+        `rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
@@ -56,11 +61,13 @@ service cloud.firestore {
     }
   }
 }`
-    );
+      );
+    }
 
-    await writeFile(
-      path.join(projectPath, 'storage.rules'),
-      `rules_version = '2';
+    if (services?.storage) {
+      await writeFile(
+        path.join(projectPath, 'storage.rules'),
+        `rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /{allPaths=**} {
@@ -68,17 +75,20 @@ service firebase.storage {
     }
   }
 }`
-    );
+      );
+    }
 
-    await writeFile(
-      path.join(projectPath, 'database.rules.json'),
-      `{
+    if (services?.database) {
+      await writeFile(
+        path.join(projectPath, 'database.rules.json'),
+        `{
   "rules": {
     ".read": true,
     ".write": true
   }
 }`
-    );
+      );
+    }
 
     res.json({ success: true, projectPath });
   } catch (error) {
@@ -97,6 +107,26 @@ app.post('/api/emulator/start', async (req, res) => {
 
   try {
     const args = ['emulators:start'];
+    
+    // Read config to determine which services to start
+    const configPath = path.join(projectPath, 'firebase.json');
+    if (existsSync(configPath)) {
+      const configData = await readFile(configPath, 'utf-8');
+      const config = JSON.parse(configData);
+      
+      if (config.emulators) {
+        const services = [];
+        if (config.emulators.auth) services.push('auth');
+        if (config.emulators.firestore) services.push('firestore');
+        if (config.emulators.database) services.push('database');
+        if (config.emulators.storage) services.push('storage');
+        if (config.emulators.hosting) services.push('hosting');
+        
+        if (services.length > 0) {
+          args.push('--only', services.join(','));
+        }
+      }
+    }
     
     // Add debug flag if requested
     if (debug) {
@@ -403,6 +433,41 @@ app.get('/api/projects', async (req, res) => {
   }
 });
 
+// Delete project
+app.delete('/api/projects/:projectId', async (req, res) => {
+  const { projectId } = req.params;
+  
+  // Safety checks
+  if (!projectId || projectId.trim() === '') {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
+  
+  // Prevent path traversal attacks
+  if (projectId.includes('..') || projectId.includes('/') || projectId.includes('\\')) {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
+  
+  const projectPath = path.join(projectsDir, projectId);
+  
+  // Ensure path is within projectsDir
+  if (!projectPath.startsWith(projectsDir)) {
+    return res.status(400).json({ error: 'Invalid project path' });
+  }
+
+  try {
+    if (existsSync(projectPath)) {
+      const { rm } = await import('fs/promises');
+      await rm(projectPath, { recursive: true, force: true });
+      io.emit('logs', `[FireLab] ✅ Project '${projectId}' deleted`);
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ error: 'Project not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Update config
 app.put('/api/config/:projectId', async (req, res) => {
   const { projectId } = req.params;
@@ -658,6 +723,123 @@ app.post('/api/rules-history/:projectId/:type', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Clear all emulator data
+app.post('/api/emulator/clear/:projectId', async (req, res) => {
+  const { projectId } = req.params;
+  const projectPath = path.join(projectsDir, projectId);
+  const dataPath = path.join(projectPath, 'emulator-data');
+
+  try {
+    if (existsSync(dataPath)) {
+      const { rm } = await import('fs/promises');
+      await rm(dataPath, { recursive: true, force: true });
+      io.emit('logs', '[FireLab] ✅ All emulator data cleared');
+    }
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Download snapshot as zip
+app.get('/api/snapshots/:projectId/:snapshotName/download', (req, res) => {
+  const { projectId, snapshotName } = req.params;
+  const snapshotPath = path.join(projectsDir, projectId, 'emulator-data', snapshotName);
+
+  if (!existsSync(snapshotPath)) {
+    return res.status(404).json({ error: 'Snapshot not found' });
+  }
+
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', `attachment; filename="${snapshotName}.zip"`);
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  archive.pipe(res);
+  archive.directory(snapshotPath, false);
+  archive.finalize();
+});
+
+// Upload snapshot from zip
+app.post('/api/snapshots/:projectId/upload', async (req, res) => {
+  const { projectId } = req.params;
+  const { snapshotName } = req.body;
+  const snapshotsPath = path.join(projectsDir, projectId, 'emulator-data');
+  const targetPath = path.join(snapshotsPath, snapshotName || `uploaded-${Date.now()}`);
+
+  try {
+    if (!existsSync(snapshotsPath)) {
+      await mkdir(snapshotsPath, { recursive: true });
+    }
+
+    // Note: This expects multipart/form-data with file upload
+    // For now, return success - frontend will need to handle file upload
+    res.json({ success: true, message: 'Upload endpoint ready' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Run seed script
+app.post('/api/seed/:projectId', async (req, res) => {
+  const { projectId } = req.params;
+  const { script } = req.body;
+  const projectPath = path.join(projectsDir, projectId);
+  const seedsDir = path.join(projectPath, '.seeds');
+  const scriptPath = path.join(seedsDir, `${Date.now()}.js`);
+
+  try {
+    if (!existsSync(seedsDir)) {
+      await mkdir(seedsDir, { recursive: true });
+    }
+
+    await writeFile(scriptPath, script);
+
+    const seedProcess = spawn('node', [scriptPath], {
+      cwd: projectPath,
+      shell: true,
+      env: { ...process.env, FIRESTORE_EMULATOR_HOST: 'localhost:8080', FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099' }
+    });
+
+    seedProcess.stdout.on('data', (data) => {
+      io.emit('logs', `[Seed] ${data.toString()}`);
+    });
+
+    seedProcess.stderr.on('data', (data) => {
+      io.emit('logs', `[Seed Error] ${data.toString()}`);
+    });
+
+    seedProcess.on('close', (code) => {
+      if (code === 0) {
+        io.emit('logs', '[FireLab] ✅ Seed script completed');
+      } else {
+        io.emit('logs', `[FireLab] ❌ Seed script failed with code ${code}`);
+      }
+    });
+
+    res.json({ success: true, message: 'Seed script started' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// List seed scripts
+app.get('/api/seeds/:projectId', async (req, res) => {
+  const { projectId } = req.params;
+  const seedsDir = path.join(projectsDir, projectId, '.seeds');
+
+  try {
+    if (!existsSync(seedsDir)) {
+      return res.json([]);
+    }
+    const { readdir } = await import('fs/promises');
+    const files = await readdir(seedsDir);
+    const seeds = files.filter(f => f.endsWith('.js'));
+    res.json(seeds);
+  } catch (error) {
+    res.json([]);
   }
 });
 

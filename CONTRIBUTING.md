@@ -1,6 +1,6 @@
 # Commit Message Convention
 
-FireLab uses **Conventional Commits** for automatic versioning.
+FireLab uses **Conventional Commits** for automatic versioning and CHANGELOG generation.
 
 ## Format
 
@@ -8,9 +8,11 @@ FireLab uses **Conventional Commits** for automatic versioning.
 <type>(<scope>): <subject>
 
 <body>
+
+<footer>
 ```
 
-**Important:** The body is optional but HIGHLY RECOMMENDED since it becomes part of the CHANGELOG.
+**Important:** The body is HIGHLY RECOMMENDED since it becomes the detailed list in CHANGELOG.
 
 ## Types (determines version bump):
 
@@ -33,43 +35,108 @@ FireLab uses **Conventional Commits** for automatic versioning.
 - `chore:` Build/config changes
 - `ci:` CI/CD changes
 
-## Examples
+## Writing Detailed Commits for CHANGELOG
+
+### ❌ Bad (only shows header in CHANGELOG)
+```bash
+git commit -m "feat: add keyboard shortcuts"
+```
+
+**CHANGELOG output:**
+```markdown
+### Features
+* add keyboard shortcuts ([abc123])
+```
+
+### ✅ Good (shows header + detailed list in CHANGELOG)
+```bash
+git commit -m "feat: add keyboard shortcuts and snapshots" -m "
+- Add Ctrl+E to toggle emulator
+- Add Ctrl+L to clear logs
+- Add Ctrl+S to save config/rules
+- Add named snapshots with timestamps
+- Add snapshot restore functionality
+- Add connection status indicators
+"
+```
+
+**CHANGELOG output:**
+```markdown
+### Features
+* add keyboard shortcuts and snapshots ([abc123])
+  - Add Ctrl+E to toggle emulator
+  - Add Ctrl+L to clear logs
+  - Add Ctrl+S to save config/rules
+  - Add named snapshots with timestamps
+  - Add snapshot restore functionality
+  - Add connection status indicators
+```
+
+### Using Editor for Multi-line Commits
 
 ```bash
-# Bad - Too generic (but still works)
-git commit -m "fix: resolve emulator crash"
+git commit
+```
 
-# Good - Detailed description
-git commit -m "fix: resolve emulator crash on stop
+Then write:
+```
+feat: add keyboard shortcuts and snapshots
 
-Fixed issue where emulator process remained running after clicking stop button.
-Added proper process tree cleanup for Windows using taskkill command."
+- Add Ctrl+E to toggle emulator
+- Add Ctrl+L to clear logs
+- Add Ctrl+S to save config/rules
+- Add named snapshots with timestamps
+- Add snapshot restore functionality
+- Add snapshot delete functionality
+- Add connection status indicators
+- Show running services with ports
+- Add copy button for service URLs
+```
 
-# Bad - No context
-git commit -m "feat: add export data"
+## More Examples
 
-# Good - Clear explanation
-git commit -m "feat: add export/import emulator data functionality
+### Bug Fix with Details
+```bash
+git commit -m "fix: resolve emulator crash on stop" -m "
+- Fixed issue where emulator process remained running
+- Added proper process tree cleanup for Windows
+- Use taskkill command with /f /t flags
+- Added SIGTERM handler for graceful shutdown
+"
+```
 
-Users can now export emulator data while running and import it on next start.
-- Added export button in emulator controls
-- Added import checkbox that appears when export data exists
-- Data saved to emulator-data/ folder in project directory"
+### Feature with Context
+```bash
+git commit -m "feat: add rules editor with validation" -m "
+- Add inline syntax validation for rules files
+- Show green border for valid syntax
+- Show red border with error message for invalid
+- Support Firestore, Storage, and Database rules
+- Add line numbers in editor
+- Add save and deploy buttons
+"
+```
 
-# Major release with breaking change
-git commit -m "feat!: change API endpoint structure
+### Breaking Change
+```bash
+git commit -m "feat!: change API endpoint structure" -m "
+- All API endpoints now use /v2/ prefix
+- Updated frontend to use new endpoints
+- Added backward compatibility layer
 
-BREAKING CHANGE: All API endpoints now use /v2/ prefix.
-Update your API calls from /api/config to /v2/api/config"
+BREAKING CHANGE: API endpoints changed from /api/* to /v2/api/*
+Update your API calls accordingly.
+"
+```
 
-# With scope
-git commit -m "feat(rules): add inline validation
-
-Added real-time validation for rules files with visual feedback.
-- Shows green border for valid syntax
-- Shows red border with error message for invalid syntax
-- Validates JSON for database rules
-- Checks for required declarations in Firestore/Storage rules"
+### With Scope
+```bash
+git commit -m "feat(logs): add filtering and search" -m "
+- Add search input to filter logs by text
+- Add service dropdown to filter by emulator
+- Add clear logs button with Ctrl+L shortcut
+- Preserve filters in localStorage
+"
 ```
 
 ## Best Practices
@@ -78,25 +145,44 @@ Added real-time validation for rules files with visual feedback.
    - Keep under 72 characters
    - Use imperative mood ("add" not "added")
    - Don't end with period
+   - Be specific but concise
 
-2. **Body (optional but recommended):**
-   - Explain WHAT and WHY, not HOW
-   - Use bullet points for multiple changes
-   - Reference issues if applicable
+2. **Body (second section - IMPORTANT!):**
+   - Use bullet points with `-` for lists
+   - Each bullet is a specific change
+   - Explain WHAT changed, not HOW
+   - These bullets appear in CHANGELOG
+   - Leave blank line after subject
 
-3. **Scope (optional):**
+3. **Footer (optional):**
+   - Use for breaking changes
+   - Reference issues: `Closes #123`
+   - Leave blank line after body
+
+4. **Scope (optional):**
    - Use when change affects specific area
-   - Examples: `(rules)`, `(logs)`, `(ui)`, `(backend)`
+   - Examples: `(rules)`, `(logs)`, `(ui)`, `(backend)`, `(snapshots)`
+
+## Why Detailed Commits Matter
+
+**Your commit body becomes the CHANGELOG!**
+
+- ✅ Users see exactly what changed
+- ✅ Clear documentation of features
+- ✅ Easy to understand release notes
+- ✅ Better project history
+- ❌ Without body, CHANGELOG is just commit headers (not helpful)
 
 ## Workflow
 
 1. Make your changes
-2. Commit with detailed conventional format
+2. Commit with detailed conventional format (include body!)
 3. Push to `master` branch
 4. GitHub Actions automatically:
    - Analyzes commits
-   - Bumps version
+   - Bumps version based on type
    - Updates CHANGELOG.md with your commit messages
+   - Updates package.json versions
    - Creates git tag
    - Creates GitHub release
 

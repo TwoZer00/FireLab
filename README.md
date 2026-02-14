@@ -1,14 +1,12 @@
 # FireLab
 
-**Version 1.0.1**
-
 A web-based platform to manage and configure Firebase emulators locally.
 
 ## Prerequisites
 
 - Node.js (v18+)
 - Firebase CLI: `npm install -g firebase-tools`
-- Firebase account (run `firebase login`)
+- Firebase account (optional - only needed for deploying rules to production)
 
 ## Setup
 
@@ -113,37 +111,76 @@ npm run dev
 
 ## Usage
 
-### Using Existing Firebase Projects
+### Quick Start
 
-If you already have Firebase projects with `firebase.json`:
+1. **Select or Create Project**
+   - Choose existing project from dropdown, or
+   - Select "+ Create New Project" and enter a name
+   - Config loads automatically
 
-1. Copy your project folder to `firebase-projects/`:
+2. **Start Emulator**
+   - Click "Start Emulator" or press `Ctrl+E`
+   - Watch real-time logs
+   - View running services with connection status
+
+3. **Create Snapshots**
+   - Click "📸 Create Snapshot" while emulator is running
+   - Name your snapshot or use auto-generated timestamp
+   - Restore snapshots anytime to load saved data
+
+### Keyboard Shortcuts
+
+- `Ctrl+E` (or `Cmd+E`) - Start/Stop emulator
+- `Ctrl+L` (or `Cmd+L`) - Clear logs
+- `Ctrl+S` (or `Cmd+S`) - Save config or rules
+
+### Managing Snapshots
+
+**Create Snapshot:**
+- Emulator must be running
+- Click "📸 Create Snapshot"
+- Optionally name it (e.g., "before-migration", "test-data")
+- Auto-generated format: `snapshot-2024-01-15T14-30-00`
+
+**Restore Snapshot:**
+- Stop emulator if running
+- Click "↻ Restore" on any snapshot
+- Emulator starts with that snapshot's data
+
+**Delete Snapshot:**
+- Click 🗑️ button on any snapshot
+- Confirm deletion (cannot be undone)
+
+### Importing Existing Projects
+
+**Local Projects:**
 ```bash
 cp -r /path/to/your-firebase-project firebase-projects/my-project
 ```
+Then select from dropdown in UI.
 
-2. In the dashboard, select your project from the dropdown
-3. Click "Load Config" to view settings
-4. Click "Start Emulator"
+**Cloud Projects:**
+Currently not supported. Requires `firebase login` on backend machine.
 
-### Creating New Projects
+### Editing Security Rules
 
-1. **Initialize Project**
-   - Enter a project ID (e.g., "my-project")
-   - Click "Initialize Project"
-   - Click "Load Config" to view settings
+1. Click rule file button (e.g., "firestore")
+2. Edit rules with syntax validation
+3. Save locally with `Ctrl+S`
+4. Deploy to production (requires `firebase login` on backend)
 
-2. **Configure Emulators**
-   - Adjust ports for each service (Auth, Firestore, Database, etc.)
-   - Click "Save Configuration"
+### Log Filtering
 
-3. **Start Emulator**
-   - Click "Start Emulator"
-   - Watch real-time logs in the dashboard
-   - Click "Open Emulator UI" to access Firebase Emulator UI
+- **Search**: Type in search box to filter logs
+- **Service Filter**: Select specific service (Auth, Firestore, etc.)
+- **Clear**: Press `Ctrl+L` or click "Clear Logs"
 
-4. **Stop Emulator**
-   - Click "Stop Emulator" when done
+### Connection Status
+
+When emulator is running, view:
+- Active services with green indicator
+- Port numbers for each service
+- Copy service URLs with 📋 button
 
 ## Default Ports
 
@@ -158,21 +195,95 @@ cp -r /path/to/your-firebase-project firebase-projects/my-project
 
 ```
 firelab/
-├── backend/              # Express API + Firebase CLI wrapper
-│   ├── server.js        # Main server with Socket.io
+├── backend/                    # Express API + Firebase CLI wrapper
+│   ├── server.js              # Main server with Socket.io
 │   └── package.json
-├── frontend/            # React + Vite UI
+├── frontend/                   # React + Vite UI
 │   └── src/
-│       ├── App.jsx      # Main dashboard component
-│       └── App.css      # Styles
-└── firebase-projects/   # Generated Firebase configs
+│       ├── App.jsx            # Main dashboard component
+│       ├── components/        # React components
+│       │   ├── ProjectSetup.jsx
+│       │   ├── EmulatorControls.jsx
+│       │   ├── ConfigEditor.jsx
+│       │   ├── RulesEditor.jsx
+│       │   ├── LogsViewer.jsx
+│       │   ├── SnapshotsManager.jsx
+│       │   └── ConnectionStatus.jsx
+│       └── App.css            # Styles
+└── firebase-projects/          # Firebase project configs
+    └── [project-name]/
+        ├── firebase.json
+        ├── firestore.rules
+        ├── storage.rules
+        ├── database.rules.json
+        └── emulator-data/      # Snapshots
+            ├── snapshot-2024-01-15T14-30-00/
+            └── my-custom-snapshot/
 ```
 
 ## Features
 
-✅ Initialize Firebase projects
+### Core Features
+✅ Create and manage Firebase projects
 ✅ Import existing Firebase projects
 ✅ Start/Stop emulators via web UI
-✅ Real-time log streaming
+✅ Real-time log streaming with ANSI colors
 ✅ Configure emulator ports
-✅ Direct link to Firebase Emulator UI
+✅ Remote backend support (backend on one machine, frontend on another)
+
+### Data Management
+✅ Named snapshots with timestamps
+✅ Create, restore, and delete snapshots
+✅ Import data on emulator start
+✅ Persistent data between sessions
+
+### Rules Management
+✅ Edit Firestore, Storage, and Database rules
+✅ Inline syntax validation
+✅ Save rules locally
+✅ Deploy rules to production (requires Firebase login)
+
+### Developer Experience
+✅ Keyboard shortcuts (Ctrl+E, Ctrl+L, Ctrl+S)
+✅ Log filtering by service and search
+✅ Connection status indicators
+✅ Auto-scroll logs
+✅ Dark GitHub-inspired theme
+✅ Responsive design
+
+## Firebase Login (Optional)
+
+Firebase login is **only required** for:
+- Deploying rules to production
+- Importing projects from Firebase cloud (not yet supported)
+
+For local development, no login needed!
+
+**To enable production deployment:**
+```bash
+# On backend machine
+firebase login
+```
+
+The UI will show login status and disable deploy button when not logged in.
+
+## Troubleshooting
+
+**Emulator won't start:**
+- Check if ports are already in use
+- Verify Firebase CLI is installed: `firebase --version`
+- Check logs for error messages
+
+**Backend not connected:**
+- Verify backend is running on port 3001
+- Check `.env` file has correct `VITE_API_URL`
+- Ensure firewall allows connections
+
+**Deploy button disabled:**
+- Run `firebase login` on backend machine
+- Refresh frontend to update login status
+
+**Snapshot restore fails:**
+- Stop emulator before restoring
+- Verify snapshot exists in `emulator-data/` folder
+- Check logs for detailed error messages

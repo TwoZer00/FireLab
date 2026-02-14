@@ -85,9 +85,9 @@ service firebase.storage {
   }
 });
 
-// Start emulator
+// Start emulator with optional snapshot
 app.post('/api/emulator/start', async (req, res) => {
-  const { projectId, importData } = req.body;
+  const { projectId, importData, snapshotName } = req.body;
   const projectPath = path.join(projectsDir, projectId);
 
   if (emulatorProcess) {
@@ -99,9 +99,12 @@ app.post('/api/emulator/start', async (req, res) => {
     
     // Add import flag if requested and data exists
     if (importData) {
-      const exportPath = path.join(projectPath, 'emulator-data');
-      if (existsSync(exportPath)) {
-        args.push('--import', exportPath);
+      const importPath = snapshotName 
+        ? path.join(projectPath, 'emulator-data', snapshotName)
+        : path.join(projectPath, 'emulator-data');
+      
+      if (existsSync(importPath)) {
+        args.push('--import', importPath);
       }
     }
 
@@ -153,6 +156,34 @@ app.post('/api/emulator/stop', (req, res) => {
   emulatorProcess = null;
   console.log('Emulator stopped');
   res.json({ success: true, message: 'Emulator stopped' });
+});
+
+// Check Firebase login status
+app.get('/api/auth/status', async (req, res) => {
+  try {
+    const checkProcess = spawn('firebase', ['projects:list', '--json'], { shell: true });
+    
+    let output = '';
+    let errorOutput = '';
+    
+    checkProcess.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+    
+    checkProcess.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+    });
+    
+    checkProcess.on('close', (code) => {
+      if (code === 0 && output.trim()) {
+        res.json({ loggedIn: true });
+      } else {
+        res.json({ loggedIn: false });
+      }
+    });
+  } catch (error) {
+    res.json({ loggedIn: false });
+  }
 });
 
 // Get status
@@ -318,11 +349,15 @@ app.post('/api/deploy/:projectId/:type', async (req, res) => {
   }
 });
 
-// Export emulator data
+// Export emulator data with optional name
 app.post('/api/export/:projectId', async (req, res) => {
   const { projectId } = req.params;
+  const { snapshotName } = req.body;
   const projectPath = path.join(projectsDir, projectId);
-  const exportPath = path.join(projectPath, 'emulator-data');
+  
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+  const exportName = snapshotName || `snapshot-${timestamp}`;
+  const exportPath = path.join(projectPath, 'emulator-data', exportName);
 
   try {
     const exportProcess = spawn('firebase', ['emulators:export', exportPath], {
@@ -340,13 +375,47 @@ app.post('/api/export/:projectId', async (req, res) => {
 
     exportProcess.on('close', (code) => {
       if (code === 0) {
-        io.emit('logs', '✅ Emulator data exported successfully');
+        io.emit('logs', `✅ Snapshot '${exportName}' created successfully`);
       } else {
         io.emit('logs', `❌ Export failed with code ${code}`);
       }
     });
 
-    res.json({ success: true, message: 'Export started' });
+    res.json({ success: true, message: 'Export started', snapshotName: exportName });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// List snapshots
+app.get('/api/snapshots/:projectId', async (req, res) => {
+  const { projectId } = req.params;
+  const snapshotsPath = path.join(projectsDir, projectId, 'emulator-data');
+
+  try {
+    if (!existsSync(snapshotsPath)) {
+      return res.json([]);
+    }
+    const { readdir } = await import('fs/promises');
+    const snapshots = await readdir(snapshotsPath, { withFileTypes: true });
+    const snapshotList = snapshots
+      .filter(dirent => dirent.isDirectory())
+      .map(dirent => dirent.name);
+    res.json(snapshotList);
+  } catch (error) {
+    res.json([]);
+  }
+});
+
+// Delete snapshot
+app.delete('/api/snapshots/:projectId/:snapshotName', async (req, res) => {
+  const { projectId, snapshotName } = req.params;
+  const snapshotPath = path.join(projectsDir, projectId, 'emulator-data', snapshotName);
+
+  try {
+    const { rm } = await import('fs/promises');
+    await rm(snapshotPath, { recursive: true, force: true });
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

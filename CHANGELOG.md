@@ -1,3 +1,7 @@
+## 1.5.0 (2026-02-14)
+
+* feat: add data management, project deletion, and service selection ([cbd41110cf30282b7c3eca5d4bfef382bec5ea06](https://github.com/TwoZer00/FireLab/commit/cbd41110cf30282b7c3eca5d4bfef382bec5ea06))
+
 ## <small>1.4.1 (2026-02-14)</small>
 
 * fix: add date transform to handle invalid commit dates in changelog ([4e79cf86f3e64388493caf902851cb99875df14b](https://github.com/TwoZer00/FireLab/commit/4e79cf86f3e64388493caf902851cb99875df14b))

@@ -1,3 +1,7 @@
+## <small>1.4.1 (2026-02-14)</small>
+
+* fix: add date transform to handle invalid commit dates in changelog ([4e79cf86f3e64388493caf902851cb99875df14b](https://github.com/TwoZer00/FireLab/commit/4e79cf86f3e64388493caf902851cb99875df14b))
+
 # [1.4.0](https://github.com/TwoZer00/FireLab/compare/v1.3.0...v1.4.0) (2026-02-14)
 
 

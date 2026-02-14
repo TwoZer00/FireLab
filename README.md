@@ -116,6 +116,8 @@ npm run dev
 1. **Select or Create Project**
    - Choose existing project from dropdown, or
    - Select "+ Create New Project" and enter a name
+   - Choose which services to enable (Auth, Firestore, Database, Storage, Hosting, UI)
+   - Only selected services will be configured
    - Config loads automatically
 
 2. **Start Emulator**
@@ -123,10 +125,12 @@ npm run dev
    - Watch real-time logs
    - View running services with connection status
 
-3. **Create Snapshots**
-   - Click "📸 Create Snapshot" while emulator is running
-   - Name your snapshot or use auto-generated timestamp
-   - Restore snapshots anytime to load saved data
+3. **Manage Snapshots**
+   - Auto-snapshots created every 15 minutes (toggle on/off)
+   - Auto-snapshot on emulator stop
+   - Manual snapshots with custom names
+   - Download snapshots as ZIP files
+   - Restore or delete snapshots anytime
 
 ### Keyboard Shortcuts
 
@@ -136,7 +140,13 @@ npm run dev
 
 ### Managing Snapshots
 
-**Create Snapshot:**
+**Auto-Snapshots:**
+- Automatically created every 15 minutes while emulator runs
+- Created on emulator stop
+- Keeps last 5 auto-snapshots (older ones deleted)
+- Toggle on/off in Emulator Controls
+
+**Create Snapshot:****
 - Emulator must be running
 - Click "📸 Create Snapshot"
 - Optionally name it (e.g., "before-migration", "test-data")
@@ -147,7 +157,12 @@ npm run dev
 - Click "↻ Restore" on any snapshot
 - Emulator starts with that snapshot's data
 
-**Delete Snapshot:**
+**Download Snapshot:**
+- Click ⬇️ button on any snapshot
+- Downloads as ZIP file
+- Share with team or backup
+
+**Delete Snapshot:****
 - Click 🗑️ button on any snapshot
 - Confirm deletion (cannot be undone)
 
@@ -162,12 +177,37 @@ Then select from dropdown in UI.
 **Cloud Projects:**
 Currently not supported. Requires `firebase login` on backend machine.
 
+### Data Management
+
+**Clear All Data:**
+- Stop emulator first
+- Click "🗑️ Clear All Data" in Data Management section
+- Removes all emulator data (Firestore, Auth, Storage, etc.)
+- Cannot be undone
+
+**Seed Data:**
+- Click "🌱 Seed Data" while emulator is running
+- Write Node.js script to populate test data
+- Use Firebase Admin SDK or REST API
+- Output shows in logs
+- Example template provided
+
+### Project Management
+
+**Delete Project:**
+- Located in "Project Actions" section at bottom
+- Deletes entire project folder (config, rules, snapshots)
+- Requires confirmation
+- Cannot be undone
+
 ### Editing Security Rules
 
 1. Click rule file button (e.g., "firestore")
-2. Edit rules with syntax validation
-3. Save locally with `Ctrl+S`
-4. Deploy to production (requires `firebase login` on backend)
+2. Edit rules in Monaco Editor (VS Code editor)
+3. View rules history (last 20 versions)
+4. Test rules with basic simulator
+5. Save locally with `Ctrl+S`
+6. Deploy to production (requires `firebase login` on backend)
 
 ### Log Filtering
 
@@ -203,20 +243,26 @@ firelab/
 │       ├── App.jsx            # Main dashboard component
 │       ├── components/        # React components
 │       │   ├── ProjectSetup.jsx
+│       │   ├── ProjectActions.jsx
 │       │   ├── EmulatorControls.jsx
 │       │   ├── ConfigEditor.jsx
 │       │   ├── RulesEditor.jsx
 │       │   ├── LogsViewer.jsx
 │       │   ├── SnapshotsManager.jsx
+│       │   ├── DataManager.jsx
+│       │   ├── DangerZone.jsx
 │       │   └── ConnectionStatus.jsx
 │       └── App.css            # Styles
 └── firebase-projects/          # Firebase project configs
     └── [project-name]/
         ├── firebase.json
-        ├── firestore.rules
-        ├── storage.rules
-        ├── database.rules.json
+        ├── firestore.rules (if Firestore enabled)
+        ├── storage.rules (if Storage enabled)
+        ├── database.rules.json (if Database enabled)
+        ├── .rules-history/     # Rules version history
+        ├── .seeds/             # Seed scripts
         └── emulator-data/      # Snapshots
+            ├── auto-2024-01-15T14-30-00/
             ├── snapshot-2024-01-15T14-30-00/
             └── my-custom-snapshot/
 ```
@@ -232,24 +278,36 @@ firelab/
 ✅ Remote backend support (backend on one machine, frontend on another)
 
 ### Data Management
+✅ Auto-snapshots (every 15 min + on stop)
 ✅ Named snapshots with timestamps
+✅ Download snapshots as ZIP
 ✅ Create, restore, and delete snapshots
+✅ Clear all emulator data
+✅ Seed data with custom scripts
 ✅ Import data on emulator start
 ✅ Persistent data between sessions
 
 ### Rules Management
+✅ Monaco Editor (VS Code editor) with syntax highlighting
+✅ Rules history/versioning (last 20 versions)
+✅ Basic rules tester (simulate ALLOW/DENY)
 ✅ Edit Firestore, Storage, and Database rules
+✅ JSONC support for database rules (comments allowed)
 ✅ Inline syntax validation
 ✅ Save rules locally
 ✅ Deploy rules to production (requires Firebase login)
 
 ### Developer Experience
+✅ Customizable service selection per project
+✅ Port conflict detection with auto-fix
+✅ Debug mode toggle (shows rules evaluation)
 ✅ Keyboard shortcuts (Ctrl+E, Ctrl+L, Ctrl+S)
 ✅ Log filtering by service and search
 ✅ Connection status indicators
 ✅ Auto-scroll logs
 ✅ Dark GitHub-inspired theme
-✅ Responsive design
+✅ Responsive design (mobile-friendly)
+✅ Project deletion with safety checks
 
 ## Firebase Login (Optional)
 

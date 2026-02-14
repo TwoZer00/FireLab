@@ -143,7 +143,13 @@ app.post('/api/emulator/stop', (req, res) => {
     return res.status(400).json({ error: 'No emulator running' });
   }
 
-  emulatorProcess.kill('SIGTERM');
+  // Kill the entire process tree
+  if (process.platform === 'win32') {
+    spawn('taskkill', ['/pid', emulatorProcess.pid, '/f', '/t'], { shell: true });
+  } else {
+    emulatorProcess.kill('SIGTERM');
+  }
+  
   emulatorProcess = null;
   console.log('Emulator stopped');
   res.json({ success: true, message: 'Emulator stopped' });
@@ -355,6 +361,24 @@ app.get('/api/export/:projectId/exists', (req, res) => {
 
 io.on('connection', (socket) => {
   console.log('Client connected');
+  
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
+
+// Cleanup on server shutdown
+process.on('SIGINT', () => {
+  console.log('\nShutting down server...');
+  if (emulatorProcess) {
+    console.log('Stopping emulator...');
+    if (process.platform === 'win32') {
+      spawn('taskkill', ['/pid', emulatorProcess.pid, '/f', '/t'], { shell: true });
+    } else {
+      emulatorProcess.kill('SIGTERM');
+    }
+  }
+  process.exit(0);
 });
 
 const PORT = 3001;

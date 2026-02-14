@@ -24,6 +24,7 @@ function App() {
   const [validationError, setValidationError] = useState(null);
   const [hasExportData, setHasExportData] = useState(false);
   const [importOnStart, setImportOnStart] = useState(false);
+  const [backendConnected, setBackendConnected] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('projectId', projectId);
@@ -34,6 +35,16 @@ function App() {
   }, [logs]);
 
   useEffect(() => {
+    socket.on('connect', () => {
+      console.log('Connected to backend');
+      setBackendConnected(true);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from backend');
+      setBackendConnected(false);
+    });
+
     socket.on('logs', (log) => {
       setLogs((prev) => [...prev, log]);
     });
@@ -48,8 +59,27 @@ function App() {
       setShowConfig(true);
     }
     
-    return () => socket.off('logs');
+    // Cleanup on unmount
+    return () => {
+      socket.off('logs');
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.disconnect();
+    };
   }, []);
+
+  // Warn before closing if emulator is running
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isRunning) {
+        e.preventDefault();
+        e.returnValue = 'Emulator is still running. Close anyway?';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isRunning]);
 
   useEffect(() => {
     if (autoScroll) {
@@ -275,6 +305,12 @@ function App() {
   return (
     <div className="app">
       <h1>🔥 FireLab</h1>
+
+      {!backendConnected && (
+        <div className="alert alert-error">
+          ⚠️ Backend not connected. Make sure the backend server is running on {API_URL}
+        </div>
+      )}
 
       <div className="section">
         <h2>Project Setup</h2>

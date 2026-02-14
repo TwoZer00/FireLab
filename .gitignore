@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Firebase projects and data
+firebase-projects/
+
+# Build outputs
+dist/
+build/
+
+# Environment variables
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

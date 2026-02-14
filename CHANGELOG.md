@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/TwoZer00/FireLab/compare/v1.0.0...v1.1.0) (2026-02-14)
+
+
+### Features
+
+* add backend connection status and process cleanup ([306df9f](https://github.com/TwoZer00/FireLab/commit/306df9f32694d75fc8be4113baade0ecddc0b509))
+
 # 1.0.0 (2026-02-14)
 
 

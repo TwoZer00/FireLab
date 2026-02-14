@@ -1,3 +1,16 @@
+# [1.4.0](https://github.com/TwoZer00/FireLab/compare/v1.3.0...v1.4.0) (2026-02-14)
+
+
+### Bug Fixes
+
+* simplify semantic-release config to resolve date parsing error ([e72c745](https://github.com/TwoZer00/FireLab/commit/e72c7453bb5f10aab5487ba9f169122781d7b302))
+* switch to angular preset to resolve changelog generation error ([cade4e1](https://github.com/TwoZer00/FireLab/commit/cade4e118d6c5c485439c19b54e58252d07f5d15))
+
+
+### Features
+
+* add auto-snapshots, rules editor improvements, and layout fixes ([1c9e256](https://github.com/TwoZer00/FireLab/commit/1c9e25682127def52b0e4c320a9793d02d6e49dc))
+
 # [1.3.0](https://github.com/TwoZer00/FireLab/compare/v1.2.0...v1.3.0) (2026-02-14)
 
 

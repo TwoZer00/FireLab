@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/TwoZer00/FireLab/compare/v1.2.0...v1.3.0) (2026-02-14)
+
+
+### Features
+
+* add keyboard shortcuts, named snapshots, and connection status ([29527f9](https://github.com/TwoZer00/FireLab/commit/29527f9264964862f2371273d647126ff36b4eaf))
+
 # [1.2.0](https://github.com/TwoZer00/FireLab/compare/v1.1.0...v1.2.0) (2026-02-14)
 
 

@@ -1,3 +1,7 @@
+## 1.14.0 (2026-02-15)
+
+* feat: add auth headers to all components, fix Firebase login check, add emoji favicon ([c5d9494e00004bda5215d641bd202663d81d76f8](https://github.com/TwoZer00/FireLab/commit/c5d9494e00004bda5215d641bd202663d81d76f8))
+
 ## 1.13.0 (2026-02-15)
 
 * feat: persist JWT_SECRET to file and fix socket authentication ([0222afdb957bc2c21bc7d03e0480892752c7b327](https://github.com/TwoZer00/FireLab/commit/0222afdb957bc2c21bc7d03e0480892752c7b327))

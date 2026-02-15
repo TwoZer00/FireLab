@@ -1,3 +1,7 @@
+## <small>1.12.2 (2026-02-15)</small>
+
+* fix: use same JWT_SECRET from auth.js for socket validation ([2595bdf57f1ef4d919aa2bfda0fb9de098cf24ae](https://github.com/TwoZer00/FireLab/commit/2595bdf57f1ef4d919aa2bfda0fb9de098cf24ae))
+
 ## <small>1.12.1 (2026-02-15)</small>
 
 * fix: use static imports for jwt in socket connection ([6a515c0dec900b6b1712c4d592a80f85a5df207b](https://github.com/TwoZer00/FireLab/commit/6a515c0dec900b6b1712c4d592a80f85a5df207b))

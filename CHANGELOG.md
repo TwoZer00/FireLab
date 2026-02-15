@@ -1,3 +1,7 @@
+## <small>1.12.1 (2026-02-15)</small>
+
+* fix: use static imports for jwt in socket connection ([6a515c0dec900b6b1712c4d592a80f85a5df207b](https://github.com/TwoZer00/FireLab/commit/6a515c0dec900b6b1712c4d592a80f85a5df207b))
+
 ## 1.12.0 (2026-02-15)
 
 * feat: implement JWT authentication in frontend ([f44d8196db0d47e5d28ba5dc383ad83bce222b8f](https://github.com/TwoZer00/FireLab/commit/f44d8196db0d47e5d28ba5dc383ad83bce222b8f))

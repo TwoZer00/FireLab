@@ -60,6 +60,10 @@ function App() {
   }, [logs]);
 
   useEffect(() => {
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+    }
+
     socketRef.current = io(API_URL, {
       auth: {
         token: accessToken

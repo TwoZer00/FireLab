@@ -879,7 +879,7 @@ io.on('connection', (socket) => {
       const decoded = jwt.verify(token, JWT_SECRET);
       username = decoded.username;
     } catch (err) {
-      console.log('Invalid socket token');
+      console.log('Invalid socket token:', err.message);
     }
   }
   

@@ -7,9 +7,25 @@ function TokenAuth({ onTokenSet }) {
   useEffect(() => {
     const saved = localStorage.getItem('accessToken');
     if (saved) {
-      setToken(saved);
-      setIsAuthenticated(true);
-      onTokenSet(saved);
+      // Validate token by making a test API call
+      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/projects`, {
+        headers: {
+          'Authorization': `Bearer ${saved}`
+        }
+      })
+      .then(res => {
+        if (res.ok) {
+          setToken(saved);
+          setIsAuthenticated(true);
+          onTokenSet(saved);
+        } else {
+          // Invalid token, clear it
+          localStorage.removeItem('accessToken');
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem('accessToken');
+      });
     }
   }, [onTokenSet]);
 
@@ -19,6 +35,8 @@ function TokenAuth({ onTokenSet }) {
       localStorage.setItem('accessToken', token.trim());
       setIsAuthenticated(true);
       onTokenSet(token.trim());
+      // Force page reload to reconnect socket with token
+      window.location.reload();
     }
   };
 

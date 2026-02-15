@@ -7,7 +7,17 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const tokensFile = path.join(__dirname, 'tokens.json');
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+const secretFile = path.join(__dirname, '.jwt-secret');
+
+let JWT_SECRET;
+
+// Load or generate JWT_SECRET
+if (existsSync(secretFile)) {
+  JWT_SECRET = await readFile(secretFile, 'utf-8');
+} else {
+  JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+  await writeFile(secretFile, JWT_SECRET);
+}
 
 // Initialize tokens file
 export async function initAuth() {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-function DataManager({ projectId, isRunning, onRefreshSnapshots }) {
+function DataManager({ projectId, isRunning, onRefreshSnapshots, getHeaders }) {
   const [showSeedEditor, setShowSeedEditor] = useState(false);
   const [seedScript, setSeedScript] = useState(`// Example seed script
 // Use Firebase Admin SDK or REST API to populate data
@@ -33,7 +33,8 @@ seed().catch(console.error);
 
     try {
       const res = await fetch(`${API_URL}/api/emulator/clear/${projectId}`, {
-        method: 'POST'
+        method: 'POST',
+        headers: getHeaders()
       });
 
       if (res.ok) {
@@ -56,7 +57,7 @@ seed().catch(console.error);
     try {
       const res = await fetch(`${API_URL}/api/seed/${projectId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ script: seedScript })
       });
 

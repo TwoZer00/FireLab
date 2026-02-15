@@ -408,7 +408,8 @@ app.get('/api/auth/status', async (req, res) => {
     });
     
     checkProcess.on('close', (code) => {
-      if (code === 0 && output.trim()) {
+      // Exit code 0 means logged in, regardless of project list
+      if (code === 0) {
         res.json({ loggedIn: true });
       } else {
         res.json({ loggedIn: false });

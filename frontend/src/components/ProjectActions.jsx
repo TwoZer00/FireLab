@@ -2,7 +2,7 @@ import DangerZone from './DangerZone';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-function ProjectActions({ projectId }) {
+function ProjectActions({ projectId, getHeaders }) {
   const handleDelete = async () => {
     if (!projectId || projectId === '') {
       alert('No project selected');
@@ -15,7 +15,8 @@ function ProjectActions({ projectId }) {
 
     try {
       const res = await fetch(`${API_URL}/api/projects/${projectId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getHeaders()
       });
 
       if (res.ok) {

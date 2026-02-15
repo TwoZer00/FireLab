@@ -225,11 +225,6 @@ function App() {
       if (rulesRes.ok) {
         const rulesData = await rulesRes.json();
         setAvailableRules(rulesData);
-        
-        // Only check Firebase auth if rules exist (user might want to deploy)
-        if (rulesData.length > 0) {
-          checkFirebaseAuth();
-        }
       }
       
       const exportRes = await fetch(`${API_URL}/api/export/${selectedProjectId}/exists`, { headers: getHeaders() });
@@ -590,6 +585,8 @@ function App() {
       setRulesContent(data.rules);
       setRulesType(type);
       setShowRules(true);
+      // Check Firebase auth to enable/disable deploy button
+      checkFirebaseAuth();
     } else {
       alert('Rules file not found');
     }
@@ -665,15 +662,6 @@ function App() {
                 </div>
               )}
 
-              {backendConnected && !firebaseLoggedIn && (
-                <div className="alert" style={{ background: '#161b22', color: '#f0883e', border: '1px solid #d29922', flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
-                  <div>ℹ️ Not logged into Firebase</div>
-                  <div style={{ fontSize: '12px', color: '#8b949e' }}>
-                    Deploy disabled. Run on backend: <code style={{ background: '#0d1117', padding: '2px 6px', borderRadius: '3px', color: '#58a6ff' }}>firebase login</code>
-                  </div>
-                </div>
-              )}
-
               <ProjectSetup
                 projectId={projectId}
                 existingProjects={existingProjects}
@@ -726,9 +714,10 @@ function App() {
                     projectId={projectId}
                     isRunning={isRunning}
                     onRefreshSnapshots={loadSnapshots}
+                    getHeaders={getHeaders}
                   />
 
-                  <ProjectActions projectId={projectId} />
+                  <ProjectActions projectId={projectId} getHeaders={getHeaders} />
                 </>
               )}
             </>
@@ -746,6 +735,7 @@ function App() {
               onClose={() => setShowRules(false)}
               firebaseLoggedIn={firebaseLoggedIn}
               projectId={projectId}
+              getHeaders={getHeaders}
             />
           ) : (
             <LogsViewer

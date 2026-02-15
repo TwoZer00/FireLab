@@ -9,7 +9,8 @@ function RulesEditor({
   onDeploy, 
   onClose,
   firebaseLoggedIn,
-  projectId
+  projectId,
+  getHeaders
 }) {
   const [validationError, setValidationError] = useState(null);
   const [history, setHistory] = useState([]);
@@ -26,7 +27,7 @@ function RulesEditor({
 
   const loadHistory = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/rules-history/${projectId}/${rulesType}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/rules-history/${projectId}/${rulesType}`, { headers: getHeaders() });
       if (res.ok) {
         const data = await res.json();
         setHistory(data);
@@ -40,7 +41,7 @@ function RulesEditor({
     try {
       await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/rules-history/${projectId}/${rulesType}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ rules: rulesContent })
       });
       loadHistory();

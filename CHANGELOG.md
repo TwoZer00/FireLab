@@ -1,3 +1,7 @@
+## <small>1.11.1 (2026-02-15)</small>
+
+* fix: remove unused login import ([ef512777e5fb08603b893c4854e3be3eefdd3255](https://github.com/TwoZer00/FireLab/commit/ef512777e5fb08603b893c4854e3be3eefdd3255))
+
 ## 1.11.0 (2026-02-15)
 
 * feat: add JWT access token authentication ([0b7efb35016e40db86bb8f3919e3222759552e4f](https://github.com/TwoZer00/FireLab/commit/0b7efb35016e40db86bb8f3919e3222759552e4f))

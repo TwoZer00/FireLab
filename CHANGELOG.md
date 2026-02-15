@@ -1,3 +1,7 @@
+## 1.9.0 (2026-02-15)
+
+* feat: add landing page for GitHub Pages ([964e325e78b52e3161cd72a6b98174e14e35d5a6](https://github.com/TwoZer00/FireLab/commit/964e325e78b52e3161cd72a6b98174e14e35d5a6))
+
 ## 1.8.0 (2026-02-15)
 
 * feat: add Firebase token authentication for Docker deployment ([bb388c0eb85947b5a79206e9f10fd0409e016acf](https://github.com/TwoZer00/FireLab/commit/bb388c0eb85947b5a79206e9f10fd0409e016acf))

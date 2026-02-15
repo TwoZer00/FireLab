@@ -1,3 +1,8 @@
+## 1.11.0 (2026-02-15)
+
+* feat: add JWT access token authentication ([0b7efb35016e40db86bb8f3919e3222759552e4f](https://github.com/TwoZer00/FireLab/commit/0b7efb35016e40db86bb8f3919e3222759552e4f))
+* docs: fix screenshot filenames in README and landing page ([5bb6dc761cf6c120d4a8b111e45cdd7b39da9b53](https://github.com/TwoZer00/FireLab/commit/5bb6dc761cf6c120d4a8b111e45cdd7b39da9b53))
+
 ## <small>1.10.1 (2026-02-15)</small>
 
 * fix: move screenshots to correct docs/screenshots location ([a030bc388f5a6e977d32df62925b44ef94cf496c](https://github.com/TwoZer00/FireLab/commit/a030bc388f5a6e977d32df62925b44ef94cf496c))

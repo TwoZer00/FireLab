@@ -15,8 +15,7 @@ async function takeScreenshots() {
 
   console.log('Taking screenshots...');
 
-  await page.goto(FRONTEND_URL);
-  await page.waitForTimeout(2000);
+  await page.goto(FRONTEND_URL, { waitUntil: 'networkidle2' });
   await page.screenshot({ path: `${SCREENSHOTS_DIR}/dashboard.png`, fullPage: true });
   console.log('✓ Dashboard');
 

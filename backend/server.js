@@ -1,3 +1,5 @@
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
@@ -874,9 +876,8 @@ io.on('connection', (socket) => {
   
   if (token) {
     try {
-      const jwt = await import('jsonwebtoken');
-      const JWT_SECRET = process.env.JWT_SECRET || require('crypto').randomBytes(32).toString('hex');
-      const decoded = jwt.default.verify(token, JWT_SECRET);
+      const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+      const decoded = jwt.verify(token, JWT_SECRET);
       username = decoded.username;
     } catch (err) {
       console.log('Invalid socket token');

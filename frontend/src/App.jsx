@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
+import TokenAuth from './components/TokenAuth';
 import ProjectSetup from './components/ProjectSetup';
 import ProjectActions from './components/ProjectActions';
 import EmulatorControls from './components/EmulatorControls';
@@ -16,7 +17,8 @@ const EMULATOR_HOST = API_URL.replace(':3001', ':4000');
 
 function App() {
   const socketRef = useRef(null);
-  const [projectId, setProjectId] = useState(() => localStorage.getItem('projectId') || 'my-project');
+  const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken'));
+  const [projectId, setProjectId] = useState(() => localStorage.getItem('projectId') || '');
   const [isRunning, setIsRunning] = useState(false);
   const [logs, setLogs] = useState(() => {
     const saved = localStorage.getItem('logs');
@@ -58,7 +60,11 @@ function App() {
   }, [logs]);
 
   useEffect(() => {
-    socketRef.current = io(API_URL);
+    socketRef.current = io(API_URL, {
+      auth: {
+        token: accessToken
+      }
+    });
     const socket = socketRef.current;
 
     socket.on('connect', () => {
@@ -75,9 +81,13 @@ function App() {
       setLogs((prev) => [...prev, log]);
     });
 
-    checkStatus();
-    loadExistingProjects();
-    checkFirebaseAuth();
+    if (accessToken) {
+      checkStatus();
+      loadExistingProjects();
+      if (projectId) {
+        loadConfigForProject(projectId);
+      }
+    }
     
     const savedConfig = localStorage.getItem('lastConfig');
     if (savedConfig) {
@@ -91,7 +101,7 @@ function App() {
       socket.off('disconnect');
       socket.disconnect();
     };
-  }, []);
+  }, [accessToken]);
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
@@ -144,9 +154,16 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [isRunning, projectId, showRules, config]);
 
+  const getHeaders = () => ({
+    'Content-Type': 'application/json',
+    ...(accessToken && { 'Authorization': `Bearer ${accessToken}` })
+  });
+
   const loadExistingProjects = async () => {
-    const res = await fetch(`${API_URL}/api/projects`);
+    const res = await fetch(`${API_URL}/api/projects`, { headers: getHeaders() });
+    if (!res.ok) return;
     const data = await res.json();
+    if (!Array.isArray(data)) return;
     setExistingProjects(data);
     
     const savedProject = localStorage.getItem('projectId');
@@ -156,14 +173,14 @@ function App() {
   };
 
   const checkStatus = async () => {
-    const res = await fetch(`${API_URL}/api/emulator/status`);
+    const res = await fetch(`${API_URL}/api/emulator/status`, { headers: getHeaders() });
     const data = await res.json();
     setIsRunning(data.running);
   };
 
   const checkFirebaseAuth = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/auth/status`);
+      const res = await fetch(`${API_URL}/api/auth/status`, { headers: getHeaders() });
       const data = await res.json();
       setFirebaseLoggedIn(data.loggedIn);
     } catch (error) {
@@ -176,7 +193,7 @@ function App() {
     
     const res = await fetch(`${API_URL}/api/init`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ projectId: newProjectId, services })
     });
     const data = await res.json();
@@ -193,20 +210,25 @@ function App() {
   };
 
   const loadConfigForProject = async (selectedProjectId) => {
-    const res = await fetch(`${API_URL}/api/config/${selectedProjectId}`);
+    const res = await fetch(`${API_URL}/api/config/${selectedProjectId}`, { headers: getHeaders() });
     if (res.ok) {
       const data = await res.json();
       setConfig(data);
       setShowConfig(true);
       localStorage.setItem('lastConfig', JSON.stringify(data));
       
-      const rulesRes = await fetch(`${API_URL}/api/rules/${selectedProjectId}`);
+      const rulesRes = await fetch(`${API_URL}/api/rules/${selectedProjectId}`, { headers: getHeaders() });
       if (rulesRes.ok) {
         const rulesData = await rulesRes.json();
         setAvailableRules(rulesData);
+        
+        // Only check Firebase auth if rules exist (user might want to deploy)
+        if (rulesData.length > 0) {
+          checkFirebaseAuth();
+        }
       }
       
-      const exportRes = await fetch(`${API_URL}/api/export/${selectedProjectId}/exists`);
+      const exportRes = await fetch(`${API_URL}/api/export/${selectedProjectId}/exists`, { headers: getHeaders() });
       if (exportRes.ok) {
         const exportData = await exportRes.json();
         setHasExportData(exportData.exists);
@@ -218,7 +240,7 @@ function App() {
   };
 
   const loadSnapshots = async (pid = projectId) => {
-    const res = await fetch(`${API_URL}/api/snapshots/${pid}`);
+    const res = await fetch(`${API_URL}/api/snapshots/${pid}`, { headers: getHeaders() });
     if (res.ok) {
       const data = await res.json();
       setSnapshots(data);
@@ -267,7 +289,7 @@ function App() {
 
       const checkRes = await fetch(`${API_URL}/api/ports/check`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ ports })
       });
 
@@ -312,7 +334,7 @@ function App() {
           // Save updated config
           await fetch(`${API_URL}/api/config/${projectId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
             body: JSON.stringify(newConfig)
           });
           
@@ -328,7 +350,7 @@ function App() {
     setLogs(prev => [...prev, `[FireLab] Starting emulator${debugMode ? ' (debug mode)' : ''}...`]);
     const res = await fetch(`${API_URL}/api/emulator/start`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ projectId, importData: importOnStart, debug: debugMode, autoSnapshot })
     });
     const data = await res.json();
@@ -350,7 +372,7 @@ function App() {
     
     const res = await fetch(`${API_URL}/api/export/${projectId}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ snapshotName })
     });
 
@@ -409,7 +431,7 @@ function App() {
 
       const checkRes = await fetch(`${API_URL}/api/ports/check`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ ports })
       });
 
@@ -454,7 +476,7 @@ function App() {
           // Save updated config
           await fetch(`${API_URL}/api/config/${projectId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
             body: JSON.stringify(newConfig)
           });
           
@@ -467,7 +489,7 @@ function App() {
 
     const res = await fetch(`${API_URL}/api/emulator/start`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ projectId, importData: true, snapshotName, debug: debugMode, autoSnapshot })
     });
 
@@ -488,7 +510,8 @@ function App() {
     setLogs(prev => [...prev, `[FireLab] Deleting snapshot '${snapshotName}'...`]);
     
     const res = await fetch(`${API_URL}/api/snapshots/${projectId}/${snapshotName}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getHeaders()
     });
 
     if (res.ok) {
@@ -504,7 +527,7 @@ function App() {
     setLogs(prev => [...prev, '[FireLab] Stopping emulator and creating auto-snapshot...']);
     await fetch(`${API_URL}/api/emulator/stop`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ projectId })
     });
     setIsRunning(false);
@@ -514,20 +537,20 @@ function App() {
   };
 
   const loadConfig = async () => {
-    const res = await fetch(`${API_URL}/api/config/${projectId}`);
+    const res = await fetch(`${API_URL}/api/config/${projectId}`, { headers: getHeaders() });
     if (res.ok) {
       const data = await res.json();
       setConfig(data);
       setShowConfig(true);
       localStorage.setItem('lastConfig', JSON.stringify(data));
       
-      const rulesRes = await fetch(`${API_URL}/api/rules/${projectId}`);
+      const rulesRes = await fetch(`${API_URL}/api/rules/${projectId}`, { headers: getHeaders() });
       if (rulesRes.ok) {
         const rulesData = await rulesRes.json();
         setAvailableRules(rulesData);
       }
       
-      const exportRes = await fetch(`${API_URL}/api/export/${projectId}/exists`);
+      const exportRes = await fetch(`${API_URL}/api/export/${projectId}/exists`, { headers: getHeaders() });
       if (exportRes.ok) {
         const exportData = await exportRes.json();
         setHasExportData(exportData.exists);
@@ -539,7 +562,7 @@ function App() {
     setLogs(prev => [...prev, '[FireLab] Saving configuration...']);
     await fetch(`${API_URL}/api/config/${projectId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(config)
     });
     setLogs(prev => [...prev, '[FireLab] ✅ Configuration saved']);
@@ -557,7 +580,7 @@ function App() {
   };
 
   const loadRules = async (type) => {
-    const res = await fetch(`${API_URL}/api/rules/${projectId}/${type}`);
+    const res = await fetch(`${API_URL}/api/rules/${projectId}/${type}`, { headers: getHeaders() });
     if (res.ok) {
       const data = await res.json();
       setRulesContent(data.rules);
@@ -573,7 +596,7 @@ function App() {
     
     const res = await fetch(`${API_URL}/api/rules/${projectId}/${rulesType}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ rules: rulesContent })
     });
     
@@ -597,7 +620,8 @@ function App() {
     setLogs(prev => [...prev, `[FireLab] Deploying ${rulesType} rules to production...`]);
     
     const res = await fetch(`${API_URL}/api/deploy/${projectId}/${rulesType}`, {
-      method: 'POST'
+      method: 'POST',
+      headers: getHeaders()
     });
 
     if (res.ok) {
@@ -627,76 +651,82 @@ function App() {
 
       <div className="container">
         <div className="sidebar">
-          {!backendConnected && (
-            <div className="alert alert-error">
-              ⚠️ Backend not connected
-            </div>
-          )}
+          <TokenAuth onTokenSet={setAccessToken} />
 
-          {backendConnected && !firebaseLoggedIn && (
-            <div className="alert" style={{ background: '#161b22', color: '#f0883e', border: '1px solid #d29922', flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
-              <div>ℹ️ Not logged into Firebase</div>
-              <div style={{ fontSize: '12px', color: '#8b949e' }}>
-                Deploy disabled. Run on backend: <code style={{ background: '#0d1117', padding: '2px 6px', borderRadius: '3px', color: '#58a6ff' }}>firebase login</code>
-              </div>
-            </div>
-          )}
-
-          <ProjectSetup
-            projectId={projectId}
-            existingProjects={existingProjects}
-            onSelectProject={handleSelectProject}
-            onCreateProject={initProject}
-          />
-
-          <EmulatorControls
-            isRunning={isRunning}
-            hasExportData={hasExportData}
-            importOnStart={importOnStart}
-            setImportOnStart={setImportOnStart}
-            debugMode={debugMode}
-            setDebugMode={setDebugMode}
-            autoSnapshot={autoSnapshot}
-            setAutoSnapshot={setAutoSnapshot}
-            onStart={startEmulator}
-            onStop={stopEmulator}
-            emulatorHost={EMULATOR_HOST}
-          />
-
-          {showConfig && (
+          {accessToken && (
             <>
-              <ConfigEditor
-                config={config}
-                availableRules={availableRules}
-                onUpdatePort={updatePort}
-                onSave={saveConfig}
-                onLoadRules={loadRules}
-              />
-
-              {isRunning && (
-                <ConnectionStatus
-                  config={config}
-                  isRunning={isRunning}
-                  emulatorHost={EMULATOR_HOST}
-                />
+              {!backendConnected && (
+                <div className="alert alert-error">
+                  ⚠️ Backend not connected
+                </div>
               )}
 
-              <SnapshotsManager
+              {backendConnected && !firebaseLoggedIn && (
+                <div className="alert" style={{ background: '#161b22', color: '#f0883e', border: '1px solid #d29922', flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                  <div>ℹ️ Not logged into Firebase</div>
+                  <div style={{ fontSize: '12px', color: '#8b949e' }}>
+                    Deploy disabled. Run on backend: <code style={{ background: '#0d1117', padding: '2px 6px', borderRadius: '3px', color: '#58a6ff' }}>firebase login</code>
+                  </div>
+                </div>
+              )}
+
+              <ProjectSetup
                 projectId={projectId}
-                snapshots={snapshots}
-                onExport={exportData}
-                onRestore={restoreSnapshot}
-                onDelete={deleteSnapshot}
-                isRunning={isRunning}
+                existingProjects={existingProjects}
+                onSelectProject={handleSelectProject}
+                onCreateProject={initProject}
               />
 
-              <DataManager
-                projectId={projectId}
+              <EmulatorControls
                 isRunning={isRunning}
-                onRefreshSnapshots={loadSnapshots}
+                hasExportData={hasExportData}
+                importOnStart={importOnStart}
+                setImportOnStart={setImportOnStart}
+                debugMode={debugMode}
+                setDebugMode={setDebugMode}
+                autoSnapshot={autoSnapshot}
+                setAutoSnapshot={setAutoSnapshot}
+                onStart={startEmulator}
+                onStop={stopEmulator}
+                emulatorHost={EMULATOR_HOST}
               />
 
-              <ProjectActions projectId={projectId} />
+              {showConfig && (
+                <>
+                  <ConfigEditor
+                    config={config}
+                    availableRules={availableRules}
+                    onUpdatePort={updatePort}
+                    onSave={saveConfig}
+                    onLoadRules={loadRules}
+                  />
+
+                  {isRunning && (
+                    <ConnectionStatus
+                      config={config}
+                      isRunning={isRunning}
+                      emulatorHost={EMULATOR_HOST}
+                    />
+                  )}
+
+                  <SnapshotsManager
+                    projectId={projectId}
+                    snapshots={snapshots}
+                    onExport={exportData}
+                    onRestore={restoreSnapshot}
+                    onDelete={deleteSnapshot}
+                    isRunning={isRunning}
+                  />
+
+                  <DataManager
+                    projectId={projectId}
+                    isRunning={isRunning}
+                    onRefreshSnapshots={loadSnapshots}
+                  />
+
+                  <ProjectActions projectId={projectId} />
+                </>
+              )}
             </>
           )}
         </div>

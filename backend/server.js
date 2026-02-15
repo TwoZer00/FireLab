@@ -869,15 +869,30 @@ app.get('/api/seeds/:projectId', async (req, res) => {
 });
 
 io.on('connection', (socket) => {
+  const token = socket.handshake.auth?.token;
+  let username = 'anonymous';
+  
+  if (token) {
+    try {
+      const jwt = await import('jsonwebtoken');
+      const JWT_SECRET = process.env.JWT_SECRET || require('crypto').randomBytes(32).toString('hex');
+      const decoded = jwt.default.verify(token, JWT_SECRET);
+      username = decoded.username;
+    } catch (err) {
+      console.log('Invalid socket token');
+    }
+  }
+  
   const clientInfo = {
     id: socket.id,
+    username,
     ip: socket.handshake.address,
     userAgent: socket.handshake.headers['user-agent'],
     connectedAt: new Date().toISOString()
   };
   
   connectionHistory.push(clientInfo);
-  console.log(`Client connected: ${socket.id} from ${clientInfo.ip}`);
+  console.log(`Client connected: ${username} (${socket.id}) from ${clientInfo.ip}`);
   
   socket.on('disconnect', () => {
     const connection = connectionHistory.find(c => c.id === socket.id);
@@ -885,7 +900,7 @@ io.on('connection', (socket) => {
       connection.disconnectedAt = new Date().toISOString();
       connection.duration = new Date(connection.disconnectedAt) - new Date(connection.connectedAt);
     }
-    console.log(`Client disconnected: ${socket.id}`);
+    console.log(`Client disconnected: ${username} (${socket.id})`);
   });
 });
 

@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: firelab-backend
+    ports:
+      - "3001:3001"           # Backend API
+      - "4000-4010:4000-4010" # Emulator UI range
+      - "5000-5010:5000-5010" # Hosting range
+      - "8080-8090:8080-8090" # Firestore range
+      - "9000-9010:9000-9010" # Database range
+      - "9099-9109:9099-9109" # Auth range
+      - "9199-9209:9199-9209" # Storage range
+    volumes:
+      - ./firebase-projects:/app/firebase-projects
+      - firebase-cache:/root/.cache/firebase
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - firelab-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: firelab-frontend
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=http://localhost:3001
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - firelab-network
+
+volumes:
+  firebase-cache:
+
+networks:
+  firelab-network:
+    driver: bridge

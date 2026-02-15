@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+*.md
+.env
+.env.local
+dist
+build
+firebase-projects
+.firebase
+firebase-debug.log
+ui-debug.log

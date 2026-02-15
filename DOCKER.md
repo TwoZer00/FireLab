@@ -9,14 +9,31 @@ Deploy FireLab as a containerized application using Docker.
 
 ## Quick Start
 
-### 1. Build and Start
+### Option 1: Using Pre-built Images (Recommended)
 
 ```bash
+# Download docker-compose.prod.yml
+curl -O https://raw.githubusercontent.com/TwoZer00/FireLab/master/docker-compose.prod.yml
+
+# Start with pre-built images
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+This pulls pre-built images from Docker Hub - no build time needed!
+
+### Option 2: Build Locally
+
+```bash
+# Clone repository
+git clone <repo-url>
+cd firelab
+
+# Build and start
 docker-compose up -d
 ```
 
 This will:
-- Build backend and frontend images
+- Pull/build backend and frontend images
 - Start both containers
 - Expose ports for all services
 - Create persistent volume for Firebase projects
@@ -30,8 +47,21 @@ This will:
 ### 3. Stop
 
 ```bash
+# Using pre-built images
+docker-compose -f docker-compose.prod.yml down
+
+# Using local build
 docker-compose down
 ```
+
+## Docker Hub Images
+
+Pre-built images are available on Docker Hub:
+
+- **Backend**: `docker pull twozer00/firelab-backend:latest`
+- **Frontend**: `docker pull twozer00/firelab-frontend:latest`
+
+Images are automatically built and published on every release.
 
 ## Production Deployment
 

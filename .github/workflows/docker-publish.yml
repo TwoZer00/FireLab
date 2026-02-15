@@ -1,0 +1,67 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=latest" >> $GITHUB_OUTPUT
+            echo "TAG=latest" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/firelab-backend:latest
+            ${{ secrets.DOCKER_USERNAME }}/firelab-backend:${{ steps.version.outputs.VERSION }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/firelab-backend:latest
+          cache-to: type=inline
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/firelab-frontend:latest
+            ${{ secrets.DOCKER_USERNAME }}/firelab-frontend:${{ steps.version.outputs.VERSION }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/firelab-frontend:latest
+          cache-to: type=inline
+
+      - name: Create release summary
+        run: |
+          echo "## Docker Images Published 🐳" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Backend: \`docker pull ${{ secrets.DOCKER_USERNAME }}/firelab-backend:${{ steps.version.outputs.VERSION }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Frontend: \`docker pull ${{ secrets.DOCKER_USERNAME }}/firelab-frontend:${{ steps.version.outputs.VERSION }}\`" >> $GITHUB_STEP_SUMMARY

@@ -9,6 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import archiver from 'archiver';
 import unzipper from 'unzipper';
+import { initAuth, authMiddleware, login } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -21,6 +22,13 @@ app.use(express.json());
 let emulatorProcess = null;
 let snapshotInterval = null;
 const projectsDir = path.join(__dirname, '../firebase-projects');
+const connectionHistory = [];
+
+// Initialize auth
+await initAuth();
+
+// Apply auth to all API routes
+app.use('/api', authMiddleware);
 
 // Initialize project
 app.post('/api/init', async (req, res) => {
@@ -861,11 +869,29 @@ app.get('/api/seeds/:projectId', async (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('Client connected');
+  const clientInfo = {
+    id: socket.id,
+    ip: socket.handshake.address,
+    userAgent: socket.handshake.headers['user-agent'],
+    connectedAt: new Date().toISOString()
+  };
+  
+  connectionHistory.push(clientInfo);
+  console.log(`Client connected: ${socket.id} from ${clientInfo.ip}`);
   
   socket.on('disconnect', () => {
-    console.log('Client disconnected');
+    const connection = connectionHistory.find(c => c.id === socket.id);
+    if (connection) {
+      connection.disconnectedAt = new Date().toISOString();
+      connection.duration = new Date(connection.disconnectedAt) - new Date(connection.connectedAt);
+    }
+    console.log(`Client disconnected: ${socket.id}`);
   });
+});
+
+// Get connection history
+app.get('/api/connections', (req, res) => {
+  res.json(connectionHistory.slice(-50));
 });
 
 // Cleanup on server shutdown

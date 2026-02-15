@@ -1,3 +1,7 @@
+## 1.13.0 (2026-02-15)
+
+* feat: persist JWT_SECRET to file and fix socket authentication ([0222afdb957bc2c21bc7d03e0480892752c7b327](https://github.com/TwoZer00/FireLab/commit/0222afdb957bc2c21bc7d03e0480892752c7b327))
+
 ## <small>1.12.2 (2026-02-15)</small>
 
 * fix: use same JWT_SECRET from auth.js for socket validation ([2595bdf57f1ef4d919aa2bfda0fb9de098cf24ae](https://github.com/TwoZer00/FireLab/commit/2595bdf57f1ef4d919aa2bfda0fb9de098cf24ae))

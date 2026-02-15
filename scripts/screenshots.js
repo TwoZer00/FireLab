@@ -7,7 +7,7 @@ import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FRONTEND_URL = 'http://localhost:5173';
-const SCREENSHOTS_DIR = './docs/screenshots';
+const SCREENSHOTS_DIR = '../docs/screenshots';
 
 let backendProcess, frontendProcess;
 

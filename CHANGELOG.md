@@ -1,3 +1,8 @@
+## 1.6.0 (2026-02-15)
+
+* feat: add Docker deployment support with port ranges ([0f98a34a33b513268be6cd4db09810692ece202b](https://github.com/TwoZer00/FireLab/commit/0f98a34a33b513268be6cd4db09810692ece202b))
+* docs: update README with new features ([6ac8b3095449a0a35df6126509759e9af0313e07](https://github.com/TwoZer00/FireLab/commit/6ac8b3095449a0a35df6126509759e9af0313e07))
+
 ## 1.5.0 (2026-02-14)
 
 * feat: add data management, project deletion, and service selection ([cbd41110cf30282b7c3eca5d4bfef382bec5ea06](https://github.com/TwoZer00/FireLab/commit/cbd41110cf30282b7c3eca5d4bfef382bec5ea06))

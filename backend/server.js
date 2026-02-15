@@ -11,7 +11,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import archiver from 'archiver';
 import unzipper from 'unzipper';
-import { initAuth, authMiddleware } from './auth.js';
+import { initAuth, authMiddleware, JWT_SECRET } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -876,7 +876,6 @@ io.on('connection', (socket) => {
   
   if (token) {
     try {
-      const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
       const decoded = jwt.verify(token, JWT_SECRET);
       username = decoded.username;
     } catch (err) {

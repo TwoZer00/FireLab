@@ -9,7 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import archiver from 'archiver';
 import unzipper from 'unzipper';
-import { initAuth, authMiddleware, login } from './auth.js';
+import { initAuth, authMiddleware } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();

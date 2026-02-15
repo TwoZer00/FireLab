@@ -1,3 +1,10 @@
+## <small>1.10.1 (2026-02-15)</small>
+
+* fix: move screenshots to correct docs/screenshots location ([a030bc388f5a6e977d32df62925b44ef94cf496c](https://github.com/TwoZer00/FireLab/commit/a030bc388f5a6e977d32df62925b44ef94cf496c))
+* docs: add automated screenshot script ([9137751d972690feb65b26cf043c7c5327b9279e](https://github.com/TwoZer00/FireLab/commit/9137751d972690feb65b26cf043c7c5327b9279e))
+* docs: add screenshots to README and landing page ([7433de3ebea3cc7a0bee4320716c4f377f6069af](https://github.com/TwoZer00/FireLab/commit/7433de3ebea3cc7a0bee4320716c4f377f6069af))
+* docs: replace deprecated waitForTimeout with waitUntil ([7d6154155968201d8dc5cb0251abf80a8cbf7484](https://github.com/TwoZer00/FireLab/commit/7d6154155968201d8dc5cb0251abf80a8cbf7484))
+
 ## 1.10.0 (2026-02-15)
 
 * feat: move landing page to docs/ folder for GitHub Pages ([07011494bc8aa4e2532e15adde7f5b55e25ac3c2](https://github.com/TwoZer00/FireLab/commit/07011494bc8aa4e2532e15adde7f5b55e25ac3c2))

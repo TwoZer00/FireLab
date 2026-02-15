@@ -1,3 +1,7 @@
+## 1.12.0 (2026-02-15)
+
+* feat: implement JWT authentication in frontend ([f44d8196db0d47e5d28ba5dc383ad83bce222b8f](https://github.com/TwoZer00/FireLab/commit/f44d8196db0d47e5d28ba5dc383ad83bce222b8f))
+
 ## <small>1.11.1 (2026-02-15)</small>
 
 * fix: remove unused login import ([ef512777e5fb08603b893c4854e3be3eefdd3255](https://github.com/TwoZer00/FireLab/commit/ef512777e5fb08603b893c4854e3be3eefdd3255))

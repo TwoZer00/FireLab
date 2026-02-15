@@ -1,3 +1,7 @@
+## 1.10.0 (2026-02-15)
+
+* feat: move landing page to docs/ folder for GitHub Pages ([07011494bc8aa4e2532e15adde7f5b55e25ac3c2](https://github.com/TwoZer00/FireLab/commit/07011494bc8aa4e2532e15adde7f5b55e25ac3c2))
+
 ## 1.9.0 (2026-02-15)
 
 * feat: add landing page for GitHub Pages ([964e325e78b52e3161cd72a6b98174e14e35d5a6](https://github.com/TwoZer00/FireLab/commit/964e325e78b52e3161cd72a6b98174e14e35d5a6))

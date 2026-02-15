@@ -2,6 +2,23 @@
 
 A web-based platform to manage and configure Firebase emulators locally.
 
+## Screenshots
+
+### Dashboard
+![Dashboard](docs/screenshots/01-dashboard.png)
+
+### Project Setup
+![Project Setup](docs/screenshots/02-project-setup.png)
+
+### Emulator Running
+![Emulator Running](docs/screenshots/04-emulator-running.png)
+
+### Snapshots Manager
+![Snapshots](docs/screenshots/05-snapshots.png)
+
+### Rules Editor
+![Rules Editor](docs/screenshots/06-rules-editor.png)
+
 ## Prerequisites
 
 - Node.js (v18+)

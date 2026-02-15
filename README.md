@@ -10,14 +10,14 @@ A web-based platform to manage and configure Firebase emulators locally.
 ### Project Setup
 ![Project Setup](docs/screenshots/02-project-setup.png)
 
-### Emulator Running
-![Emulator Running](docs/screenshots/04-emulator-running.png)
+### Project Created
+![Project Created](docs/screenshots/03-project-created.png)
 
 ### Snapshots Manager
-![Snapshots](docs/screenshots/05-snapshots.png)
+![Snapshots](docs/screenshots/06-snapshots.png)
 
 ### Rules Editor
-![Rules Editor](docs/screenshots/06-rules-editor.png)
+![Rules Editor](docs/screenshots/07-rules-editor.png)
 
 ## Prerequisites
 

@@ -19,6 +19,7 @@ services:
       - firebase-cache:/root/.cache/firebase
     environment:
       - NODE_ENV=production
+      # - FIREBASE_TOKEN=your_token_here
     restart: unless-stopped
     networks:
       - firelab-network

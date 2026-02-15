@@ -144,9 +144,15 @@ app.post('/api/emulator/start', async (req, res) => {
       }
     }
 
+    const env = { ...process.env };
+    if (process.env.FIREBASE_TOKEN) {
+      env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
+    }
+
     emulatorProcess = spawn('firebase', args, {
       cwd: projectPath,
-      shell: true
+      shell: true,
+      env
     });
 
     emulatorProcess.stdout.on('data', (data) => {
@@ -373,7 +379,12 @@ app.post('/api/ports/check', async (req, res) => {
 // Check Firebase login status
 app.get('/api/auth/status', async (req, res) => {
   try {
-    const checkProcess = spawn('firebase', ['projects:list', '--json'], { shell: true });
+    const env = { ...process.env };
+    if (process.env.FIREBASE_TOKEN) {
+      env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
+    }
+
+    const checkProcess = spawn('firebase', ['projects:list', '--json'], { shell: true, env });
     
     let output = '';
     let errorOutput = '';
@@ -566,9 +577,15 @@ app.post('/api/deploy/:projectId/:type', async (req, res) => {
     else if (type === 'database') deployTarget = 'database';
     else return res.status(400).json({ error: 'Invalid rules type' });
 
+    const env = { ...process.env };
+    if (process.env.FIREBASE_TOKEN) {
+      env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
+    }
+
     const deployProcess = spawn('firebase', ['deploy', '--only', deployTarget], {
       cwd: projectPath,
-      shell: true
+      shell: true,
+      env
     });
 
     let output = '';

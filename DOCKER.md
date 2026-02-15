@@ -65,6 +65,51 @@ Images are automatically built and published on every release.
 
 ## Production Deployment
 
+### Firebase Authentication (Optional)
+
+Firebase login is **only required** for deploying rules to production. For local emulator development, no login needed.
+
+**Generate Firebase Token:**
+
+On a machine with browser access:
+```bash
+firebase login:ci
+```
+
+This generates a token like `1//abc123def456...`
+
+**Add Token to Docker:**
+
+Option 1 - Environment variable in docker-compose.yml:
+```yaml
+backend:
+  environment:
+    - NODE_ENV=production
+    - FIREBASE_TOKEN=1//abc123def456...
+```
+
+Option 2 - Use .env file (recommended):
+```bash
+echo "FIREBASE_TOKEN=1//abc123def456..." > .env
+```
+
+Then reference in docker-compose.yml:
+```yaml
+backend:
+  env_file:
+    - .env
+```
+
+Option 3 - Pass at runtime:
+```bash
+FIREBASE_TOKEN=1//abc123def456... docker-compose up -d
+```
+
+**Verify Login:**
+```bash
+docker-compose exec backend firebase projects:list
+```
+
 ### Environment Variables
 
 Create `.env` file in root:

@@ -58,8 +58,8 @@ docker-compose down
 
 Pre-built images are available on Docker Hub:
 
-- **Backend**: `docker pull twozer00/firelab-backend:latest`
-- **Frontend**: `docker pull twozer00/firelab-frontend:latest`
+- **Backend**: `docker pull leobardo21/firelab-backend:latest`
+- **Frontend**: `docker pull leobardo21/firelab-frontend:latest`
 
 Images are automatically built and published on every release.
 

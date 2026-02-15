@@ -1,0 +1,11 @@
+{
+  "name": "firelab-screenshots",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "screenshots": "node screenshots.js"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  }
+}

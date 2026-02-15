@@ -1,3 +1,10 @@
+## 1.8.0 (2026-02-15)
+
+* feat: add Firebase token authentication for Docker deployment ([bb388c0eb85947b5a79206e9f10fd0409e016acf](https://github.com/TwoZer00/FireLab/commit/bb388c0eb85947b5a79206e9f10fd0409e016acf))
+* ci: enable Docker image builds on master branch ([10aa9860aebd270e1ab202b827393575c54f0de8](https://github.com/TwoZer00/FireLab/commit/10aa9860aebd270e1ab202b827393575c54f0de8))
+* ci: optimize Docker workflow to skip builds for non-Docker changes ([4162e3fa9a800f0aba498a11688d7360a9b61c8e](https://github.com/TwoZer00/FireLab/commit/4162e3fa9a800f0aba498a11688d7360a9b61c8e))
+* Update DOCKER.md ([e9fadfc3f5694b135addf66a02c1fd4d62f96f7f](https://github.com/TwoZer00/FireLab/commit/e9fadfc3f5694b135addf66a02c1fd4d62f96f7f))
+
 ## 1.7.0 (2026-02-15)
 
 * feat: add Docker Hub image publishing ([7b5c87fa504141534b3bcdb82200e7d92face525](https://github.com/TwoZer00/FireLab/commit/7b5c87fa504141534b3bcdb82200e7d92face525))

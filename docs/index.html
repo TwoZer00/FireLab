@@ -15,11 +15,13 @@
     <meta property="og:description" content="Manage Firebase emulators with a beautiful web interface. Auto-snapshots, VS Code editor, real-time logs, and more.">
     <meta property="og:url" content="https://twozer00.github.io/FireLab/">
     <meta property="og:site_name" content="FireLab">
+    <meta property="og:image" content="https://twozer00.github.io/FireLab/screenshots/03-project-created.png">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="FireLab - Firebase Emulator Management Platform">
     <meta name="twitter:description" content="Manage Firebase emulators with a beautiful web interface. Auto-snapshots, VS Code editor, real-time logs, and more.">
+    <meta name="twitter:image" content="https://twozer00.github.io/FireLab/screenshots/03-project-created.png">
     
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
@@ -244,13 +246,122 @@
                 <a href="https://github.com/TwoZer00/FireLab" class="btn btn-secondary">View on GitHub</a>
             </div>
             <div style="margin-top: 60px; border-radius: 8px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
-                <img src="screenshots/03-project-created.png" alt="FireLab Dashboard" style="width: 100%; display: block;">
+                <img src="screenshots/03-project-created.png" alt="FireLab Dashboard showing Firebase emulator management interface with project setup, emulator controls, and real-time logs" style="width: 100%; display: block;">
+            </div>
+        </div>
+    </section>
+
+    <section style="padding: 60px 0; text-align: center;">
+        <div class="container">
+            <h2 style="font-size: 32px; margin-bottom: 30px; color: #58a6ff;">What is FireLab?</h2>
+            <div style="max-width: 800px; margin: 0 auto; font-size: 18px; color: #8b949e;">
+                <p style="margin-bottom: 20px;">FireLab replaces the Firebase CLI with a modern web dashboard. Instead of running <code style="background: #21262d; padding: 2px 6px; border-radius: 3px;">firebase emulators:start</code> in terminal, you get:</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px; text-align: left;">
+                    <div>✅ Visual project management</div>
+                    <div>✅ One-click emulator control</div>
+                    <div>✅ Automatic data snapshots</div>
+                    <div>✅ Built-in rules editor</div>
+                    <div>✅ Real-time log streaming</div>
+                    <div>✅ Remote access support</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section style="padding: 60px 0; background: #161b22;">
+        <div class="container">
+            <h2 style="text-align: center; font-size: 32px; margin-bottom: 50px;">Firebase CLI vs FireLab</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1000px; margin: 0 auto;">
+                <div style="background: #0d1117; padding: 30px; border-radius: 8px; border: 1px solid #30363d;">
+                    <h3 style="color: #f85149; margin-bottom: 20px; text-align: center;">🔥 Firebase CLI</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 10px; color: #8b949e;">❌ Terminal commands only</li>
+                        <li style="margin-bottom: 10px; color: #8b949e;">❌ No data persistence</li>
+                        <li style="margin-bottom: 10px; color: #8b949e;">❌ Manual snapshot management</li>
+                        <li style="margin-bottom: 10px; color: #8b949e;">❌ Basic text editor for rules</li>
+                        <li style="margin-bottom: 10px; color: #8b949e;">❌ Logs mixed with terminal output</li>
+                        <li style="margin-bottom: 10px; color: #8b949e;">❌ Local machine only</li>
+                        <li style="margin-bottom: 10px; color: #8b949e;">❌ No project templates</li>
+                    </ul>
+                </div>
+                <div style="background: #0d1117; padding: 30px; border-radius: 8px; border: 1px solid #58a6ff;">
+                    <h3 style="color: #58a6ff; margin-bottom: 20px; text-align: center;">🚀 FireLab</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 10px; color: #c9d1d9;">✅ Beautiful web interface</li>
+                        <li style="margin-bottom: 10px; color: #c9d1d9;">✅ Auto-snapshots every 15min</li>
+                        <li style="margin-bottom: 10px; color: #c9d1d9;">✅ One-click restore/backup</li>
+                        <li style="margin-bottom: 10px; color: #c9d1d9;">✅ VS Code editor with syntax highlighting</li>
+                        <li style="margin-bottom: 10px; color: #c9d1d9;">✅ Real-time filtered logs</li>
+                        <li style="margin-bottom: 10px; color: #c9d1d9;">✅ Remote backend support</li>
+                        <li style="margin-bottom: 10px; color: #c9d1d9;">✅ Project templates & seed data</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section style="padding: 60px 0;">
+        <div class="container">
+            <h2 style="text-align: center; font-size: 32px; margin-bottom: 50px;">Why FireLab?</h2>
+            <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-bottom: 40px;">
+                    <div style="background: #161b22; padding: 25px; border-radius: 8px; border: 1px solid #30363d;">
+                        <h3 style="color: #f85149; margin-bottom: 15px;">🔥 Firebase Console</h3>
+                        <p style="color: #8b949e; font-size: 14px;">Production only. No local development tools.</p>
+                    </div>
+                    <div style="background: #161b22; padding: 25px; border-radius: 8px; border: 1px solid #30363d;">
+                        <h3 style="color: #f85149; margin-bottom: 15px;">⚡ Firebase CLI</h3>
+                        <p style="color: #8b949e; font-size: 14px;">Terminal only. No GUI, snapshots, or visual management.</p>
+                    </div>
+                    <div style="background: #161b22; padding: 25px; border-radius: 8px; border: 1px solid #58a6ff;">
+                        <h3 style="color: #58a6ff; margin-bottom: 15px;">🚀 FireLab</h3>
+                        <p style="color: #c9d1d9; font-size: 14px;">Complete local development platform with GUI.</p>
+                    </div>
+                </div>
+                <p style="font-size: 18px; color: #8b949e;">FireLab is the <strong style="color: #58a6ff;">only tool</strong> that provides a complete web-based Firebase emulator management experience. No alternatives exist.</p>
+            </div>
+        </div>
+    </section>
+
+    <section style="padding: 60px 0; background: #0d1117;">
+        <div class="container">
+            <h2 style="text-align: center; font-size: 32px; margin-bottom: 50px;">Solve Your Firebase Development Pain Points</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1000px; margin: 0 auto;">
+                <div style="background: #161b22; padding: 25px; border-radius: 8px; border-left: 4px solid #f85149;">
+                    <h3 style="color: #f85149; margin-bottom: 15px;">😫 "I lost all my test data"</h3>
+                    <p style="color: #8b949e; margin-bottom: 10px;">Emulator restarts = data gone</p>
+                    <p style="color: #58a6ff; font-size: 14px;">→ Auto-snapshots every 15min + manual backups</p>
+                </div>
+                <div style="background: #161b22; padding: 25px; border-radius: 8px; border-left: 4px solid #f85149;">
+                    <h3 style="color: #f85149; margin-bottom: 15px;">😩 "Terminal commands are tedious"</h3>
+                    <p style="color: #8b949e; margin-bottom: 10px;">Typing firebase commands repeatedly</p>
+                    <p style="color: #58a6ff; font-size: 14px;">→ One-click start/stop with Ctrl+E shortcut</p>
+                </div>
+                <div style="background: #161b22; padding: 25px; border-radius: 8px; border-left: 4px solid #f85149;">
+                    <h3 style="color: #f85149; margin-bottom: 15px;">😵 "Rules editing is painful"</h3>
+                    <p style="color: #8b949e; margin-bottom: 10px;">No syntax highlighting, no autocomplete</p>
+                    <p style="color: #58a6ff; font-size: 14px;">→ VS Code editor with validation & history</p>
+                </div>
+                <div style="background: #161b22; padding: 25px; border-radius: 8px; border-left: 4px solid #f85149;">
+                    <h3 style="color: #f85149; margin-bottom: 15px;">😐 "Logs are messy"</h3>
+                    <p style="color: #8b949e; margin-bottom: 10px;">Mixed with terminal output, hard to filter</p>
+                    <p style="color: #58a6ff; font-size: 14px;">→ Clean real-time logs with service filtering</p>
+                </div>
+                <div style="background: #161b22; padding: 25px; border-radius: 8px; border-left: 4px solid #f85149;">
+                    <h3 style="color: #f85149; margin-bottom: 15px;">😤 "Can't share with team"</h3>
+                    <p style="color: #8b949e; margin-bottom: 10px;">Everyone needs local setup</p>
+                    <p style="color: #58a6ff; font-size: 14px;">→ Remote backend - share one emulator instance</p>
+                </div>
+                <div style="background: #161b22; padding: 25px; border-radius: 8px; border-left: 4px solid #f85149;">
+                    <h3 style="color: #f85149; margin-bottom: 15px;">😭 "Setting up test data takes forever"</h3>
+                    <p style="color: #8b949e; margin-bottom: 10px;">Manual data entry every time</p>
+                    <p style="color: #58a6ff; font-size: 14px;">→ Seed scripts + snapshot restore in seconds</p>
+                </div>
             </div>
         </div>
     </section>
 
     <section class="features" id="features">
-        <div class="container">
             <h2>Powerful Features</h2>
             <div class="feature-grid">
                 <div class="feature-card">

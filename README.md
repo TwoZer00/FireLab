@@ -33,7 +33,7 @@ A web-based platform to manage and configure Firebase emulators locally.
 # Pull and run the latest image
 docker run -d \
   -v firelab-projects:/app/firebase-projects \
-  --name firelab twozer00/firelab:latest
+  --name firelab leobardo21/firelab:latest
 ```
 
 **What this does:**

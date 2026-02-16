@@ -419,7 +419,12 @@
             <h2>Quick Start</h2>
             <div class="code-block">
                 <button class="copy-btn" onclick="copyCode()">Copy</button>
-                <pre id="code"># Using Docker (Recommended)
+                <pre id="code"># Using Docker Hub (Easiest)
+docker run -d -p 3001:3001 -p 4000:4000 -p 5173:5173 \
+  -v firelab-projects:/app/firebase-projects \
+  --name firelab twozer00/firelab:latest
+
+# Using Docker Compose
 docker-compose -f docker-compose.prod.yml up -d
 
 # Or install locally

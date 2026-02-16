@@ -174,6 +174,35 @@ npm run dev
 
 **Firewall Note:** Ensure ports 3001, 4000, and emulator ports (9099, 8080, etc.) are open on the backend machine.
 
+## Authentication
+
+FireLab uses JWT-based authentication to secure the web interface.
+
+### First Time Setup
+
+1. **Generate Access Token:**
+   ```bash
+   cd backend
+   node generate-token.js
+   ```
+   This creates a secure JWT token for accessing the interface.
+
+2. **Access the Interface:**
+   - Open http://localhost (Docker) or http://localhost:5173 (local)
+   - Enter the generated token when prompted
+   - Token is saved in browser localStorage
+
+### Token Management
+
+- **View existing tokens:** Check `backend/tokens.json`
+- **Generate new token:** Run `node generate-token.js` again
+- **Revoke access:** Delete `backend/tokens.json` and restart backend
+- **Multiple tokens:** Generate separate tokens for team members
+- **Token expiration:** Tokens don't expire but can be revoked
+- **Secure storage:** Tokens stored as hashed values in backend
+
+**Security Note:** Keep your access token secure. Anyone with the token can manage your Firebase emulators.
+
 ## Usage
 
 ### Quick Start
@@ -211,7 +240,7 @@ npm run dev
 - Keeps last 5 auto-snapshots (older ones deleted)
 - Toggle on/off in Emulator Controls
 
-**Create Snapshot:****
+**Create Snapshot:**
 - Emulator must be running
 - Click "📸 Create Snapshot"
 - Optionally name it (e.g., "before-migration", "test-data")
@@ -224,12 +253,14 @@ npm run dev
 
 **Download Snapshot:**
 - Click ⬇️ button on any snapshot
-- Downloads as ZIP file
-- Share with team or backup
+- Downloads as ZIP file containing all emulator data
+- Share with team or create backups
+- Includes Firestore, Auth, Storage, and Database data
 
-**Delete Snapshot:****
+**Delete Snapshot:**
 - Click 🗑️ button on any snapshot
 - Confirm deletion (cannot be undone)
+- Safety confirmation prevents accidental deletion
 
 ### Importing Existing Projects
 
@@ -253,9 +284,11 @@ Currently not supported. Requires `firebase login` on backend machine.
 **Seed Data:**
 - Click "🌱 Seed Data" while emulator is running
 - Write Node.js script to populate test data
+- **Pre-built templates** with Firebase Admin SDK examples
 - Use Firebase Admin SDK or REST API
-- Output shows in logs
-- Example template provided
+- Output shows in logs with real-time feedback
+- **Example templates** for users, posts, and common data structures
+- Save custom seed scripts for reuse
 
 ### Project Management
 
@@ -269,16 +302,32 @@ Currently not supported. Requires `firebase login` on backend machine.
 
 1. Click rule file button (e.g., "firestore")
 2. Edit rules in Monaco Editor (VS Code editor)
-3. View rules history (last 20 versions)
-4. Test rules with basic simulator
-5. Save locally with `Ctrl+S`
-6. Deploy to production (requires `firebase login` on backend)
+3. **Real-time validation** - Syntax errors shown instantly
+4. **Rules tester** - Test ALLOW/DENY with simulated requests
+5. **Version history** - View and restore from last 20 versions
+6. **JSONC support** - Database rules support comments
+7. Save locally with `Ctrl+S`
+8. Deploy to production (requires `firebase login` on backend)
+
+**Rules Tester:**
+- Enter path (e.g., `/users/123`)
+- Select operation (read/write)
+- Add auth UID (optional)
+- Click "Test" to simulate rule evaluation
+
+**Version History:**
+- Automatic versioning on each save
+- One-click restore to previous versions
+- Timestamp tracking for all changes
 
 ### Log Filtering
 
-- **Search**: Type in search box to filter logs
+- **Search**: Type in search box to filter logs by content
 - **Service Filter**: Select specific service (Auth, Firestore, etc.)
+- **Auto-scroll Toggle**: Enable/disable automatic scrolling
+- **ANSI Colors**: Full terminal color support
 - **Clear**: Press `Ctrl+L` or click "Clear Logs"
+- **Copy URLs**: Click 📋 to copy service URLs
 
 ### Connection Status
 
@@ -389,6 +438,32 @@ firebase login
 ```
 
 The UI will show login status and disable deploy button when not logged in.
+
+## Advanced Features
+
+### Port Conflict Detection
+- **Automatic detection** of port conflicts before starting
+- **Smart suggestions** for alternative ports
+- **Auto-fix option** to resolve conflicts instantly
+- **Range allocation** for multiple emulator instances
+
+### Debug Mode
+- Toggle in Emulator Controls
+- Shows detailed rules evaluation
+- Displays internal emulator operations
+- Helpful for troubleshooting rule issues
+
+### Connection Status
+- **Real-time indicators** for all services
+- **Backend connection status** with reconnection
+- **Service health monitoring** with port information
+- **One-click URL copying** for easy sharing
+
+### Safety Features
+- **Danger Zone** UI for destructive operations
+- **Multiple confirmations** for data deletion
+- **Backup prompts** before major changes
+- **Undo protection** with clear warnings
 
 ## Troubleshooting
 

@@ -25,6 +25,54 @@ A web-based platform to manage and configure Firebase emulators locally.
 - Firebase CLI: `npm install -g firebase-tools`
 - Firebase account (optional - only needed for deploying rules to production)
 
+## Quick Start with Docker
+
+### Option 1: Docker Hub (Recommended)
+
+```bash
+# Pull and run the latest image
+docker run -d \
+  -v firelab-projects:/app/firebase-projects \
+  --name firelab twozer00/firelab:latest
+```
+
+**What this does:**
+- Downloads the pre-built FireLab image from Docker Hub
+- Creates a persistent volume for your Firebase projects
+- Exposes all necessary ports automatically
+- Runs both frontend and backend in a single container
+
+**Access URLs:**
+- Frontend: http://localhost
+- Backend API: http://localhost:3001
+- Firebase Emulator UI: http://localhost:4000 (when emulator is running)
+
+### Option 2: Docker Compose
+
+```bash
+# Clone the repository first
+git clone https://github.com/TwoZer00/FireLab.git
+cd FireLab
+
+# Run with Docker Compose
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+**Docker Management:**
+```bash
+# Stop the container
+docker stop firelab
+
+# Start existing container
+docker start firelab
+
+# View logs
+docker logs firelab
+
+# Remove container (keeps volume)
+docker rm firelab
+```
+
 ## Setup
 
 ### Full Setup (Both Backend & Frontend)

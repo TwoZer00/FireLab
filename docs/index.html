@@ -417,20 +417,27 @@
     <section class="install" id="install">
         <div class="container">
             <h2>Quick Start</h2>
+            
+            <h3 style="color: #58a6ff; margin-bottom: 15px; margin-top: 30px;">🐳 Docker Hub (Easiest)</h3>
             <div class="code-block">
-                <button class="copy-btn" onclick="copyCode()">Copy</button>
-                <pre id="code"># Using Docker Hub (Easiest)
-docker run -d \
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>docker run -d \
   -v firelab-projects:/app/firebase-projects \
-  --name firelab leobardo21/firelab:latest
-
-# Using Docker Compose
-git clone https://github.com/TwoZer00/FireLab.git
+  --name firelab leobardo21/firelab:latest</pre>
+            </div>
+            
+            <h3 style="color: #58a6ff; margin-bottom: 15px; margin-top: 30px;">📦 Docker Compose</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>git clone https://github.com/TwoZer00/FireLab.git
 cd FireLab
-docker-compose -f docker-compose.prod.yml up -d
-
-# Or install locally
-git clone https://github.com/TwoZer00/FireLab.git
+docker-compose -f docker-compose.prod.yml up -d</pre>
+            </div>
+            
+            <h3 style="color: #58a6ff; margin-bottom: 15px; margin-top: 30px;">💻 Local Install</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>git clone https://github.com/TwoZer00/FireLab.git
 cd FireLab
 cd backend && npm install
 cd ../frontend && npm install
@@ -447,12 +454,12 @@ npm run dev</pre>
     </footer>
 
     <script>
-        function copyCode() {
-            const code = document.getElementById('code').textContent;
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling;
+            const code = codeBlock.textContent;
             navigator.clipboard.writeText(code).then(() => {
-                const btn = document.querySelector('.copy-btn');
-                btn.textContent = 'Copied!';
-                setTimeout(() => btn.textContent = 'Copy', 2000);
+                button.textContent = 'Copied!';
+                setTimeout(() => button.textContent = 'Copy', 2000);
             });
         }
     </script>

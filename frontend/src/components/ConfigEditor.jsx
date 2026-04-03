@@ -1,5 +1,5 @@
 function ConfigEditor({ config, availableRules, onUpdatePort, onSave, onLoadRules }) {
-  if (!config) return null;
+  if (!config?.emulators) return null;
 
   return (
     <div className="section">

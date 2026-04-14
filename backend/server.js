@@ -62,6 +62,10 @@ app.post('/api/init', async (req, res) => {
 
     if (services?.firestore) {
       await writeFile(
+        path.join(projectPath, 'firestore.indexes.json'),
+        JSON.stringify({ indexes: [], fieldOverrides: [] }, null, 2)
+      );
+      await writeFile(
         path.join(projectPath, 'firestore.rules'),
         `rules_version = '2';
 service cloud.firestore {
@@ -848,6 +852,160 @@ app.post('/api/seed/:projectId', async (req, res) => {
     });
 
     res.json({ success: true, message: 'Seed script started' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Fetch deployed rules from Firebase production
+app.get('/api/fetch-rules/:projectId/:type', async (req, res) => {
+  const { projectId, type } = req.params;
+  const projectPath = path.join(projectsDir, projectId);
+
+  try {
+    const env = { ...process.env };
+    if (process.env.FIREBASE_TOKEN) {
+      env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
+    }
+
+    let args;
+    if (type === 'firestore') {
+      args = ['firestore:rules:get', '--json'];
+    } else if (type === 'storage') {
+      args = ['storage:rules:get', '--json'];
+    } else if (type === 'database') {
+      args = ['database:get', '/.settings/rules', '--json'];
+    } else {
+      return res.status(400).json({ error: 'Invalid rules type' });
+    }
+
+    const fetchProcess = spawn('firebase', args, {
+      cwd: projectPath,
+      shell: true,
+      env
+    });
+
+    let output = '';
+    let errorOutput = '';
+
+    fetchProcess.stdout.on('data', (data) => { output += data.toString(); });
+    fetchProcess.stderr.on('data', (data) => { errorOutput += data.toString(); });
+
+    fetchProcess.on('close', (code) => {
+      if (code === 0) {
+        try {
+          const parsed = JSON.parse(output);
+          // Firebase CLI --json wraps result in { status, result }
+          const rules = parsed.result || parsed;
+          res.json({ rules: typeof rules === 'string' ? rules : JSON.stringify(rules, null, 2) });
+        } catch {
+          // If not JSON, return raw output (e.g. firestore/storage rules are plain text)
+          res.json({ rules: output.trim() });
+        }
+      } else {
+        io.emit('logs', `❌ Failed to fetch ${type} rules from Firebase`);
+        res.status(500).json({ error: errorOutput || 'Failed to fetch rules' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Fetch deployed indexes from Firebase production
+app.get('/api/fetch-indexes/:projectId', async (req, res) => {
+  const { projectId } = req.params;
+  const projectPath = path.join(projectsDir, projectId);
+
+  try {
+    const env = { ...process.env };
+    if (process.env.FIREBASE_TOKEN) {
+      env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
+    }
+
+    const fetchProcess = spawn('firebase', ['firestore:indexes', '--json'], {
+      cwd: projectPath,
+      shell: true,
+      env
+    });
+
+    let output = '';
+    let errorOutput = '';
+
+    fetchProcess.stdout.on('data', (data) => { output += data.toString(); });
+    fetchProcess.stderr.on('data', (data) => { errorOutput += data.toString(); });
+
+    fetchProcess.on('close', (code) => {
+      if (code === 0) {
+        try {
+          const parsed = JSON.parse(output);
+          const indexes = parsed.result || parsed;
+          res.json({ indexes: typeof indexes === 'string' ? indexes : JSON.stringify(indexes, null, 2) });
+        } catch {
+          res.json({ indexes: output.trim() });
+        }
+      } else {
+        io.emit('logs', '❌ Failed to fetch indexes from Firebase');
+        res.status(500).json({ error: errorOutput || 'Failed to fetch indexes' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get Firestore indexes
+app.get('/api/indexes/:projectId', async (req, res) => {
+  const { projectId } = req.params;
+  const indexesPath = path.join(projectsDir, projectId, 'firestore.indexes.json');
+  try {
+    if (!existsSync(indexesPath)) {
+      return res.json({ indexes: [], fieldOverrides: [] });
+    }
+    const data = await readFile(indexesPath, 'utf-8');
+    res.json(JSON.parse(data));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Save Firestore indexes
+app.put('/api/indexes/:projectId', async (req, res) => {
+  const { projectId } = req.params;
+  const { indexes } = req.body;
+  const indexesPath = path.join(projectsDir, projectId, 'firestore.indexes.json');
+  try {
+    await writeFile(indexesPath, indexes);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Deploy Firestore indexes
+app.post('/api/deploy-indexes/:projectId', async (req, res) => {
+  const { projectId } = req.params;
+  const projectPath = path.join(projectsDir, projectId);
+  try {
+    const env = { ...process.env };
+    if (process.env.FIREBASE_TOKEN) {
+      env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
+    }
+    const deployProcess = spawn('firebase', ['deploy', '--only', 'firestore:indexes'], {
+      cwd: projectPath,
+      shell: true,
+      env
+    });
+    deployProcess.stdout.on('data', (data) => io.emit('logs', data.toString()));
+    deployProcess.stderr.on('data', (data) => io.emit('logs', data.toString()));
+    deployProcess.on('close', (code) => {
+      if (code === 0) {
+        io.emit('logs', '✅ Firestore indexes deployed successfully');
+      } else {
+        io.emit('logs', `❌ Index deploy failed with code ${code}`);
+      }
+    });
+    res.json({ success: true, message: 'Index deployment started' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

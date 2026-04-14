@@ -20,6 +20,7 @@ function RulesEditor({
   const [testOperation, setTestOperation] = useState('read');
   const [testAuth, setTestAuth] = useState('');
   const [testResult, setTestResult] = useState(null);
+  const [fetching, setFetching] = useState(false);
 
   useEffect(() => {
     loadHistory();
@@ -163,12 +164,35 @@ function RulesEditor({
     <div className="section" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <h2>Edit {rulesType.charAt(0).toUpperCase() + rulesType.slice(1)} Rules</h2>
       
-      <div style={{ marginBottom: '10px', display: 'flex', gap: '10px', flexShrink: 0 }}>
+      <div style={{ marginBottom: '10px', display: 'flex', gap: '10px', flexShrink: 0, flexWrap: 'wrap' }}>
         <button onClick={() => setShowHistory(!showHistory)} style={{ padding: '4px 8px', fontSize: '12px' }}>
           {showHistory ? 'Hide' : 'Show'} History ({history.length})
         </button>
         <button onClick={() => setShowTester(!showTester)} style={{ padding: '4px 8px', fontSize: '12px' }}>
           {showTester ? 'Hide' : 'Show'} Tester
+        </button>
+        <button
+          onClick={async () => {
+            if (!confirm('Fetch production rules? This will replace your current editor content.')) return;
+            setFetching(true);
+            try {
+              const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/fetch-rules/${projectId}/${rulesType}`, { headers: getHeaders() });
+              if (res.ok) {
+                const data = await res.json();
+                setRulesContent(data.rules);
+              } else {
+                alert('Failed to fetch rules. Make sure you are logged into Firebase.');
+              }
+            } catch (err) {
+              alert('Failed to fetch rules: ' + err.message);
+            }
+            setFetching(false);
+          }}
+          disabled={!firebaseLoggedIn || fetching}
+          style={{ padding: '4px 8px', fontSize: '12px', background: firebaseLoggedIn ? '#1f6feb' : '#21262d' }}
+          title={!firebaseLoggedIn ? 'Firebase login required' : 'Fetch deployed rules from production'}
+        >
+          {fetching ? '⏳ Fetching...' : '⬇️ Fetch from Firebase'} {!firebaseLoggedIn && '🔒'}
         </button>
       </div>
 

@@ -6,6 +6,7 @@ import ProjectActions from './components/ProjectActions';
 import EmulatorControls from './components/EmulatorControls';
 import ConfigEditor from './components/ConfigEditor';
 import RulesEditor from './components/RulesEditor';
+import IndexesEditor from './components/IndexesEditor';
 import LogsViewer from './components/LogsViewer';
 import SnapshotsManager from './components/SnapshotsManager';
 import ConnectionStatus from './components/ConnectionStatus';
@@ -29,6 +30,7 @@ function App() {
   const [existingProjects, setExistingProjects] = useState([]);
   const [autoScroll, setAutoScroll] = useState(true);
   const [showRules, setShowRules] = useState(false);
+  const [showIndexes, setShowIndexes] = useState(false);
   const [rulesType, setRulesType] = useState('firestore');
   const [rulesContent, setRulesContent] = useState('');
   const [availableRules, setAvailableRules] = useState([]);
@@ -585,7 +587,7 @@ function App() {
       setRulesContent(data.rules);
       setRulesType(type);
       setShowRules(true);
-      // Check Firebase auth to enable/disable deploy button
+      setShowIndexes(false);
       checkFirebaseAuth();
     } else {
       alert('Rules file not found');
@@ -691,6 +693,7 @@ function App() {
                     onUpdatePort={updatePort}
                     onSave={saveConfig}
                     onLoadRules={loadRules}
+                    onLoadIndexes={() => { setShowIndexes(true); setShowRules(false); checkFirebaseAuth(); }}
                   />
 
                   {isRunning && (
@@ -736,6 +739,13 @@ function App() {
               firebaseLoggedIn={firebaseLoggedIn}
               projectId={projectId}
               getHeaders={getHeaders}
+            />
+          ) : showIndexes ? (
+            <IndexesEditor
+              projectId={projectId}
+              getHeaders={getHeaders}
+              onClose={() => setShowIndexes(false)}
+              firebaseLoggedIn={firebaseLoggedIn}
             />
           ) : (
             <LogsViewer

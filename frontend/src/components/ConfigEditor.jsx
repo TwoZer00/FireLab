@@ -1,4 +1,4 @@
-function ConfigEditor({ config, availableRules, onUpdatePort, onSave, onLoadRules }) {
+function ConfigEditor({ config, availableRules, onUpdatePort, onSave, onLoadRules, onLoadIndexes }) {
   if (!config?.emulators) return null;
 
   return (
@@ -27,6 +27,12 @@ function ConfigEditor({ config, availableRules, onUpdatePort, onSave, onLoadRule
               {rule.charAt(0).toUpperCase() + rule.slice(1)}
             </button>
           ))}
+        </div>
+      )}
+      {config.emulators?.firestore && (
+        <div style={{ marginTop: '10px' }}>
+          <label>Indexes: </label>
+          <button onClick={onLoadIndexes}>📇 Firestore Indexes</button>
         </div>
       )}
     </div>

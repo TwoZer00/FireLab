@@ -43,6 +43,18 @@ jobs:
             echo "TAG=latest" >> $GITHUB_OUTPUT
           fi
 
+      - name: Build and push combined image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/firelab:latest
+            ${{ secrets.DOCKER_USERNAME }}/firelab:${{ steps.version.outputs.VERSION }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/firelab:latest
+          cache-to: type=inline
+
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
@@ -70,6 +82,8 @@ jobs:
       - name: Create release summary
         run: |
           echo "## Docker Images Published 🐳" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Combined: \`docker pull ${{ secrets.DOCKER_USERNAME }}/firelab:${{ steps.version.outputs.VERSION }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Backend: \`docker pull ${{ secrets.DOCKER_USERNAME }}/firelab-backend:${{ steps.version.outputs.VERSION }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

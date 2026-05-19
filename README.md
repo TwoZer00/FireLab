@@ -32,6 +32,13 @@ A web-based platform to manage and configure Firebase emulators locally.
 ```bash
 # Pull and run the latest image
 docker run -d \
+  -p 3001:3001 \
+  -p 4000-4010:4000-4010 \
+  -p 5000-5010:5000-5010 \
+  -p 8080-8090:8080-8090 \
+  -p 9000-9010:9000-9010 \
+  -p 9099-9109:9099-9109 \
+  -p 9199-9209:9199-9209 \
   -v firelab-projects:/app/firebase-projects \
   --name firelab leobardo21/firelab:latest
 ```
@@ -39,12 +46,12 @@ docker run -d \
 **What this does:**
 - Downloads the pre-built FireLab image from Docker Hub
 - Creates a persistent volume for your Firebase projects
-- Exposes all necessary ports automatically
-- Runs both frontend and backend in a single container
+- Runs both frontend and backend in a single container on port 3001
+- Includes a built-in healthcheck
 
 **Access URLs:**
-- Frontend: http://localhost
-- Backend API: http://localhost:3001
+- FireLab UI: http://localhost:3001
+- Backend API: http://localhost:3001/api
 - Firebase Emulator UI: http://localhost:4000 (when emulator is running)
 
 ### Option 2: Docker Compose
@@ -81,13 +88,8 @@ docker rm firelab
 git clone <your-repo-url>
 cd firelab
 
-# Install backend
-cd backend
-npm install
-
-# Install frontend
-cd ../frontend
-npm install
+# Install all dependencies (backend + frontend)
+npm run setup
 ```
 
 ### Backend Only (For Remote Machine)
@@ -122,25 +124,37 @@ npm install
 
 ## Running the Application
 
-### Option 1: Local Development (Same Machine)
+### Option 1: Unified Mode (Recommended)
 
-### Start Backend (Terminal 1)
+Build the frontend and serve everything from the backend on a single port:
+
+```bash
+npm run build    # Build frontend
+npm start        # Start server (serves API + frontend)
+```
+Access at: http://localhost:3001
+
+### Option 2: Development Mode (Separate Processes)
+
+#### Start Backend (Terminal 1)
 ```bash
 cd backend
 npm run dev
 ```
-Backend runs on: http://localhost:3001
+Backend API runs on: http://localhost:3001
 
-### Start Frontend (Terminal 2)
+#### Start Frontend (Terminal 2)
 ```bash
 cd frontend
 npm run dev
 ```
-Frontend runs on: http://localhost:5173
+Frontend dev server runs on: http://localhost:5173
+
+The frontend port is configurable via `VITE_PORT` in `frontend/.env`.
 
 ---
 
-### Option 2: Remote Emulator (Different Machine)
+### Option 3: Remote Emulator (Different Machine)
 
 **On Backend Machine (where emulators run):**
 
@@ -150,8 +164,7 @@ Frontend runs on: http://localhost:5173
 
 2. Start backend:
 ```bash
-cd backend
-npm run dev
+npm start
 ```
 
 **On Frontend Machine (where you access the UI):**
@@ -180,22 +193,28 @@ FireLab uses JWT-based authentication to secure the web interface.
 
 ### First Time Setup
 
-1. **Generate Access Token:**
+1. **Generate Access Token** (choose one method):
+
+   **Method A: Interactive CLI (while server is running)**
+   ```
+   Type "token" in the server console, then enter a username.
+   ```
+
+   **Method B: Script**
    ```bash
    cd backend
    node generate-token.js
    ```
-   This creates a secure JWT token for accessing the interface.
 
 2. **Access the Interface:**
-   - Open http://localhost (Docker) or http://localhost:5173 (local)
+   - Open http://localhost:3001
    - Enter the generated token when prompted
    - Token is saved in browser localStorage
 
 ### Token Management
 
 - **View existing tokens:** Check `backend/tokens.json`
-- **Generate new token:** Run `node generate-token.js` again
+- **Generate new token:** Use the `token` CLI command or run `node generate-token.js`
 - **Revoke access:** Delete `backend/tokens.json` and restart backend
 - **Multiple tokens:** Generate separate tokens for team members
 - **Token expiration:** Tokens don't expire but can be revoked
@@ -349,10 +368,17 @@ When emulator is running, view:
 
 ```
 firelab/
+├── Dockerfile                  # Unified multi-stage build (frontend + backend)
+├── docker-compose.yml          # Dev Docker Compose
+├── docker-compose.prod.yml     # Production Docker Compose
+├── package.json                # Root scripts (start, build, setup)
 ├── backend/                    # Express API + Firebase CLI wrapper
-│   ├── server.js              # Main server with Socket.io
+│   ├── server.js              # Main server with Socket.io + static frontend
+│   ├── auth.js                # JWT authentication
+│   ├── generate-token.js      # Token generation script
 │   └── package.json
 ├── frontend/                   # React + Vite UI
+│   ├── .env.example           # Environment variables template
 │   └── src/
 │       ├── App.jsx            # Main dashboard component
 │       ├── components/        # React components
@@ -412,6 +438,8 @@ firelab/
 ✅ Deploy rules to production (requires Firebase login)
 
 ### Developer Experience
+✅ Unified single-container deployment (frontend + backend on one port)
+✅ Interactive CLI for token generation
 ✅ Customizable service selection per project
 ✅ Port conflict detection with auto-fix
 ✅ Debug mode toggle (shows rules evaluation)
@@ -422,6 +450,8 @@ firelab/
 ✅ Dark GitHub-inspired theme
 ✅ Responsive design (mobile-friendly)
 ✅ Project deletion with safety checks
+✅ Configurable CORS origins via `CORS_ORIGINS` env var
+✅ Docker healthcheck for container orchestration
 
 ## Firebase Login (Optional)
 
@@ -465,6 +495,16 @@ The UI will show login status and disable deploy button when not logged in.
 - **Backup prompts** before major changes
 - **Undo protection** with clear warnings
 
+## Environment Variables
+
+| Variable | Location | Default | Description |
+|----------|----------|---------|-------------|
+| `VITE_API_URL` | `frontend/.env` | `http://localhost:3001` | Backend API URL |
+| `VITE_PORT` | `frontend/.env` | `5173` | Frontend dev server port |
+| `CORS_ORIGINS` | Backend env | `http://localhost:5173,http://localhost:3001` | Comma-separated allowed origins |
+| `NODE_ENV` | Backend env | - | Set to `production` for prod builds |
+| `FIREBASE_TOKEN` | Backend env | - | Firebase CI token (optional) |
+
 ## Troubleshooting
 
 **Emulator won't start:**
@@ -476,6 +516,7 @@ The UI will show login status and disable deploy button when not logged in.
 - Verify backend is running on port 3001
 - Check `.env` file has correct `VITE_API_URL`
 - Ensure firewall allows connections
+- Check `CORS_ORIGINS` includes your frontend URL
 
 **Deploy button disabled:**
 - Run `firebase login` on backend machine

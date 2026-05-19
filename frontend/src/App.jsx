@@ -13,8 +13,8 @@ import ConnectionStatus from './components/ConnectionStatus';
 import DataManager from './components/DataManager';
 import './App.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-const EMULATOR_HOST = API_URL.replace(':3001', ':4000');
+const API_URL = import.meta.env.VITE_API_URL || '';
+const EMULATOR_HOST = (API_URL || window.location.origin).replace(':3001', ':4000');
 
 function App() {
   const socketRef = useRef(null);

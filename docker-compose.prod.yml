@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
-  backend:
-    image: twozer00/firelab-backend:latest
-    container_name: firelab-backend
+  firelab:
+    image: leobardo21/firelab:latest
+    container_name: firelab
     ports:
-      - "3001:3001"           # Backend API
+      - "3001:3001"           # Backend API + Frontend
       - "4000-4010:4000-4010" # Emulator UI range
       - "5000-5010:5000-5010" # Hosting range
       - "8080-8090:8080-8090" # Firestore range
@@ -13,31 +11,18 @@ services:
       - "9099-9109:9099-9109" # Auth range
       - "9199-9209:9199-9209" # Storage range
     volumes:
-      - ./firebase-projects:/app/firebase-projects
+      - firelab-projects:/app/firebase-projects
       - firebase-cache:/root/.cache/firebase
     environment:
       - NODE_ENV=production
       # - FIREBASE_TOKEN=your_token_here
     restart: unless-stopped
-    networks:
-      - firelab-network
-
-  frontend:
-    image: twozer00/firelab-frontend:latest
-    container_name: firelab-frontend
-    ports:
-      - "80:80"
-    environment:
-      - VITE_API_URL=http://localhost:3001
-    depends_on:
-      - backend
-    restart: unless-stopped
-    networks:
-      - firelab-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/emulator/status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
+  firelab-projects:
   firebase-cache:
-
-networks:
-  firelab-network:
-    driver: bridge

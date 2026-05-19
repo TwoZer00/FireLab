@@ -11,15 +11,21 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import archiver from 'archiver';
 import unzipper from 'unzipper';
-import { initAuth, authMiddleware, JWT_SECRET } from './auth.js';
+import { initAuth, authMiddleware, JWT_SECRET, generateToken } from './auth.js';
+import readline from 'readline';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: { origin: '*' } });
 
-app.use(cors());
-app.use(express.json());
+const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',')
+  : ['http://localhost:5173', 'http://localhost:3001'];
+
+const io = new Server(httpServer, { cors: { origin: ALLOWED_ORIGINS } });
+
+app.use(cors({ origin: ALLOWED_ORIGINS }));
+app.use(express.json({ limit: '1mb' }));
 
 let emulatorProcess = null;
 let snapshotInterval = null;
@@ -815,9 +821,15 @@ app.post('/api/snapshots/:projectId/upload', async (req, res) => {
 });
 
 // Run seed script
+// ⚠️ WARNING: This endpoint executes arbitrary JS. Only expose in trusted environments.
 app.post('/api/seed/:projectId', async (req, res) => {
   const { projectId } = req.params;
   const { script } = req.body;
+
+  if (!script || script.length > 50000) {
+    return res.status(400).json({ error: 'Script is required and must be under 50KB' });
+  }
+
   const projectPath = path.join(projectsDir, projectId);
   const seedsDir = path.join(projectPath, '.seeds');
   const scriptPath = path.join(seedsDir, `${Date.now()}.js`);
@@ -1071,6 +1083,10 @@ app.get('/api/connections', (req, res) => {
 // Cleanup on server shutdown
 process.on('SIGINT', () => {
   console.log('\nShutting down server...');
+  if (snapshotInterval) {
+    clearInterval(snapshotInterval);
+    snapshotInterval = null;
+  }
   if (emulatorProcess) {
     console.log('Stopping emulator...');
     if (process.platform === 'win32') {
@@ -1079,10 +1095,66 @@ process.on('SIGINT', () => {
       emulatorProcess.kill('SIGTERM');
     }
   }
-  process.exit(0);
+  httpServer.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+  // Force exit after 5s if connections don't drain
+  setTimeout(() => process.exit(1), 5000);
 });
+
+// Serve frontend static build if available
+const frontendBuildPath = path.join(__dirname, '../frontend/dist');
+if (existsSync(frontendBuildPath)) {
+  app.use(express.static(frontendBuildPath));
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api') && !req.path.startsWith('/socket.io')) {
+      res.sendFile(path.join(frontendBuildPath, 'index.html'));
+    }
+  });
+}
+
+// Interactive CLI commands
+function startCLI() {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+  const promptCommand = () => {
+    rl.question('', async (input) => {
+      const cmd = input.trim().toLowerCase();
+      if (cmd === 'token') {
+        rl.question('Username: ', async (username) => {
+          if (username.trim()) {
+            const token = await generateToken(username.trim());
+            console.log(`\n✅ Token for ${username.trim()}:\n${token}\n`);
+          } else {
+            console.log('❌ Username required');
+          }
+          promptCommand();
+        });
+      } else if (cmd === 'q' || cmd === 'quit') {
+        process.emit('SIGINT');
+      } else if (cmd === 'help') {
+        console.log('\nCommands: token, quit, help\n');
+        promptCommand();
+      } else if (cmd) {
+        console.log('Unknown command. Type "help" for available commands.');
+        promptCommand();
+      } else {
+        promptCommand();
+      }
+    });
+  };
+
+  promptCommand();
+}
 
 const PORT = 3001;
 httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
+  console.log(`\n🔥 FireLab running on http://0.0.0.0:${PORT}`);
+  if (existsSync(frontendBuildPath)) {
+    console.log(`📱 Frontend: http://localhost:${PORT}`);
+  }
+  console.log(`📡 API: http://localhost:${PORT}/api`);
+  console.log(`\nType "token" to generate an access token, "help" for commands\n`);
+  startCLI();
 });

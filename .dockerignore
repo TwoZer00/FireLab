@@ -11,3 +11,5 @@ firebase-projects
 .firebase
 firebase-debug.log
 ui-debug.log
+backend/.jwt-secret
+backend/tokens.json

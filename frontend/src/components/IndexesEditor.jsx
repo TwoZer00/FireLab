@@ -5,7 +5,7 @@ function IndexesEditor({ projectId, getHeaders, onClose, firebaseLoggedIn }) {
   const [content, setContent] = useState('');
   const [validationError, setValidationError] = useState(null);
   const [fetching, setFetching] = useState(false);
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const API_URL = import.meta.env.VITE_API_URL || '';
 
   useEffect(() => {
     loadIndexes();

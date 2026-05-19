@@ -785,6 +785,11 @@ app.post('/api/emulator/clear/:projectId', async (req, res) => {
 // Download snapshot as zip
 app.get('/api/snapshots/:projectId/:snapshotName/download', (req, res) => {
   const { projectId, snapshotName } = req.params;
+
+  if (snapshotName.includes('..') || snapshotName.includes('/') || snapshotName.includes('\\')) {
+    return res.status(400).json({ error: 'Invalid snapshot name' });
+  }
+
   const snapshotPath = path.join(projectsDir, projectId, 'emulator-data', snapshotName);
 
   if (!existsSync(snapshotPath)) {
@@ -1081,7 +1086,7 @@ app.get('/api/connections', (req, res) => {
 });
 
 // Cleanup on server shutdown
-process.on('SIGINT', () => {
+const shutdown = () => {
   console.log('\nShutting down server...');
   if (snapshotInterval) {
     clearInterval(snapshotInterval);
@@ -1101,7 +1106,10 @@ process.on('SIGINT', () => {
   });
   // Force exit after 5s if connections don't drain
   setTimeout(() => process.exit(1), 5000);
-});
+};
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
 
 // Serve frontend static build if available
 const frontendBuildPath = path.join(__dirname, '../frontend/dist');

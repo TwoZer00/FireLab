@@ -8,7 +8,7 @@ function TokenAuth({ onTokenSet }) {
     const saved = localStorage.getItem('accessToken');
     if (saved) {
       // Validate token by making a test API call
-      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/projects`, {
+      fetch(`${import.meta.env.VITE_API_URL || ''}/api/projects`, {
         headers: {
           'Authorization': `Bearer ${saved}`
         }

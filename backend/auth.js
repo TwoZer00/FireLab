@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { readFile, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
@@ -46,11 +47,12 @@ export function authMiddleware(req, res, next) {
 // Generate token (called from CLI)
 export async function generateToken(username) {
   const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '365d' });
+  const tokenHash = await bcrypt.hash(token.slice(-20), 10);
   
   const tokens = JSON.parse(await readFile(tokensFile, 'utf-8'));
   tokens.push({
     username,
-    token,
+    tokenHash,
     createdAt: new Date().toISOString()
   });
   await writeFile(tokensFile, JSON.stringify(tokens, null, 2));

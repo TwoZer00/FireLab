@@ -17,6 +17,7 @@ services:
       - NODE_ENV=production
       # - FIREBASE_TOKEN=your_token_here
     restart: unless-stopped
+    stop_grace_period: 10s
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/emulator/status"]
       interval: 30s

@@ -28,7 +28,7 @@ function RulesEditor({
 
   const loadHistory = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/rules-history/${projectId}/${rulesType}`, { headers: getHeaders() });
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/rules-history/${projectId}/${rulesType}`, { headers: getHeaders() });
       if (res.ok) {
         const data = await res.json();
         setHistory(data);
@@ -40,7 +40,7 @@ function RulesEditor({
 
   const saveToHistory = async () => {
     try {
-      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/rules-history/${projectId}/${rulesType}`, {
+      await fetch(`${import.meta.env.VITE_API_URL || ''}/api/rules-history/${projectId}/${rulesType}`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({ rules: rulesContent })
@@ -176,7 +176,7 @@ function RulesEditor({
             if (!confirm('Fetch production rules? This will replace your current editor content.')) return;
             setFetching(true);
             try {
-              const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/fetch-rules/${projectId}/${rulesType}`, { headers: getHeaders() });
+              const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/fetch-rules/${projectId}/${rulesType}`, { headers: getHeaders() });
               if (res.ok) {
                 const data = await res.json();
                 setRulesContent(data.rules);

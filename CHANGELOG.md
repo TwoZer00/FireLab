@@ -1,3 +1,7 @@
+## <small>1.15.1 (2026-05-19)</small>
+
+* fix: improve security and unified deployment compatibility ([c4a7ef9942f23eb2e12415b27895f265dd671f29](https://github.com/TwoZer00/FireLab/commit/c4a7ef9942f23eb2e12415b27895f265dd671f29))
+
 ## 1.15.0 (2026-05-19)
 
 * feat: add Firestore indexes editor and fetch production rules/indexes ([78b791effc0a7011a2b83d7704ad5604e47c2ef8](https://github.com/TwoZer00/FireLab/commit/78b791effc0a7011a2b83d7704ad5604e47c2ef8))

@@ -1,3 +1,18 @@
+## 1.15.0 (2026-05-19)
+
+* feat: add Firestore indexes editor and fetch production rules/indexes ([78b791effc0a7011a2b83d7704ad5604e47c2ef8](https://github.com/TwoZer00/FireLab/commit/78b791effc0a7011a2b83d7704ad5604e47c2ef8))
+* feat: add unified single-container Docker deployment ([58ad73ecb65a7709852d76f1e2e62a09f8e3f570](https://github.com/TwoZer00/FireLab/commit/58ad73ecb65a7709852d76f1e2e62a09f8e3f570))
+* minor fix ([60bccbe875987e8ccf0e02c1fbfcf7a491d6bc25](https://github.com/TwoZer00/FireLab/commit/60bccbe875987e8ccf0e02c1fbfcf7a491d6bc25))
+* docs: add comprehensive Docker documentation to README ([aa1aa888afb7ad84258496484a12231868ee203f](https://github.com/TwoZer00/FireLab/commit/aa1aa888afb7ad84258496484a12231868ee203f))
+* docs: add Docker Hub image option to quick start ([e9e3faa5aa56046ecb51b8f1f11e62f8e5c72378](https://github.com/TwoZer00/FireLab/commit/e9e3faa5aa56046ecb51b8f1f11e62f8e5c72378))
+* docs: add git clone step for Docker Compose in landing page ([520ad51490e066f72d4a8ed06730cc3d199acff3](https://github.com/TwoZer00/FireLab/commit/520ad51490e066f72d4a8ed06730cc3d199acff3))
+* docs: add key features to landing page ([aed708192b1cb58e4bd2fa4ad240dc7843bcd387](https://github.com/TwoZer00/FireLab/commit/aed708192b1cb58e4bd2fa4ad240dc7843bcd387))
+* docs: fix features section styling and positioning ([35d316c81566333d0b746217dcbbaa3b23bbace7](https://github.com/TwoZer00/FireLab/commit/35d316c81566333d0b746217dcbbaa3b23bbace7))
+* docs: improve landing page SEO and add developer pain points section ([9e1bb5eac86ba2f891b60b0ff69689b1453a2840](https://github.com/TwoZer00/FireLab/commit/9e1bb5eac86ba2f891b60b0ff69689b1453a2840))
+* docs: improve quick start section with separate code blocks ([398a7572f020cd7a98d013711c4ac6a33016cddf](https://github.com/TwoZer00/FireLab/commit/398a7572f020cd7a98d013711c4ac6a33016cddf))
+* docs: simplify Docker Hub command - remove manual port mapping ([952c9548483b53ce26d63feeee562eb6f93cee69](https://github.com/TwoZer00/FireLab/commit/952c9548483b53ce26d63feeee562eb6f93cee69))
+* docs: update Docker Hub username to leobardo21 ([577ee099eb0d84b8e7e28de29ca604e364f3fa65](https://github.com/TwoZer00/FireLab/commit/577ee099eb0d84b8e7e28de29ca604e364f3fa65))
+
 ## 1.14.0 (2026-02-15)
 
 * feat: add auth headers to all components, fix Firebase login check, add emoji favicon ([c5d9494e00004bda5215d641bd202663d81d76f8](https://github.com/TwoZer00/FireLab/commit/c5d9494e00004bda5215d641bd202663d81d76f8))

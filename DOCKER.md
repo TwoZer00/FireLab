@@ -1,170 +1,113 @@
 # Docker Deployment Guide
 
-Deploy FireLab as a containerized application using Docker.
+Deploy FireLab as a single containerized application using Docker.
 
 ## Prerequisites
 
 - Docker (v20+)
-- Docker Compose (v2+)
+- Docker Compose (v2+) *(optional, for docker-compose method)*
 
 ## Quick Start
 
-### Option 1: Using Pre-built Images (Recommended)
+### Option 1: Docker Hub (Recommended)
 
 ```bash
-# Download docker-compose.prod.yml
-curl -O https://raw.githubusercontent.com/TwoZer00/FireLab/master/docker-compose.prod.yml
+# Pull and run the latest image
+docker run -d \
+  -p 3001:3001 \
+  -p 4000-4010:4000-4010 \
+  -p 5000-5010:5000-5010 \
+  -p 8080-8090:8080-8090 \
+  -p 9000-9010:9000-9010 \
+  -p 9099-9109:9099-9109 \
+  -p 9199-9209:9199-9209 \
+  -v firelab-projects:/app/firebase-projects \
+  --name firelab leobardo21/firelab:latest
+```
 
-# Start with pre-built images
+**What this does:**
+- Downloads the pre-built FireLab image from Docker Hub
+- Creates a persistent volume for your Firebase projects
+- Runs both frontend and backend in a single container on port 3001
+- Includes a built-in healthcheck
+
+### Option 2: Docker Compose
+
+```bash
+# Clone the repository
+git clone https://github.com/TwoZer00/FireLab.git
+cd FireLab
+
+# Run with Docker Compose
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
-This pulls pre-built images from Docker Hub - no build time needed!
-
-### Option 2: Build Locally
+### Option 3: Build Locally
 
 ```bash
 # Clone repository
-git clone <repo-url>
-cd firelab
+git clone https://github.com/TwoZer00/FireLab.git
+cd FireLab
 
 # Build and start
 docker-compose up -d
 ```
 
-This will:
-- Pull/build backend and frontend images
-- Start both containers
-- Expose ports for all services
-- Create persistent volume for Firebase projects
+## Access URLs
 
-### 2. Access
+| Service | URL |
+|---------|-----|
+| FireLab UI | http://localhost:3001 |
+| Backend API | http://localhost:3001/api |
+| Firebase Emulator UI | http://localhost:4000 (when emulator is running) |
 
-- **Frontend**: http://localhost
-- **Backend API**: http://localhost:3001
-- **Emulator UI**: http://localhost:4000
+## Authentication
 
-### 3. Stop
+FireLab uses JWT-based authentication. After starting the container, you need to generate an access token.
+
+**Generate Token:**
+```bash
+# Interactive method (while container is running)
+docker exec -it firelab node /app/backend/generate-token.js
+
+# Or attach to the running server and type "token"
+docker attach firelab
+```
+
+Use the generated token when prompted in the FireLab UI.
+
+## Docker Management
 
 ```bash
-# Using pre-built images
-docker-compose -f docker-compose.prod.yml down
+# Stop the container
+docker stop firelab
 
-# Using local build
-docker-compose down
-```
-
-## Docker Hub Images
-
-Pre-built images are available on Docker Hub:
-
-- **Backend**: `docker pull leobardo21/firelab-backend:latest`
-- **Frontend**: `docker pull leobardo21/firelab-frontend:latest`
-
-Images are automatically built and published on every release.
-
-## Production Deployment
-
-### Firebase Authentication (Optional)
-
-Firebase login is **only required** for deploying rules to production. For local emulator development, no login needed.
-
-**Generate Firebase Token:**
-
-On a machine with browser access:
-```bash
-firebase login:ci
-```
-
-This generates a token like `1//abc123def456...`
-
-**Add Token to Docker:**
-
-Option 1 - Environment variable in docker-compose.yml:
-```yaml
-backend:
-  environment:
-    - NODE_ENV=production
-    - FIREBASE_TOKEN=1//abc123def456...
-```
-
-Option 2 - Use .env file (recommended):
-```bash
-echo "FIREBASE_TOKEN=1//abc123def456..." > .env
-```
-
-Then reference in docker-compose.yml:
-```yaml
-backend:
-  env_file:
-    - .env
-```
-
-Option 3 - Pass at runtime:
-```bash
-FIREBASE_TOKEN=1//abc123def456... docker-compose up -d
-```
-
-**Verify Login:**
-```bash
-docker-compose exec backend firebase projects:list
-```
-
-### Environment Variables
-
-Create `.env` file in root:
-
-```env
-# Backend
-NODE_ENV=production
-
-# Frontend (build-time)
-VITE_API_URL=http://your-server-ip:3001
-```
-
-### Build for Production
-
-```bash
-# Build images
-docker-compose build
-
-# Start in detached mode
-docker-compose up -d
+# Start existing container
+docker start firelab
 
 # View logs
-docker-compose logs -f
-```
+docker logs firelab
 
-### Remote Access
+# Remove container (keeps volume with projects)
+docker rm firelab
 
-Update `docker-compose.yml` to use your server IP:
-
-```yaml
-frontend:
-  environment:
-    - VITE_API_URL=http://YOUR_SERVER_IP:3001
-```
-
-Or use environment variable:
-
-```bash
-VITE_API_URL=http://192.168.1.100:3001 docker-compose up -d
+# Remove volume (deletes all project data)
+docker volume rm firelab-projects
 ```
 
 ## Ports Exposed
 
-Backend exposes **port ranges** to support multiple projects with different configurations:
+The container exposes **port ranges** to support multiple projects with different configurations:
 
-| Service | Port Range | Default | Configurable in FireLab |
-|---------|------------|---------|-------------------------|
-| Frontend | 80 | 80 | No (change in docker-compose.yml) |
-| Backend | 3001 | 3001 | No |
-| Emulator UI | 4000-4010 | 4000 | Yes |
-| Hosting | 5000-5010 | 5000 | Yes |
-| Firestore | 8080-8090 | 8080 | Yes |
-| Database | 9000-9010 | 9000 | Yes |
-| Auth | 9099-9109 | 9099 | Yes |
-| Storage | 9199-9209 | 9199 | Yes |
+| Service | Port Range | Default |
+|---------|------------|---------|
+| FireLab (UI + API) | 3001 | 3001 |
+| Emulator UI | 4000-4010 | 4000 |
+| Hosting | 5000-5010 | 5000 |
+| Firestore | 8080-8090 | 8080 |
+| Database | 9000-9010 | 9000 |
+| Auth | 9099-9109 | 9099 |
+| Storage | 9199-9209 | 9199 |
 
 ### Configuring Ports
 
@@ -173,54 +116,144 @@ Backend exposes **port ranges** to support multiple projects with different conf
 Configure ports within the ranges above directly in FireLab:
 1. Select your project
 2. Edit Config
-3. Change port numbers (must be within ranges)
+3. Change port numbers (must be within exposed ranges)
 4. Save and restart emulator
 
-**Option 2: Manually Edit docker-compose.yml**
+**Option 2: Custom port mapping at runtime**
 
-If you need ports outside the default ranges:
-
-```yaml
-backend:
-  ports:
-    - "3001:3001"
-    - "4000-4020:4000-4020"  # Expand range to 20 ports
-    - "8080:8080"            # Single port only
-    - "10000-10100:9000-9100" # Map to different host ports
-```
-
-Then restart:
 ```bash
-docker-compose down
-docker-compose up -d
+docker run -d \
+  -p 8080:3001 \
+  -p 4000-4020:4000-4020 \
+  -v firelab-projects:/app/firebase-projects \
+  --name firelab leobardo21/firelab:latest
 ```
 
-**Option 3: Use Host Network (Linux Only)**
+**Option 3: Host Network (Linux Only)**
 
-For unlimited port flexibility on Linux:
-
-```yaml
-backend:
-  network_mode: host
-  # Remove 'ports' section
-  # Remove 'networks' section
+```bash
+docker run -d \
+  --network host \
+  -v firelab-projects:/app/firebase-projects \
+  --name firelab leobardo21/firelab:latest
 ```
 
-Note: This only works on Linux and reduces isolation.
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `NODE_ENV` | `production` | Node environment |
+| `FIREBASE_TOKEN` | - | Firebase CI token (optional, for deploying rules) |
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3001` | Comma-separated allowed CORS origins |
+
+**Example with environment variables:**
+```bash
+docker run -d \
+  -p 3001:3001 \
+  -p 4000-4010:4000-4010 \
+  -p 5000-5010:5000-5010 \
+  -p 8080-8090:8080-8090 \
+  -p 9000-9010:9000-9010 \
+  -p 9099-9109:9099-9109 \
+  -p 9199-9209:9199-9209 \
+  -e FIREBASE_TOKEN=1//abc123def456... \
+  -v firelab-projects:/app/firebase-projects \
+  --name firelab leobardo21/firelab:latest
+```
+
+## Firebase Authentication (Optional)
+
+Firebase login is **only required** for deploying rules to production. For local emulator development, no login needed.
+
+**Generate Firebase Token (on a machine with browser access):**
+```bash
+firebase login:ci
+```
+
+Then pass the token via `FIREBASE_TOKEN` environment variable when running the container.
 
 ## Data Persistence
 
-Firebase projects are stored in `./firebase-projects` volume, which persists across container restarts.
+Firebase projects are stored in the `firelab-projects` Docker volume, which persists across container restarts and removals.
+
+To back up your data:
+```bash
+docker cp firelab:/app/firebase-projects ./backup-projects
+```
 
 ## Updating
 
 ```bash
-# Pull latest code
-git pull
+# Pull latest image
+docker pull leobardo21/firelab:latest
 
-# Rebuild and restart
-docker-compose down
-docker-compose up -d --build
+# Remove old container
+docker stop firelab && docker rm firelab
+
+# Start with new image (volume persists)
+docker run -d \
+  -p 3001:3001 \
+  -p 4000-4010:4000-4010 \
+  -p 5000-5010:5000-5010 \
+  -p 8080-8090:8080-8090 \
+  -p 9000-9010:9000-9010 \
+  -p 9099-9109:9099-9109 \
+  -p 9199-9209:9199-9209 \
+  -v firelab-projects:/app/firebase-projects \
+  --name firelab leobardo21/firelab:latest
+```
+
+## Cloud Deployment
+
+### AWS EC2
+```bash
+# Install Docker
+sudo yum install docker -y
+sudo service docker start
+
+# Pull and run
+sudo docker run -d \
+  -p 3001:3001 \
+  -p 4000-4010:4000-4010 \
+  -p 5000-5010:5000-5010 \
+  -p 8080-8090:8080-8090 \
+  -p 9000-9010:9000-9010 \
+  -p 9099-9109:9099-9109 \
+  -p 9199-9209:9199-9209 \
+  -v firelab-projects:/app/firebase-projects \
+  --name firelab leobardo21/firelab:latest
+```
+
+### GCP Compute Engine / Azure VM
+```bash
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# Pull and run
+sudo docker run -d \
+  -p 3001:3001 \
+  -p 4000-4010:4000-4010 \
+  -p 5000-5010:5000-5010 \
+  -p 8080-8090:8080-8090 \
+  -p 9000-9010:9000-9010 \
+  -p 9099-9109:9099-9109 \
+  -p 9199-9209:9199-9209 \
+  -v firelab-projects:/app/firebase-projects \
+  --name firelab leobardo21/firelab:latest
+```
+
+## Monitoring
+
+```bash
+# Container stats
+docker stats firelab
+
+# Health check
+curl http://localhost:3001/api/emulator/status
+
+# View real-time logs
+docker logs -f firelab
 ```
 
 ## Troubleshooting
@@ -231,98 +264,29 @@ docker-compose up -d --build
 docker ps
 netstat -tulpn | grep :3001
 
-# Change ports in docker-compose.yml
-ports:
-  - "8001:3001"  # Map to different host port
+# Use different host port
+docker run -d -p 8080:3001 ... leobardo21/firelab:latest
 ```
 
-**View logs:**
+**Container won't start:**
 ```bash
-# All services
-docker-compose logs -f
+# Check logs
+docker logs firelab
 
-# Specific service
-docker-compose logs -f backend
-docker-compose logs -f frontend
+# Verify image pulled correctly
+docker images | grep firelab
 ```
 
-**Restart services:**
-```bash
-docker-compose restart backend
-docker-compose restart frontend
-```
-
-**Clean rebuild:**
-```bash
-docker-compose down -v
-docker-compose build --no-cache
-docker-compose up -d
-```
+**Can't access UI:**
+- Verify container is running: `docker ps`
+- Check firewall allows port 3001
+- Try `http://localhost:3001` in browser
 
 ## Security Notes
 
 For production:
-1. Use HTTPS (add SSL certificates to Nginx)
+1. Use a reverse proxy (Nginx/Traefik) with HTTPS
 2. Set strong firewall rules
 3. Use environment variables for secrets
-4. Enable authentication if needed
-5. Restrict network access
-
-## Cloud Deployment
-
-### AWS EC2
-```bash
-# Install Docker
-sudo yum install docker -y
-sudo service docker start
-
-# Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Clone and run
-git clone <repo-url>
-cd firelab
-docker-compose up -d
-```
-
-### GCP Compute Engine
-```bash
-# Install Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-
-# Install Docker Compose
-sudo apt-get install docker-compose-plugin
-
-# Clone and run
-git clone <repo-url>
-cd firelab
-docker compose up -d
-```
-
-### Azure VM
-```bash
-# Install Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-
-# Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Clone and run
-git clone <repo-url>
-cd firelab
-docker-compose up -d
-```
-
-## Monitoring
-
-```bash
-# Container stats
-docker stats
-
-# Health check
-curl http://localhost:3001/api/emulator/status
-```
+4. Restrict network access to trusted IPs
+5. Keep the access token secure

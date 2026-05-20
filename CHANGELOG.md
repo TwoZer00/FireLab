@@ -1,3 +1,9 @@
+## <small>1.15.3 (2026-05-20)</small>
+
+* fix: add Java runtime and utilities to Docker images ([0d74ba1a9fa6f9a39ef16b0fe778164c8d40f4bd](https://github.com/TwoZer00/FireLab/commit/0d74ba1a9fa6f9a39ef16b0fe778164c8d40f4bd))
+* fix: resolve projects directory path and sticky sidebar layout ([5983166a632fc3364bc0f0115b4d3cdd77b2c00a](https://github.com/TwoZer00/FireLab/commit/5983166a632fc3364bc0f0115b4d3cdd77b2c00a))
+* fix: use node-based healthcheck and correct port ranges ([0aca94b7bba343513b7d48a91a29c7a269e756bb](https://github.com/TwoZer00/FireLab/commit/0aca94b7bba343513b7d48a91a29c7a269e756bb))
+
 ## <small>1.15.2 (2026-05-20)</small>
 
 * fix: add unauthenticated health check endpoint for Docker healthcheck ([379ed83b1f81bc26bd7444e2e99f2bb6742f19f3](https://github.com/TwoZer00/FireLab/commit/379ed83b1f81bc26bd7444e2e99f2bb6742f19f3))

@@ -1,9 +1,21 @@
-function ConfigEditor({ config, availableRules, onUpdatePort, onSave, onLoadRules, onLoadIndexes }) {
+function ConfigEditor({ config, availableRules, onUpdatePort, onUpdateHost, onSave, onLoadRules, onLoadIndexes }) {
   if (!config?.emulators) return null;
+
+  const currentHost = Object.values(config.emulators).find(s => s.host)?.host || '127.0.0.1';
 
   return (
     <div className="section">
       <h2>Configuration</h2>
+      <div className="config-item" style={{ marginBottom: '10px' }}>
+        <label>Host</label>
+        <select
+          value={currentHost}
+          onChange={(e) => onUpdateHost(e.target.value)}
+        >
+          <option value="0.0.0.0">0.0.0.0 (accessible externally)</option>
+          <option value="127.0.0.1">127.0.0.1 (localhost only)</option>
+        </select>
+      </div>
       <div className="config-grid">
         {Object.entries(config.emulators).map(([service, settings]) => (
           service !== 'ui' && (

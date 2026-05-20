@@ -580,6 +580,14 @@ function App() {
     });
   };
 
+  const updateHost = (host) => {
+    const updated = { ...config, emulators: { ...config.emulators } };
+    Object.keys(updated.emulators).forEach(service => {
+      updated.emulators[service] = { ...updated.emulators[service], host };
+    });
+    setConfig(updated);
+  };
+
   const loadRules = async (type) => {
     const res = await fetch(`${API_URL}/api/rules/${projectId}/${type}`, { headers: getHeaders() });
     if (res.ok) {
@@ -691,6 +699,7 @@ function App() {
                     config={config}
                     availableRules={availableRules}
                     onUpdatePort={updatePort}
+                    onUpdateHost={updateHost}
                     onSave={saveConfig}
                     onLoadRules={loadRules}
                     onLoadIndexes={() => { setShowIndexes(true); setShowRules(false); checkFirebaseAuth(); }}

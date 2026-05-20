@@ -29,7 +29,9 @@ app.use(express.json({ limit: '1mb' }));
 
 let emulatorProcess = null;
 let snapshotInterval = null;
-const projectsDir = path.join(__dirname, '../firebase-projects');
+const projectsDir = existsSync(path.join(__dirname, '../firebase-projects'))
+  ? path.join(__dirname, '../firebase-projects')
+  : path.join(__dirname, 'firebase-projects');
 const connectionHistory = [];
 
 // Initialize auth

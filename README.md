@@ -35,7 +35,7 @@ docker run -d \
   -p 3001:3001 \
   -p 4000-4010:4000-4010 \
   -p 5000-5010:5000-5010 \
-  -p 8080-8090:8080-8090 \
+  -p 8080-8089:8080-8089 \
   -p 9000-9010:9000-9010 \
   -p 9099-9109:9099-9109 \
   -p 9199-9209:9199-9209 \
@@ -47,7 +47,7 @@ docker run -d \
 - Downloads the pre-built FireLab image from Docker Hub
 - Creates a persistent volume for your Firebase projects
 - Runs both frontend and backend in a single container on port 3001
-- Includes a built-in healthcheck
+- Includes a built-in healthcheck (checks `/health` endpoint — no emulator required)
 
 **Access URLs:**
 - FireLab UI: http://localhost:3001
@@ -451,7 +451,7 @@ firelab/
 ✅ Responsive design (mobile-friendly)
 ✅ Project deletion with safety checks
 ✅ Configurable CORS origins via `CORS_ORIGINS` env var
-✅ Docker healthcheck for container orchestration
+✅ Docker healthcheck for container orchestration (healthy as soon as server starts, no emulator needed)
 
 ## Firebase Login (Optional)
 

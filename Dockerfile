@@ -21,7 +21,7 @@ COPY backend/ ./
 # Copy frontend build
 COPY --from=frontend-builder /app/dist ../frontend/dist
 
-HEALTHCHECK --interval=30s --timeout=5s CMD wget -qO- http://localhost:3001/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s CMD node -e "require('http').get('http://localhost:3001/health', r => r.statusCode === 200 ? process.exit(0) : process.exit(1)).on('error', () => process.exit(1))"
 
 EXPOSE 3001
 

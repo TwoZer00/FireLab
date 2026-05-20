@@ -1181,6 +1181,8 @@ httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`📱 Frontend: http://localhost:${PORT}`);
   }
   console.log(`📡 API: http://localhost:${PORT}/api`);
-  console.log(`\nType "token" to generate an access token, "help" for commands\n`);
-  startCLI();
+  if (process.stdin.isTTY) {
+    console.log(`\nType "token" to generate an access token, "help" for commands\n`);
+    startCLI();
+  }
 });

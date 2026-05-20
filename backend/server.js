@@ -35,6 +35,9 @@ const connectionHistory = [];
 // Initialize auth
 await initAuth();
 
+// Health check (no auth required)
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
 // Apply auth to all API routes
 app.use('/api', authMiddleware);
 

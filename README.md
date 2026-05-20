@@ -19,6 +19,9 @@ A web-based platform to manage and configure Firebase emulators locally.
 ### Rules Editor
 ![Rules Editor](docs/screenshots/07-rules-editor.png)
 
+### Indexes Editor
+Edit, validate, and deploy Firestore composite indexes directly from the UI.
+
 ## Prerequisites
 
 - Node.js (v18+)
@@ -213,12 +216,12 @@ FireLab uses JWT-based authentication to secure the web interface.
 
 ### Token Management
 
-- **View existing tokens:** Check `backend/tokens.json`
+- **View existing tokens:** Check `.tokens.json` in the data directory
 - **Generate new token:** Use the `token` CLI command or run `node generate-token.js`
-- **Revoke access:** Delete `backend/tokens.json` and restart backend
+- **Revoke access:** Delete `.tokens.json` and restart backend
 - **Multiple tokens:** Generate separate tokens for team members
-- **Token expiration:** Tokens don't expire but can be revoked
-- **Secure storage:** Tokens stored as hashed values in backend
+- **Token expiration:** Tokens expire after 365 days but can be revoked earlier
+- **Secure storage:** Tokens stored as bcrypt-hashed values; JWT secret auto-persisted to `.jwt-secret`
 
 **Security Note:** Keep your access token secure. Anyone with the token can manage your Firebase emulators.
 
@@ -325,8 +328,9 @@ Currently not supported. Requires `firebase login` on backend machine.
 4. **Rules tester** - Test ALLOW/DENY with simulated requests
 5. **Version history** - View and restore from last 20 versions
 6. **JSONC support** - Database rules support comments
-7. Save locally with `Ctrl+S`
-8. Deploy to production (requires `firebase login` on backend)
+7. **Fetch from production** - Pull deployed rules from Firebase (requires login)
+8. Save locally with `Ctrl+S`
+9. Deploy to production (requires `firebase login` on backend)
 
 **Rules Tester:**
 - Enter path (e.g., `/users/123`)
@@ -338,6 +342,24 @@ Currently not supported. Requires `firebase login` on backend machine.
 - Automatic versioning on each save
 - One-click restore to previous versions
 - Timestamp tracking for all changes
+
+### Editing Firestore Indexes
+
+1. Click "Indexes" button in the Config Editor
+2. Edit composite indexes and field overrides in JSON format
+3. **Real-time JSON validation** - Errors shown instantly
+4. **Fetch from Firebase** - Pull deployed indexes from production (requires login)
+5. Save locally or deploy to production
+
+**Index Format:**
+```json
+{
+  "indexes": [],
+  "fieldOverrides": []
+}
+```
+
+The emulator logs warnings when queries need indexes — use those to define your indexes here.
 
 ### Log Filtering
 
@@ -371,7 +393,11 @@ firelab/
 ├── Dockerfile                  # Unified multi-stage build (frontend + backend)
 ├── docker-compose.yml          # Dev Docker Compose
 ├── docker-compose.prod.yml     # Production Docker Compose
-├── package.json                # Root scripts (start, build, setup)
+├── .releaserc.json             # Semantic Release config
+├── package.json                # Root scripts (start, build, setup, release)
+├── .github/workflows/          # CI/CD
+│   ├── docker-publish.yml     # Docker Hub image publishing
+│   └── release.yml            # Semantic versioning & changelog
 ├── backend/                    # Express API + Firebase CLI wrapper
 │   ├── server.js              # Main server with Socket.io + static frontend
 │   ├── auth.js                # JWT authentication
@@ -387,16 +413,22 @@ firelab/
 │       │   ├── EmulatorControls.jsx
 │       │   ├── ConfigEditor.jsx
 │       │   ├── RulesEditor.jsx
+│       │   ├── IndexesEditor.jsx
 │       │   ├── LogsViewer.jsx
 │       │   ├── SnapshotsManager.jsx
 │       │   ├── DataManager.jsx
 │       │   ├── DangerZone.jsx
+│       │   ├── TokenAuth.jsx
 │       │   └── ConnectionStatus.jsx
 │       └── App.css            # Styles
+├── scripts/                    # Utility scripts
+│   └── screenshots.js         # Automated screenshot generation
+├── docs/                       # GitHub Pages landing page & screenshots
 └── firebase-projects/          # Firebase project configs
     └── [project-name]/
         ├── firebase.json
         ├── firestore.rules (if Firestore enabled)
+        ├── firestore.indexes.json (if Firestore enabled)
         ├── storage.rules (if Storage enabled)
         ├── database.rules.json (if Database enabled)
         ├── .rules-history/     # Rules version history
@@ -434,17 +466,26 @@ firelab/
 ✅ Edit Firestore, Storage, and Database rules
 ✅ JSONC support for database rules (comments allowed)
 ✅ Inline syntax validation
+✅ Fetch deployed rules from Firebase production
 ✅ Save rules locally
 ✅ Deploy rules to production (requires Firebase login)
+
+### Indexes Management
+✅ Firestore composite indexes editor with JSON validation
+✅ Fetch deployed indexes from Firebase production
+✅ Deploy indexes to production
+✅ Auto-created `firestore.indexes.json` on project init
 
 ### Developer Experience
 ✅ Unified single-container deployment (frontend + backend on one port)
 ✅ Interactive CLI for token generation
 ✅ Customizable service selection per project
 ✅ Port conflict detection with auto-fix
+✅ Configurable emulator host binding
 ✅ Debug mode toggle (shows rules evaluation)
 ✅ Keyboard shortcuts (Ctrl+E, Ctrl+L, Ctrl+S)
 ✅ Log filtering by service and search
+✅ Log persistence across page reloads (saved to localStorage)
 ✅ Connection status indicators
 ✅ Auto-scroll logs
 ✅ Dark GitHub-inspired theme
@@ -452,6 +493,8 @@ firelab/
 ✅ Project deletion with safety checks
 ✅ Configurable CORS origins via `CORS_ORIGINS` env var
 ✅ Docker healthcheck for container orchestration (healthy as soon as server starts, no emulator needed)
+✅ Semantic versioning with automated releases
+✅ CI/CD with GitHub Actions (Docker publish + release)
 
 ## Firebase Login (Optional)
 
@@ -489,6 +532,11 @@ The UI will show login status and disable deploy button when not logged in.
 - **Service health monitoring** with port information
 - **One-click URL copying** for easy sharing
 
+### Emulator Host Binding
+- Configure the host binding for all emulator services (default: `0.0.0.0`)
+- Change host from the Config Editor UI
+- Useful for restricting access to `localhost` or binding to a specific interface
+
 ### Safety Features
 - **Danger Zone** UI for destructive operations
 - **Multiple confirmations** for data deletion
@@ -504,6 +552,19 @@ The UI will show login status and disable deploy button when not logged in.
 | `CORS_ORIGINS` | Backend env | `http://localhost:5173,http://localhost:3001` | Comma-separated allowed origins |
 | `NODE_ENV` | Backend env | - | Set to `production` for prod builds |
 | `FIREBASE_TOKEN` | Backend env | - | Firebase CI token (optional) |
+| `JWT_SECRET` | Backend env | *(auto-generated)* | Custom JWT signing secret (auto-persisted to file) |
+
+## CI/CD
+
+The project uses GitHub Actions for automated releases and Docker image publishing:
+
+- **Semantic Release** (`release.yml`) - Automatically bumps version, generates changelog, and creates GitHub releases based on [Conventional Commits](https://www.conventionalcommits.org/)
+- **Docker Publish** (`docker-publish.yml`) - Builds and pushes Docker images to Docker Hub on new releases
+
+Commit message prefixes:
+- `feat:` → minor version bump
+- `fix:` → patch version bump
+- `feat!:` or `BREAKING CHANGE:` → major version bump
 
 ## Troubleshooting
 

@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FireLab - Firebase Emulator Management Platform | Web-Based Firebase Development Tool</title>
-    <meta name="description" content="Manage Firebase emulators with a beautiful web interface. Auto-snapshots, VS Code editor, real-time logs, seed data, and Docker support. Perfect for Firebase development.">
-    <meta name="keywords" content="Firebase, Firebase Emulator, Firebase Development, Firebase Tools, Emulator Management, Firebase UI, Docker Firebase, Firebase Snapshots">
+    <meta name="description" content="Manage Firebase emulators with a beautiful web interface. Auto-snapshots, VS Code editor, real-time logs, seed data, indexes editor, JWT authentication, and Docker support. Perfect for Firebase development.">
+    <meta name="keywords" content="Firebase, Firebase Emulator, Firebase Development, Firebase Tools, Emulator Management, Firebase UI, Docker Firebase, Firebase Snapshots, Firestore Indexes, Firebase Rules Editor, Firebase Security Rules">
     <meta name="author" content="FireLab">
     <link rel="canonical" href="https://twozer00.github.io/FireLab/">
     
     <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="FireLab - Firebase Emulator Management Platform">
-    <meta property="og:description" content="Manage Firebase emulators with a beautiful web interface. Auto-snapshots, VS Code editor, real-time logs, and more.">
+    <meta property="og:description" content="Manage Firebase emulators with a beautiful web interface. Auto-snapshots, VS Code rules & indexes editor, real-time logs, seed data, and Docker support.">
     <meta property="og:url" content="https://twozer00.github.io/FireLab/">
     <meta property="og:site_name" content="FireLab">
     <meta property="og:image" content="https://twozer00.github.io/FireLab/screenshots/03-project-created.png">
@@ -20,7 +20,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="FireLab - Firebase Emulator Management Platform">
-    <meta name="twitter:description" content="Manage Firebase emulators with a beautiful web interface. Auto-snapshots, VS Code editor, real-time logs, and more.">
+    <meta name="twitter:description" content="Manage Firebase emulators with a beautiful web interface. Auto-snapshots, VS Code rules & indexes editor, real-time logs, seed data, and Docker support.">
     <meta name="twitter:image" content="https://twozer00.github.io/FireLab/screenshots/03-project-created.png">
     
     <!-- Favicon -->
@@ -32,9 +32,10 @@
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "FireLab",
-      "description": "Web-based platform to manage and configure Firebase emulators locally",
+      "description": "Web-based platform to manage and configure Firebase emulators locally with auto-snapshots, rules editor, indexes management, and Docker support",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Windows, macOS, Linux",
+      "softwareVersion": "1.16.1",
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -262,9 +263,12 @@
                     <div>✅ Visual project management</div>
                     <div>✅ One-click emulator control</div>
                     <div>✅ Automatic data snapshots</div>
-                    <div>✅ Built-in rules editor</div>
+                    <div>✅ Built-in rules & indexes editor</div>
                     <div>✅ Real-time log streaming</div>
                     <div>✅ Remote access support</div>
+                    <div>✅ Fetch & deploy to production</div>
+                    <div>✅ JWT-secured web interface</div>
+                    <div>✅ Configurable host binding</div>
                 </div>
             </div>
         </div>
@@ -284,6 +288,7 @@
                         <li style="margin-bottom: 10px; color: #8b949e;">❌ Logs mixed with terminal output</li>
                         <li style="margin-bottom: 10px; color: #8b949e;">❌ Local machine only</li>
                         <li style="margin-bottom: 10px; color: #8b949e;">❌ No project templates</li>
+                        <li style="margin-bottom: 10px; color: #8b949e;">❌ No visual indexes management</li>
                     </ul>
                 </div>
                 <div style="background: #0d1117; padding: 30px; border-radius: 8px; border: 1px solid #58a6ff;">
@@ -296,6 +301,7 @@
                         <li style="margin-bottom: 10px; color: #c9d1d9;">✅ Real-time filtered logs</li>
                         <li style="margin-bottom: 10px; color: #c9d1d9;">✅ Remote backend support</li>
                         <li style="margin-bottom: 10px; color: #c9d1d9;">✅ Project templates & seed data</li>
+                        <li style="margin-bottom: 10px; color: #c9d1d9;">✅ Indexes editor & production sync</li>
                     </ul>
                 </div>
             </div>
@@ -359,6 +365,16 @@
                     <p style="color: #8b949e; margin-bottom: 10px;">Manual data entry every time</p>
                     <p style="color: #58a6ff; font-size: 14px;">→ Seed scripts + snapshot restore in seconds</p>
                 </div>
+                <div style="background: #161b22; padding: 25px; border-radius: 8px; border-left: 4px solid #f85149;">
+                    <h3 style="color: #f85149; margin-bottom: 15px;">😰 "Managing indexes is a guessing game"</h3>
+                    <p style="color: #8b949e; margin-bottom: 10px;">No visual editor, manual JSON editing</p>
+                    <p style="color: #58a6ff; font-size: 14px;">→ Visual indexes editor with validation & production sync</p>
+                </div>
+                <div style="background: #161b22; padding: 25px; border-radius: 8px; border-left: 4px solid #f85149;">
+                    <h3 style="color: #f85149; margin-bottom: 15px;">😬 "Syncing rules with production is risky"</h3>
+                    <p style="color: #8b949e; margin-bottom: 10px;">Copy-pasting between console and local files</p>
+                    <p style="color: #58a6ff; font-size: 14px;">→ One-click fetch from & deploy to production</p>
+                </div>
             </div>
         </div>
     </section>
@@ -380,7 +396,7 @@
                 <div class="feature-card">
                     <div class="feature-icon">✏️</div>
                     <h3>VS Code Editor</h3>
-                    <p>Edit security rules with Monaco Editor. Syntax highlighting and version history included.</p>
+                    <p>Edit security rules with Monaco Editor. Syntax highlighting, version history, and fetch from production.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📊</div>
@@ -428,6 +444,11 @@
                     <p>Built-in rules tester to simulate ALLOW/DENY operations before deployment.</p>
                 </div>
                 <div class="feature-card">
+                    <div class="feature-icon">📇</div>
+                    <h3>Indexes Editor</h3>
+                    <p>Edit, validate, and deploy Firestore composite indexes. Fetch production indexes with one click.</p>
+                </div>
+                <div class="feature-card">
                     <div class="feature-icon">📋</div>
                     <h3>Copy & Share URLs</h3>
                     <p>One-click copy of service URLs. Easy sharing with team members.</p>
@@ -436,6 +457,21 @@
                     <div class="feature-icon">🔍</div>
                     <h3>Debug Mode</h3>
                     <p>Toggle debug mode to see detailed rules evaluation and emulator internals.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">☁️</div>
+                    <h3>Production Sync</h3>
+                    <p>Fetch deployed rules and indexes from Firebase production. Deploy changes with one click.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Host Binding</h3>
+                    <p>Configure emulator host binding from the UI. Restrict to localhost or open to network.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3>Persistent Logs</h3>
+                    <p>Logs persist across page reloads. Never lose important emulator output again.</p>
                 </div>
             </div>
         </div>
@@ -484,7 +520,8 @@ npm start</pre>
     <footer>
         <div class="container">
             <p>Built with ❤️ for Firebase developers</p>
-            <p><a href="https://github.com/TwoZer00/FireLab">GitHub</a> • <a href="https://github.com/TwoZer00/FireLab/issues">Issues</a> • <a href="https://github.com/TwoZer00/FireLab#readme">Documentation</a></p>
+            <p style="margin-top: 10px;"><a href="https://github.com/TwoZer00/FireLab">GitHub</a> • <a href="https://hub.docker.com/r/leobardo21/firelab">Docker Hub</a> • <a href="https://github.com/TwoZer00/FireLab/issues">Issues</a> • <a href="https://github.com/TwoZer00/FireLab#readme">Documentation</a></p>
+            <p style="margin-top: 10px; font-size: 12px;">v1.16.1 • MIT License</p>
         </div>
     </footer>
 

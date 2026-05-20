@@ -54,7 +54,7 @@ Type "token" in the server console, then enter a username.
 node generate-token.js
 ```
 
-Tokens are stored as hashed values in `tokens.json`. To revoke access, delete `tokens.json` and restart the backend.
+Tokens and the JWT secret are stored in the persistent data directory (`firebase-projects/.tokens.json` and `firebase-projects/.jwt-secret`). To revoke access, delete `.tokens.json` and restart the backend.
 
 ## Environment Variables
 
@@ -63,6 +63,7 @@ Tokens are stored as hashed values in `tokens.json`. To revoke access, delete `t
 | `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3001` | Allowed CORS origins |
 | `NODE_ENV` | - | Set to `production` for prod builds |
 | `FIREBASE_TOKEN` | - | Firebase CI token (optional, for deploying rules) |
+| `JWT_SECRET` | *(auto-generated)* | Custom JWT secret (auto-persisted to `.jwt-secret` file) |
 
 ## Firewall
 

@@ -138,13 +138,22 @@ docker run -d \
   --name firelab leobardo21/firelab:latest
 ```
 
+## Volumes
+
+| Volume | Container Path | Description |
+|--------|---------------|-------------|
+| `firelab-projects` | `/app/firebase-projects` | Firebase project configs, snapshots, auth tokens, and JWT secret |
+| `firebase-cache` | `/root/.cache/firebase` | Firebase CLI cache (speeds up emulator startup) |
+
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `NODE_ENV` | `production` | Node environment |
 | `FIREBASE_TOKEN` | - | Firebase CI token (optional, for deploying rules) |
+| `JWT_SECRET` | *(auto-generated)* | Custom JWT secret (persisted to volume automatically) |
 | `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3001` | Comma-separated allowed CORS origins |
+| `VITE_API_URL` | `""` | Build arg: backend API URL baked into frontend (empty = same origin) |
 
 **Example with environment variables:**
 ```bash
@@ -249,8 +258,11 @@ sudo docker run -d \
 # Container stats
 docker stats firelab
 
-# Health check
-curl http://localhost:3001/api/emulator/status
+# Health check (no auth required)
+curl http://localhost:3001/health
+
+# Emulator status (requires auth token)
+curl -H "Authorization: Bearer <token>" http://localhost:3001/api/emulator/status
 
 # View real-time logs
 docker logs -f firelab

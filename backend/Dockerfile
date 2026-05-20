@@ -2,8 +2,8 @@ FROM node:18-alpine
 
 ENV NODE_ENV=production
 
-# Install Firebase CLI globally
-RUN npm install -g firebase-tools
+# Install Java, bash, and Firebase CLI globally
+RUN apk add --no-cache openjdk17-jre bash nano && npm install -g firebase-tools
 
 # Set working directory
 WORKDIR /app

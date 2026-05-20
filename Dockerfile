@@ -10,7 +10,7 @@ RUN VITE_API_URL=$VITE_API_URL npm run build
 # Production
 FROM node:18-alpine
 ENV NODE_ENV=production
-RUN npm install -g firebase-tools
+RUN apk add --no-cache openjdk17-jre bash nano && npm install -g firebase-tools
 WORKDIR /app
 
 # Install backend deps

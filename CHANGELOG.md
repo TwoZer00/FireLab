@@ -1,3 +1,7 @@
+## <small>1.15.4 (2026-05-20)</small>
+
+* fix: persist auth tokens in volume and ensure projects dir exists ([c811687cdbc28af6806ce3e44c25c99f76970647](https://github.com/TwoZer00/FireLab/commit/c811687cdbc28af6806ce3e44c25c99f76970647))
+
 ## <small>1.15.3 (2026-05-20)</small>
 
 * fix: add Java runtime and utilities to Docker images ([0d74ba1a9fa6f9a39ef16b0fe778164c8d40f4bd](https://github.com/TwoZer00/FireLab/commit/0d74ba1a9fa6f9a39ef16b0fe778164c8d40f4bd))

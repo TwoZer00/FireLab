@@ -141,7 +141,6 @@ app.post('/api/emulator/start', async (req, res) => {
     
     // Read config to determine which services to start
     const configPath = path.join(projectPath, 'firebase.json');
-    let emulatorHost = '0.0.0.0';
     if (existsSync(configPath)) {
       const configData = await readFile(configPath, 'utf-8');
       const config = JSON.parse(configData);
@@ -157,15 +156,9 @@ app.post('/api/emulator/start', async (req, res) => {
         if (services.length > 0) {
           args.push('--only', services.join(','));
         }
-
-        // Get host from first service that has it configured
-        const firstHost = Object.values(config.emulators).find(s => s.host)?.host;
-        if (firstHost) emulatorHost = firstHost;
       }
     }
 
-    args.push('--host', emulatorHost);
-    
     // Add debug flag if requested
     if (debug) {
       args.push('--debug');

@@ -92,7 +92,7 @@ function ProjectSetup({ projectId, existingProjects, onSelectProject, onCreatePr
               marginBottom: nameError ? '5px' : '10px',
               borderColor: nameError ? '#f85149' : '#30363d'
             }}
-            onKeyPress={(e) => e.key === 'Enter' && handleCreate()}
+            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             autoFocus
           />
           {nameError && (

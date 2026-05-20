@@ -7,29 +7,6 @@ function IndexesEditor({ projectId, getHeaders, onClose, firebaseLoggedIn }) {
   const [fetching, setFetching] = useState(false);
   const API_URL = import.meta.env.VITE_API_URL || '';
 
-  useEffect(() => {
-    loadIndexes();
-  }, [projectId]);
-
-  useEffect(() => {
-    if (content) {
-      const timer = setTimeout(() => validate(), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [content]);
-
-  const loadIndexes = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/indexes/${projectId}`, { headers: getHeaders() });
-      if (res.ok) {
-        const data = await res.json();
-        setContent(JSON.stringify(data, null, 2));
-      }
-    } catch (err) {
-      console.error('Failed to load indexes:', err);
-    }
-  };
-
   const validate = () => {
     try {
       const parsed = JSON.parse(content);
@@ -44,6 +21,31 @@ function IndexesEditor({ projectId, getHeaders, onClose, firebaseLoggedIn }) {
       return false;
     }
   };
+
+  const loadIndexes = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/indexes/${projectId}`, { headers: getHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setContent(JSON.stringify(data, null, 2));
+      }
+    } catch (err) {
+      console.error('Failed to load indexes:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadIndexes();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
+
+  useEffect(() => {
+    if (content) {
+      const timer = setTimeout(() => validate(), 500);
+      return () => clearTimeout(timer);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content]);
 
   const handleSave = async () => {
     if (!validate()) {

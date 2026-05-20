@@ -22,10 +22,6 @@ function RulesEditor({
   const [testResult, setTestResult] = useState(null);
   const [fetching, setFetching] = useState(false);
 
-  useEffect(() => {
-    loadHistory();
-  }, [projectId, rulesType]);
-
   const loadHistory = async () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/rules-history/${projectId}/${rulesType}`, { headers: getHeaders() });
@@ -37,6 +33,11 @@ function RulesEditor({
       console.error('Failed to load history:', error);
     }
   };
+
+  useEffect(() => {
+    loadHistory();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, rulesType]);
 
   const saveToHistory = async () => {
     try {
@@ -93,7 +94,7 @@ function RulesEditor({
         } else {
           result = { allowed: false, reason: 'Rule denies operation' };
         }
-      } catch (e) {
+      } catch {
         result = { allowed: false, reason: 'Invalid JSON' };
       }
     }
@@ -136,6 +137,7 @@ function RulesEditor({
       const timer = setTimeout(() => validateRules(), 1000);
       return () => clearTimeout(timer);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rulesContent, rulesType]);
 
   const handleSave = async () => {

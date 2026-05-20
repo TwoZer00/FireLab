@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import AnsiToHtml from 'ansi-to-html';
 
-const ansiConverter = new AnsiToHtml({ fg: '#d4d4d4', bg: '#1e1e1e' });
+const ansiConverter = new AnsiToHtml({ fg: '#d4d4d4', bg: 'transparent' });
 
 function LogsViewer({ logs, autoScroll, setAutoScroll, onClear }) {
   const [searchTerm, setSearchTerm] = useState('');

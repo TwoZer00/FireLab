@@ -27,7 +27,7 @@ seed().catch(console.error);
 `);
 
   const clearAllData = async () => {
-    if (!confirm('⚠️ Clear ALL emulator data?\\n\\nThis will delete all data from Firestore, Auth, Storage, etc.\\n\\nThis cannot be undone.')) {
+    if (!confirm('⚠️ Clear ALL emulator data?\n\nThis will delete all data from Firestore, Auth, Storage, etc.\n\nThis cannot be undone.')) {
       return;
     }
 
@@ -72,9 +72,6 @@ seed().catch(console.error);
     }
   };
 
-  const downloadSnapshot = (snapshotName) => {
-    window.open(`${API_URL}/api/snapshots/${projectId}/${snapshotName}/download`, '_blank');
-  };
 
   return (
     <div className="section">

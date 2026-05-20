@@ -236,7 +236,7 @@ button:disabled {
 .config-item label {
   font-weight: bold;
   margin-bottom: 5px;
-  color: #555;
+  color: #8b949e;
 }
 
 .logs {
@@ -244,6 +244,7 @@ button:disabled {
   color: #d4d4d4;
   padding: 15px;
   border-radius: 12px;
+  border: 1px solid #30363d;
   overflow-y: auto;
   overflow-x: auto;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
@@ -270,21 +271,36 @@ button:disabled {
 }
 
 .log-error {
-  background: rgba(255, 0, 0, 0.1);
-  color: #ff6b6b;
+  background: rgba(255, 0, 0, 0.1) !important;
+  color: #ff6b6b !important;
   border-left: 3px solid #ff0000;
 }
 
+.log-error * {
+  color: inherit !important;
+  background: transparent !important;
+}
+
 .log-warning {
-  background: rgba(255, 165, 0, 0.1);
-  color: #ffa500;
+  background: rgba(255, 165, 0, 0.1) !important;
+  color: #ffa500 !important;
   border-left: 3px solid #ff8c00;
 }
 
+.log-warning * {
+  color: inherit !important;
+  background: transparent !important;
+}
+
 .log-success {
-  background: rgba(0, 255, 0, 0.1);
-  color: #4caf50;
+  background: rgba(0, 255, 0, 0.1) !important;
+  color: #4caf50 !important;
   border-left: 3px solid #00ff00;
+}
+
+.log-success * {
+  color: inherit !important;
+  background: transparent !important;
 }
 
 .logs::-webkit-scrollbar {
@@ -397,4 +413,26 @@ button:disabled {
   background: #161b22;
   color: #f85149;
   border: 1px solid #da3633;
+}
+
+.btn-primary {
+  background: #238636;
+  border-color: #2ea043;
+}
+
+.btn-secondary {
+  background: #21262d;
+  border-color: #30363d;
+  color: #c9d1d9;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #30363d;
+  border-color: #8b949e;
+}
+
+h3 {
+  color: #c9d1d9;
+  font-size: 14px;
+  margin-bottom: 12px;
 }

@@ -38,7 +38,7 @@ function SnapshotsManager({ projectId, snapshots, onExport, onRestore, onDelete,
             onChange={(e) => setSnapshotName(e.target.value)}
             placeholder="Snapshot name (optional)"
             style={{ width: '100%', marginRight: 0, marginBottom: '8px' }}
-            onKeyPress={(e) => e.key === 'Enter' && handleExport()}
+            onKeyDown={(e) => e.key === 'Enter' && handleExport()}
             autoFocus
           />
           <button onClick={handleExport} disabled={!isRunning}>

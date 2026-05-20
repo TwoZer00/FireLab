@@ -175,7 +175,7 @@ app.post('/api/emulator/start', async (req, res) => {
       }
     }
 
-    const env = { ...process.env };
+    const env = { ...process.env, FORCE_COLOR: '1' };
     if (process.env.FIREBASE_TOKEN) {
       env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
     }
@@ -222,7 +222,8 @@ app.post('/api/emulator/start', async (req, res) => {
 
         const exportProcess = spawn('firebase', ['emulators:export', exportPath], {
           cwd: projectPath,
-          shell: true
+          shell: true,
+          env: { ...process.env, FORCE_COLOR: '1' }
         });
 
         exportProcess.stdout.on('data', (data) => {
@@ -293,7 +294,8 @@ app.post('/api/emulator/stop', async (req, res) => {
 
       const exportProcess = spawn('firebase', ['emulators:export', exportPath], {
         cwd: projectPath,
-        shell: true
+        shell: true,
+        env: { ...process.env, FORCE_COLOR: '1' }
       });
 
       exportProcess.stdout.on('data', (data) => {
@@ -614,6 +616,8 @@ app.post('/api/deploy/:projectId/:type', async (req, res) => {
       env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
     }
 
+    env.FORCE_COLOR = '1';
+
     const deployProcess = spawn('firebase', ['deploy', '--only', deployTarget], {
       cwd: projectPath,
       shell: true,
@@ -658,7 +662,8 @@ app.post('/api/export/:projectId', async (req, res) => {
   try {
     const exportProcess = spawn('firebase', ['emulators:export', exportPath], {
       cwd: projectPath,
-      shell: true
+      shell: true,
+      env: { ...process.env, FORCE_COLOR: '1' }
     });
 
     exportProcess.stdout.on('data', (data) => {
@@ -1019,6 +1024,7 @@ app.post('/api/deploy-indexes/:projectId', async (req, res) => {
     if (process.env.FIREBASE_TOKEN) {
       env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
     }
+    env.FORCE_COLOR = '1';
     const deployProcess = spawn('firebase', ['deploy', '--only', 'firestore:indexes'], {
       cwd: projectPath,
       shell: true,

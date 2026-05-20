@@ -32,6 +32,12 @@ let snapshotInterval = null;
 const projectsDir = existsSync(path.join(__dirname, '../firebase-projects'))
   ? path.join(__dirname, '../firebase-projects')
   : path.join(__dirname, 'firebase-projects');
+
+// Ensure projectsDir exists (important for Docker volume mounts)
+if (!existsSync(projectsDir)) {
+  await mkdir(projectsDir, { recursive: true });
+}
+console.log(`[FireLab] Projects directory: ${projectsDir}`);
 const connectionHistory = [];
 
 // Initialize auth

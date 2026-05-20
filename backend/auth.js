@@ -7,8 +7,16 @@ import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const tokensFile = path.join(__dirname, 'tokens.json');
-const secretFile = path.join(__dirname, '.jwt-secret');
+
+// Store auth files in persistent volume when available
+const dataDir = existsSync(path.join(__dirname, 'firebase-projects'))
+  ? path.join(__dirname, 'firebase-projects')
+  : existsSync(path.join(__dirname, '../firebase-projects'))
+    ? path.join(__dirname, '../firebase-projects')
+    : __dirname;
+
+const tokensFile = path.join(dataDir, '.tokens.json');
+const secretFile = path.join(dataDir, '.jwt-secret');
 
 let JWT_SECRET;
 

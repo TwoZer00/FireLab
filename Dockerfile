@@ -18,6 +18,9 @@ COPY backend/package*.json ./
 RUN npm install --omit=dev
 COPY backend/ ./
 
+# Create firebase-projects directory for volume mount
+RUN mkdir -p /app/firebase-projects
+
 # Copy frontend build
 COPY --from=frontend-builder /app/dist ../frontend/dist
 

@@ -1,3 +1,8 @@
+## <small>1.16.1 (2026-05-20)</small>
+
+* revert: remove --host flag from emulator start command ([f71c8eafc5c76b9203709fbe292064f620353fb5](https://github.com/TwoZer00/FireLab/commit/f71c8eafc5c76b9203709fbe292064f620353fb5))
+* fix: improve Docker container startup and CLI handling ([39c64430d3c077c186ca989dc06dc82c0dba0af9](https://github.com/TwoZer00/FireLab/commit/39c64430d3c077c186ca989dc06dc82c0dba0af9))
+
 ## 1.16.0 (2026-05-20)
 
 * feat: add configurable emulator host binding ([2ad1367f7659bf0e63d0cf3b414103536aa4f589](https://github.com/TwoZer00/FireLab/commit/2ad1367f7659bf0e63d0cf3b414103536aa4f589))

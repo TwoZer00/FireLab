@@ -1,3 +1,7 @@
+## 1.16.0 (2026-05-20)
+
+* feat: add configurable emulator host binding ([2ad1367f7659bf0e63d0cf3b414103536aa4f589](https://github.com/TwoZer00/FireLab/commit/2ad1367f7659bf0e63d0cf3b414103536aa4f589))
+
 ## <small>1.15.4 (2026-05-20)</small>
 
 * fix: persist auth tokens in volume and ensure projects dir exists ([c811687cdbc28af6806ce3e44c25c99f76970647](https://github.com/TwoZer00/FireLab/commit/c811687cdbc28af6806ce3e44c25c99f76970647))

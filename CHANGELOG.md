@@ -1,3 +1,8 @@
+## <small>1.15.2 (2026-05-20)</small>
+
+* fix: add unauthenticated health check endpoint for Docker healthcheck ([379ed83b1f81bc26bd7444e2e99f2bb6742f19f3](https://github.com/TwoZer00/FireLab/commit/379ed83b1f81bc26bd7444e2e99f2bb6742f19f3))
+* docs: update backend setup, Docker guide, and landing page ([0b647fd57305c8cf3c0c3c031f20d1bcd2f85145](https://github.com/TwoZer00/FireLab/commit/0b647fd57305c8cf3c0c3c031f20d1bcd2f85145))
+
 ## <small>1.15.1 (2026-05-19)</small>
 
 * fix: improve security and unified deployment compatibility ([c4a7ef9942f23eb2e12415b27895f265dd671f29](https://github.com/TwoZer00/FireLab/commit/c4a7ef9942f23eb2e12415b27895f265dd671f29))

@@ -217,8 +217,7 @@ app.post('/api/emulator/start', async (req, res) => {
       }
     }
 
-    // Always run in debug mode for full rules evaluation logging
-    args.push('--debug');
+
 
     // Add import flag if requested and data exists
     if (importData) {
@@ -244,31 +243,16 @@ app.post('/api/emulator/start', async (req, res) => {
 
     await openDebugLog(projectPath);
 
-    const DEBUG_NOISE = [
-      /^\s*\[debug\]/i,
-      /grpc.*channel/i,
-      /firestore.*internal/i,
-      /^\s*\[.*\] >>>/,
-    ];
-    const isNoisyLine = (line) => DEBUG_NOISE.some(p => p.test(line));
-    const filterChunk = (text) => {
-      const lines = text.split('\n');
-      const filtered = lines.filter(l => !isNoisyLine(l));
-      return filtered.join('\n');
-    };
-
     emulatorProcess.stdout.on('data', (data) => {
       const text = data.toString();
       if (debugLogStream) debugLogStream.write(text);
-      const filtered = filterChunk(text);
-      if (filtered.trim()) io.emit('logs', filtered);
+      io.emit('logs', text);
     });
 
     emulatorProcess.stderr.on('data', (data) => {
       const text = data.toString();
       if (debugLogStream) debugLogStream.write(text);
-      const filtered = filterChunk(text);
-      if (filtered.trim()) io.emit('logs', filtered);
+      io.emit('logs', text);
     });
 
     emulatorProcess.on('error', (error) => {

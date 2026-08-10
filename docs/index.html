@@ -35,7 +35,7 @@
       "description": "Web-based platform to manage and configure Firebase emulators locally with auto-snapshots, rules editor, indexes management, and Docker support",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Windows, macOS, Linux",
-      "softwareVersion": "1.16.1",
+      "softwareVersion": "1.18.0",
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -488,8 +488,8 @@
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🔍</div>
-                    <h3>Debug Mode</h3>
-                    <p>Toggle debug mode to see detailed rules evaluation and emulator internals.</p>
+                    <h3>Debug Logging</h3>
+                    <p>Always-on debug logging with rotating log file. Filter by ALLOW, DENY, Rules, Reads, Writes, Errors and download the full log.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">☁️</div>
@@ -553,7 +553,7 @@ npm start</pre>
         <div class="container">
             <p>Built with ❤️ for Firebase developers</p>
             <p style="margin-top: 10px;"><a href="https://github.com/TwoZer00/FireLab">GitHub</a> • <a href="https://hub.docker.com/r/leobardo21/firelab">Docker Hub</a> • <a href="https://github.com/TwoZer00/FireLab/issues">Issues</a> • <a href="https://github.com/TwoZer00/FireLab#readme">Documentation</a></p>
-            <p style="margin-top: 10px; font-size: 12px;">v1.16.1 • MIT License • <a href="https://github.com/TwoZer00/FireLab/blob/main/CHANGELOG.md">Changelog</a></p>
+            <p style="margin-top: 10px; font-size: 12px;"><span class="version-badge">v1.18.0</span> • MIT License • <a href="https://github.com/TwoZer00/FireLab/blob/main/CHANGELOG.md">Changelog</a></p>
         </div>
     </footer>
 
@@ -566,6 +566,21 @@ npm start</pre>
                 setTimeout(() => button.textContent = 'Copy', 2000);
             });
         }
+
+        fetch('https://api.github.com/repos/TwoZer00/FireLab/releases/latest')
+            .then(r => r.json())
+            .then(data => {
+                const v = data.tag_name;
+                if (!v) return;
+                document.querySelectorAll('.version-badge').forEach(el => el.textContent = v);
+                const schema = document.querySelector('script[type="application/ld+json"]');
+                if (schema) {
+                    const json = JSON.parse(schema.textContent);
+                    json.softwareVersion = v.replace(/^v/, '');
+                    schema.textContent = JSON.stringify(json);
+                }
+            })
+            .catch(() => {});
     </script>
 </body>
 </html>

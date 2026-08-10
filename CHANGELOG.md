@@ -1,3 +1,7 @@
+## 1.19.0 (2026-08-10)
+
+* feat: merge allow/deny debug filters into single Rules Eval filter ([63ebc4bd8316c8fb87aaa8fbcb6d0423dd029101](https://github.com/TwoZer00/FireLab/commit/63ebc4bd8316c8fb87aaa8fbcb6d0423dd029101))
+
 ## <small>1.18.6 (2026-08-10)</small>
 
 * fix: remove --debug flag to restore Firebase CLI colored table output ([96109b62002fc37a97357445a66a231723e465ad](https://github.com/TwoZer00/FireLab/commit/96109b62002fc37a97357445a66a231723e465ad))

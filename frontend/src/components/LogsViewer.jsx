@@ -13,8 +13,6 @@ function sanitizeHtml(html) {
 
 const DEBUG_FILTERS = [
   { value: 'all',          label: 'All Logs' },
-  { value: 'allow',        label: '✅ ALLOW' },
-  { value: 'deny',         label: '❌ DENY' },
   { value: 'rules',        label: '📋 Rules Eval' },
   { value: 'transaction',  label: '🔄 Transactions' },
   { value: 'read',         label: '👁 Reads' },
@@ -33,8 +31,6 @@ const DEBUG_NOISE = [
 function matchesDebugFilter(log, filter) {
   const l = log.toLowerCase();
   switch (filter) {
-    case 'allow':       return l.includes('allow');
-    case 'deny':        return l.includes('deny');
     case 'rules':       return l.includes('allow') || l.includes('deny') || l.includes('rules');
     case 'transaction': return l.includes('transaction') || l.includes('commit') || l.includes('batch');
     case 'read':        return l.includes(' read ') || l.includes('get(') || l.includes('list(');

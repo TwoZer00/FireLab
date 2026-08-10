@@ -1,3 +1,7 @@
+## <small>1.18.3 (2026-08-10)</small>
+
+* fix: filter debug noise line-by-line to preserve emulator table styling ([2ccbb14b06f7abf2261b3d4b5ec500e340765ae9](https://github.com/TwoZer00/FireLab/commit/2ccbb14b06f7abf2261b3d4b5ec500e340765ae9))
+
 ## <small>1.18.2 (2026-08-10)</small>
 
 * chore: add coverage/ to .gitignore ([f1ff7c137e6c52ce09aada7069e335ad968c8bf5](https://github.com/TwoZer00/FireLab/commit/f1ff7c137e6c52ce09aada7069e335ad968c8bf5))

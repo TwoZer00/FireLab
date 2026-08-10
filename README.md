@@ -1,6 +1,6 @@
 # FireLab
 
-A web-based platform to manage and configure Firebase emulators locally.
+A full-stack platform to run, manage, and configure Firebase emulators — includes a backend service that wraps the Firebase CLI and a web UI to control everything from the browser.
 
 ## Screenshots
 

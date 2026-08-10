@@ -1,3 +1,11 @@
+## 1.17.0 (2026-08-10)
+
+* fix: docker entrypoint, port range, docs screenshots section and readme corrections ([9d2c82c6bded1c78c4ccf073fb6d120eb3ff69b9](https://github.com/TwoZer00/FireLab/commit/9d2c82c6bded1c78c4ccf073fb6d120eb3ff69b9))
+* fix: patch path traversal and input validation in all API endpoints ([505418bfe0151fb356789483d2f33bf3154e76ea](https://github.com/TwoZer00/FireLab/commit/505418bfe0151fb356789483d2f33bf3154e76ea))
+* feat: add manage services UI to ConfigEditor ([acd715a895820a7444b1bcde8ec0d8a6d854e89a](https://github.com/TwoZer00/FireLab/commit/acd715a895820a7444b1bcde8ec0d8a6d854e89a))
+* docs: update README, Docker guide, backend setup, and landing page ([391873acbcdb31461c5c6220b441a254e08f374f](https://github.com/TwoZer00/FireLab/commit/391873acbcdb31461c5c6220b441a254e08f374f))
+* refactor: improve UI styling and enable ANSI color output ([2da0a96b1cb13db65cac2164fff5d80e6fb46133](https://github.com/TwoZer00/FireLab/commit/2da0a96b1cb13db65cac2164fff5d80e6fb46133))
+
 ## <small>1.16.1 (2026-05-20)</small>
 
 * revert: remove --host flag from emulator start command ([f71c8eafc5c76b9203709fbe292064f620353fb5](https://github.com/TwoZer00/FireLab/commit/f71c8eafc5c76b9203709fbe292064f620353fb5))

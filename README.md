@@ -81,6 +81,40 @@ docker logs firelab
 
 # Remove container (keeps volume)
 docker rm firelab
+
+# Update to latest image
+docker stop firelab && docker rm firelab
+docker pull leobardo21/firelab:latest
+# then run again with docker run ...
+```
+
+**Interactive mode (foreground with CLI access):**
+
+Use `-it` instead of `-d` to keep an interactive terminal open. This enables the built-in CLI (e.g. `token` command):
+
+```bash
+docker run -it \
+  -p 3001:3001 \
+  -p 4000-4010:4000-4010 \
+  -p 5000-5010:5000-5010 \
+  -p 8080-8089:8080-8089 \
+  -p 9000-9010:9000-9010 \
+  -p 9099-9109:9099-9109 \
+  -p 9199-9209:9199-9209 \
+  -v firelab-projects:/app/firebase-projects \
+  --name firelab leobardo21/firelab:latest
+```
+
+> Use `-d` (background) for servers/production. Use `-it` (foreground) for local development when you need CLI access.
+
+**Accessing the container shell:**
+```bash
+docker exec -it firelab bash
+```
+
+**Generating a token in background mode:**
+```bash
+docker exec -it firelab node /app/generate-token.js
 ```
 
 ## Setup

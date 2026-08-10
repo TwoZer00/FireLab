@@ -1,5 +1,11 @@
 ## 1.18.0 (2026-08-10)
 
+* feat: add backend test suite, always-on debug logging, Firebase login flow, and auth improvements ([3157e97d8f39954be8f301e504a8543fa570ecda](https://github.com/TwoZer00/FireLab/commit/3157e97d8f39954be8f301e504a8543fa570ecda))
+* docs: add interactive mode, update and exec instructions for Docker ([96b0e26fbd7b74bd9ebcc025a1f64250ab8b24e4](https://github.com/TwoZer00/FireLab/commit/96b0e26fbd7b74bd9ebcc025a1f64250ab8b24e4))
+* docs: improve project description to reflect full-stack nature ([daf4d432cd674b2d3c5974ac35c83c6d60de4a85](https://github.com/TwoZer00/FireLab/commit/daf4d432cd674b2d3c5974ac35c83c6d60de4a85))
+
+## 1.18.0 (2026-08-10)
+
 * feat: add backend integration test suite with 62 tests and coverage reporting
 * refactor: export app/httpServer from server.js and move listen() behind isMain guard to enable testing
 * refactor: export tokensFile from auth.js for test isolation

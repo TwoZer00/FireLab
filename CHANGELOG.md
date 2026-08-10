@@ -1,3 +1,8 @@
+## <small>1.18.2 (2026-08-10)</small>
+
+* chore: add coverage/ to .gitignore ([f1ff7c137e6c52ce09aada7069e335ad968c8bf5](https://github.com/TwoZer00/FireLab/commit/f1ff7c137e6c52ce09aada7069e335ad968c8bf5))
+* fix: filter debug noise from socket logs to restore emulator table styling ([5536e893947cec5d31f7ef2b7444d265ea54f749](https://github.com/TwoZer00/FireLab/commit/5536e893947cec5d31f7ef2b7444d265ea54f749))
+
 ## <small>1.18.1 (2026-08-10)</small>
 
 * fix: changelog link pointing to master branch instead of main ([a577a459e0832b73dac01388e2dc0164c8e402ce](https://github.com/TwoZer00/FireLab/commit/a577a459e0832b73dac01388e2dc0164c8e402ce))

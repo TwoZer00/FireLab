@@ -40,6 +40,23 @@ if (!existsSync(projectsDir)) {
 console.log(`[FireLab] Projects directory: ${projectsDir}`);
 const connectionHistory = [];
 
+// Validate that a resolved path stays within the base directory
+function safeJoin(base, ...parts) {
+  const resolved = path.resolve(base, ...parts);
+  if (!resolved.startsWith(path.resolve(base) + path.sep) && resolved !== path.resolve(base)) {
+    throw new Error('Path traversal detected');
+  }
+  return resolved;
+}
+
+// Validate a simple name segment (no path separators or traversal)
+function validateSegment(segment) {
+  if (!segment || typeof segment !== 'string' || segment.includes('..') || segment.includes('/') || segment.includes('\\') || segment.trim() === '') {
+    throw new Error('Invalid path segment');
+  }
+  return segment;
+}
+
 // Initialize auth
 await initAuth();
 
@@ -52,7 +69,12 @@ app.use('/api', authMiddleware);
 // Initialize project
 app.post('/api/init', async (req, res) => {
   const { projectId, services } = req.body;
-  const projectPath = path.join(projectsDir, projectId);
+  let projectPath;
+  try {
+    projectPath = safeJoin(projectsDir, validateSegment(projectId));
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
 
   console.log('Creating project:', projectId, 'with services:', services);
 
@@ -130,14 +152,20 @@ service firebase.storage {
 // Start emulator with optional snapshot
 app.post('/api/emulator/start', async (req, res) => {
   const { projectId, importData, snapshotName, debug, autoSnapshot } = req.body;
-  const projectPath = path.join(projectsDir, projectId);
+  let projectPath;
+  try {
+    projectPath = safeJoin(projectsDir, validateSegment(projectId));
+    if (snapshotName) validateSegment(snapshotName);
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID or snapshot name' });
+  }
 
   if (emulatorProcess) {
     return res.status(400).json({ error: 'Emulator already running' });
   }
 
   try {
-    const args = ['emulators:start'];
+    const args = ['emulators:start', '--project', projectId];
     
     // Read config to determine which services to start
     const configPath = path.join(projectPath, 'firebase.json');
@@ -220,7 +248,7 @@ app.post('/api/emulator/start', async (req, res) => {
         const snapshotName = `auto-${timestamp}`;
         const exportPath = path.join(projectPath, 'emulator-data', snapshotName);
 
-        const exportProcess = spawn('firebase', ['emulators:export', exportPath], {
+        const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId], {
           cwd: projectPath,
           shell: true,
           env: { ...process.env, FORCE_COLOR: '1' }
@@ -273,6 +301,9 @@ app.post('/api/emulator/start', async (req, res) => {
 // Stop emulator with auto-snapshot
 app.post('/api/emulator/stop', async (req, res) => {
   const { projectId } = req.body;
+  if (projectId) {
+    try { validateSegment(projectId); } catch { return res.status(400).json({ error: 'Invalid project ID' }); }
+  }
   
   if (!emulatorProcess) {
     return res.status(400).json({ error: 'No emulator running' });
@@ -287,12 +318,12 @@ app.post('/api/emulator/stop', async (req, res) => {
   try {
     // Create auto-snapshot before stopping
     if (projectId) {
-      const projectPath = path.join(projectsDir, projectId);
+      const projectPath = safeJoin(projectsDir, projectId);
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
       const snapshotName = `auto-${timestamp}`;
       const exportPath = path.join(projectPath, 'emulator-data', snapshotName);
 
-      const exportProcess = spawn('firebase', ['emulators:export', exportPath], {
+      const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId], {
         cwd: projectPath,
         shell: true,
         env: { ...process.env, FORCE_COLOR: '1' }
@@ -451,7 +482,12 @@ app.get('/api/emulator/status', (req, res) => {
 // Get config
 app.get('/api/config/:projectId', async (req, res) => {
   const { projectId } = req.params;
-  const configPath = path.join(projectsDir, projectId, 'firebase.json');
+  let configPath;
+  try {
+    configPath = safeJoin(projectsDir, validateSegment(projectId), 'firebase.json');
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
 
   try {
     const config = await readFile(configPath, 'utf-8');
@@ -481,22 +517,11 @@ app.get('/api/projects', async (req, res) => {
 // Delete project
 app.delete('/api/projects/:projectId', async (req, res) => {
   const { projectId } = req.params;
-  
-  // Safety checks
-  if (!projectId || projectId.trim() === '') {
+  let projectPath;
+  try {
+    projectPath = safeJoin(projectsDir, validateSegment(projectId));
+  } catch {
     return res.status(400).json({ error: 'Invalid project ID' });
-  }
-  
-  // Prevent path traversal attacks
-  if (projectId.includes('..') || projectId.includes('/') || projectId.includes('\\')) {
-    return res.status(400).json({ error: 'Invalid project ID' });
-  }
-  
-  const projectPath = path.join(projectsDir, projectId);
-  
-  // Ensure path is within projectsDir
-  if (!projectPath.startsWith(projectsDir)) {
-    return res.status(400).json({ error: 'Invalid project path' });
   }
 
   try {
@@ -513,10 +538,69 @@ app.delete('/api/projects/:projectId', async (req, res) => {
   }
 });
 
+// Update services for existing project
+app.put('/api/services/:projectId', async (req, res) => {
+  const { services } = req.body;
+  let projectPath, configPath;
+  try {
+    projectPath = safeJoin(projectsDir, validateSegment(req.params.projectId));
+    configPath = path.join(projectPath, 'firebase.json');
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
+
+  try {
+    const configData = await readFile(configPath, 'utf-8');
+    const config = JSON.parse(configData);
+    const emulators = config.emulators || {};
+    const host = Object.values(emulators).find(s => s?.host)?.host || '0.0.0.0';
+
+    const defaults = {
+      auth:      { port: 9099, host },
+      firestore: { port: 8080, host },
+      database:  { port: 9000, host },
+      hosting:   { port: 5000, host },
+      storage:   { port: 9199, host },
+      ui:        { enabled: true, port: 4000, host }
+    };
+
+    for (const [svc, enabled] of Object.entries(services)) {
+      if (enabled && !emulators[svc]) {
+        emulators[svc] = defaults[svc];
+        if (svc === 'firestore') {
+          const idxPath = path.join(projectPath, 'firestore.indexes.json');
+          if (!existsSync(idxPath)) await writeFile(idxPath, JSON.stringify({ indexes: [], fieldOverrides: [] }, null, 2));
+          const rPath = path.join(projectPath, 'firestore.rules');
+          if (!existsSync(rPath)) await writeFile(rPath, "rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if true;\n    }\n  }\n}");
+        } else if (svc === 'storage') {
+          const rPath = path.join(projectPath, 'storage.rules');
+          if (!existsSync(rPath)) await writeFile(rPath, "rules_version = '2';\nservice firebase.storage {\n  match /b/{bucket}/o {\n    match /{allPaths=**} {\n      allow read, write: if true;\n    }\n  }\n}");
+        } else if (svc === 'database') {
+          const rPath = path.join(projectPath, 'database.rules.json');
+          if (!existsSync(rPath)) await writeFile(rPath, '{\n  "rules": {\n    ".read": true,\n    ".write": true\n  }\n}');
+        }
+      } else if (!enabled && emulators[svc]) {
+        delete emulators[svc];
+      }
+    }
+
+    config.emulators = emulators;
+    await writeFile(configPath, JSON.stringify(config, null, 2));
+    res.json({ success: true, config });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Update config
 app.put('/api/config/:projectId', async (req, res) => {
   const { projectId } = req.params;
-  const configPath = path.join(projectsDir, projectId, 'firebase.json');
+  let configPath;
+  try {
+    configPath = safeJoin(projectsDir, validateSegment(projectId), 'firebase.json');
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
 
   try {
     await writeFile(configPath, JSON.stringify(req.body, null, 2));
@@ -530,14 +614,19 @@ app.put('/api/config/:projectId', async (req, res) => {
 app.get('/api/rules/:projectId/:type', async (req, res) => {
   const { projectId, type } = req.params;
   let rulesPath;
-  
-  if (type === 'database') {
-    rulesPath = path.join(projectsDir, projectId, 'database.rules.json');
-  } else {
-    rulesPath = path.join(projectsDir, projectId, `${type}.rules`);
-    if (!existsSync(rulesPath)) {
-      rulesPath = path.join(projectsDir, projectId, `${type}.rule`);
+  try {
+    const projectPath = safeJoin(projectsDir, validateSegment(projectId));
+    validateSegment(type);
+    if (type === 'database') {
+      rulesPath = path.join(projectPath, 'database.rules.json');
+    } else {
+      rulesPath = path.join(projectPath, `${type}.rules`);
+      if (!existsSync(rulesPath)) {
+        rulesPath = path.join(projectPath, `${type}.rule`);
+      }
     }
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID or rules type' });
   }
 
   try {
@@ -551,7 +640,12 @@ app.get('/api/rules/:projectId/:type', async (req, res) => {
 // List available rules files
 app.get('/api/rules/:projectId', async (req, res) => {
   const { projectId } = req.params;
-  const projectPath = path.join(projectsDir, projectId);
+  let projectPath;
+  try {
+    projectPath = safeJoin(projectsDir, validateSegment(projectId));
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
 
   try {
     const { readdir } = await import('fs/promises');
@@ -581,14 +675,19 @@ app.put('/api/rules/:projectId/:type', async (req, res) => {
   const { projectId, type } = req.params;
   const { rules } = req.body;
   let rulesPath;
-  
-  if (type === 'database') {
-    rulesPath = path.join(projectsDir, projectId, 'database.rules.json');
-  } else {
-    rulesPath = path.join(projectsDir, projectId, `${type}.rules`);
-    if (!existsSync(rulesPath)) {
-      rulesPath = path.join(projectsDir, projectId, `${type}.rule`);
+  try {
+    const projectPath = safeJoin(projectsDir, validateSegment(projectId));
+    validateSegment(type);
+    if (type === 'database') {
+      rulesPath = path.join(projectPath, 'database.rules.json');
+    } else {
+      rulesPath = path.join(projectPath, `${type}.rules`);
+      if (!existsSync(rulesPath)) {
+        rulesPath = path.join(projectPath, `${type}.rule`);
+      }
     }
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID or rules type' });
   }
 
   try {
@@ -602,7 +701,13 @@ app.put('/api/rules/:projectId/:type', async (req, res) => {
 // Deploy rules
 app.post('/api/deploy/:projectId/:type', async (req, res) => {
   const { projectId, type } = req.params;
-  const projectPath = path.join(projectsDir, projectId);
+  let projectPath;
+  try {
+    projectPath = safeJoin(projectsDir, validateSegment(projectId));
+    validateSegment(type);
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID or rules type' });
+  }
 
   try {
     let deployTarget;
@@ -653,14 +758,18 @@ app.post('/api/deploy/:projectId/:type', async (req, res) => {
 app.post('/api/export/:projectId', async (req, res) => {
   const { projectId } = req.params;
   const { snapshotName } = req.body;
-  const projectPath = path.join(projectsDir, projectId);
-  
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-  const exportName = snapshotName || `snapshot-${timestamp}`;
-  const exportPath = path.join(projectPath, 'emulator-data', exportName);
+  let projectPath, exportPath, exportName;
+  try {
+    projectPath = safeJoin(projectsDir, validateSegment(projectId));
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    exportName = snapshotName ? validateSegment(snapshotName) : `snapshot-${timestamp}`;
+    exportPath = safeJoin(projectPath, 'emulator-data', exportName);
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID or snapshot name' });
+  }
 
   try {
-    const exportProcess = spawn('firebase', ['emulators:export', exportPath], {
+    const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId], {
       cwd: projectPath,
       shell: true,
       env: { ...process.env, FORCE_COLOR: '1' }
@@ -691,7 +800,12 @@ app.post('/api/export/:projectId', async (req, res) => {
 // List snapshots
 app.get('/api/snapshots/:projectId', async (req, res) => {
   const { projectId } = req.params;
-  const snapshotsPath = path.join(projectsDir, projectId, 'emulator-data');
+  let snapshotsPath;
+  try {
+    snapshotsPath = safeJoin(projectsDir, validateSegment(projectId), 'emulator-data');
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
 
   try {
     if (!existsSync(snapshotsPath)) {
@@ -711,7 +825,12 @@ app.get('/api/snapshots/:projectId', async (req, res) => {
 // Delete snapshot
 app.delete('/api/snapshots/:projectId/:snapshotName', async (req, res) => {
   const { projectId, snapshotName } = req.params;
-  const snapshotPath = path.join(projectsDir, projectId, 'emulator-data', snapshotName);
+  let snapshotPath;
+  try {
+    snapshotPath = safeJoin(projectsDir, validateSegment(projectId), 'emulator-data', validateSegment(snapshotName));
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID or snapshot name' });
+  }
 
   try {
     const { rm } = await import('fs/promises');
@@ -732,7 +851,12 @@ app.get('/api/export/:projectId/exists', (req, res) => {
 // Get rules history
 app.get('/api/rules-history/:projectId/:type', async (req, res) => {
   const { projectId, type } = req.params;
-  const historyPath = path.join(projectsDir, projectId, '.rules-history', `${type}.json`);
+  let historyPath;
+  try {
+    historyPath = safeJoin(projectsDir, validateSegment(projectId), '.rules-history', `${validateSegment(type)}.json`);
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID or rules type' });
+  }
 
   try {
     if (!existsSync(historyPath)) {
@@ -749,8 +873,13 @@ app.get('/api/rules-history/:projectId/:type', async (req, res) => {
 app.post('/api/rules-history/:projectId/:type', async (req, res) => {
   const { projectId, type } = req.params;
   const { rules } = req.body;
-  const historyDir = path.join(projectsDir, projectId, '.rules-history');
-  const historyPath = path.join(historyDir, `${type}.json`);
+  let historyDir, historyPath;
+  try {
+    historyDir = safeJoin(projectsDir, validateSegment(projectId), '.rules-history');
+    historyPath = path.join(historyDir, `${validateSegment(type)}.json`);
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID or rules type' });
+  }
 
   try {
     if (!existsSync(historyDir)) {
@@ -783,8 +912,12 @@ app.post('/api/rules-history/:projectId/:type', async (req, res) => {
 // Clear all emulator data
 app.post('/api/emulator/clear/:projectId', async (req, res) => {
   const { projectId } = req.params;
-  const projectPath = path.join(projectsDir, projectId);
-  const dataPath = path.join(projectPath, 'emulator-data');
+  let dataPath;
+  try {
+    dataPath = safeJoin(projectsDir, validateSegment(projectId), 'emulator-data');
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
 
   try {
     if (existsSync(dataPath)) {
@@ -801,12 +934,12 @@ app.post('/api/emulator/clear/:projectId', async (req, res) => {
 // Download snapshot as zip
 app.get('/api/snapshots/:projectId/:snapshotName/download', (req, res) => {
   const { projectId, snapshotName } = req.params;
-
-  if (snapshotName.includes('..') || snapshotName.includes('/') || snapshotName.includes('\\')) {
-    return res.status(400).json({ error: 'Invalid snapshot name' });
+  let snapshotPath;
+  try {
+    snapshotPath = safeJoin(projectsDir, validateSegment(projectId), 'emulator-data', validateSegment(snapshotName));
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID or snapshot name' });
   }
-
-  const snapshotPath = path.join(projectsDir, projectId, 'emulator-data', snapshotName);
 
   if (!existsSync(snapshotPath)) {
     return res.status(404).json({ error: 'Snapshot not found' });
@@ -851,9 +984,14 @@ app.post('/api/seed/:projectId', async (req, res) => {
     return res.status(400).json({ error: 'Script is required and must be under 50KB' });
   }
 
-  const projectPath = path.join(projectsDir, projectId);
-  const seedsDir = path.join(projectPath, '.seeds');
-  const scriptPath = path.join(seedsDir, `${Date.now()}.js`);
+  let projectPath, seedsDir, scriptPath;
+  try {
+    projectPath = safeJoin(projectsDir, validateSegment(projectId));
+    seedsDir = path.join(projectPath, '.seeds');
+    scriptPath = path.join(seedsDir, `${Date.now()}.js`);
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
 
   try {
     if (!existsSync(seedsDir)) {
@@ -893,7 +1031,13 @@ app.post('/api/seed/:projectId', async (req, res) => {
 // Fetch deployed rules from Firebase production
 app.get('/api/fetch-rules/:projectId/:type', async (req, res) => {
   const { projectId, type } = req.params;
-  const projectPath = path.join(projectsDir, projectId);
+  let projectPath;
+  try {
+    projectPath = safeJoin(projectsDir, validateSegment(projectId));
+    validateSegment(type);
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID or rules type' });
+  }
 
   try {
     const env = { ...process.env };
@@ -948,7 +1092,12 @@ app.get('/api/fetch-rules/:projectId/:type', async (req, res) => {
 // Fetch deployed indexes from Firebase production
 app.get('/api/fetch-indexes/:projectId', async (req, res) => {
   const { projectId } = req.params;
-  const projectPath = path.join(projectsDir, projectId);
+  let projectPath;
+  try {
+    projectPath = safeJoin(projectsDir, validateSegment(projectId));
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
 
   try {
     const env = { ...process.env };
@@ -990,7 +1139,12 @@ app.get('/api/fetch-indexes/:projectId', async (req, res) => {
 // Get Firestore indexes
 app.get('/api/indexes/:projectId', async (req, res) => {
   const { projectId } = req.params;
-  const indexesPath = path.join(projectsDir, projectId, 'firestore.indexes.json');
+  let indexesPath;
+  try {
+    indexesPath = safeJoin(projectsDir, validateSegment(projectId), 'firestore.indexes.json');
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
   try {
     if (!existsSync(indexesPath)) {
       return res.json({ indexes: [], fieldOverrides: [] });
@@ -1006,7 +1160,12 @@ app.get('/api/indexes/:projectId', async (req, res) => {
 app.put('/api/indexes/:projectId', async (req, res) => {
   const { projectId } = req.params;
   const { indexes } = req.body;
-  const indexesPath = path.join(projectsDir, projectId, 'firestore.indexes.json');
+  let indexesPath;
+  try {
+    indexesPath = safeJoin(projectsDir, validateSegment(projectId), 'firestore.indexes.json');
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
   try {
     await writeFile(indexesPath, indexes);
     res.json({ success: true });
@@ -1018,7 +1177,12 @@ app.put('/api/indexes/:projectId', async (req, res) => {
 // Deploy Firestore indexes
 app.post('/api/deploy-indexes/:projectId', async (req, res) => {
   const { projectId } = req.params;
-  const projectPath = path.join(projectsDir, projectId);
+  let projectPath;
+  try {
+    projectPath = safeJoin(projectsDir, validateSegment(projectId));
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
   try {
     const env = { ...process.env };
     if (process.env.FIREBASE_TOKEN) {
@@ -1048,7 +1212,12 @@ app.post('/api/deploy-indexes/:projectId', async (req, res) => {
 // List seed scripts
 app.get('/api/seeds/:projectId', async (req, res) => {
   const { projectId } = req.params;
-  const seedsDir = path.join(projectsDir, projectId, '.seeds');
+  let seedsDir;
+  try {
+    seedsDir = safeJoin(projectsDir, validateSegment(projectId), '.seeds');
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
 
   try {
     if (!existsSync(seedsDir)) {

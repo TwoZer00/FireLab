@@ -244,16 +244,18 @@ app.post('/api/emulator/start', async (req, res) => {
 
     await openDebugLog(projectPath);
 
+    const isDebugNoise = (text) => /^\s*\[debug\]/im.test(text);
+
     emulatorProcess.stdout.on('data', (data) => {
       const text = data.toString();
-      io.emit('logs', text);
       if (debugLogStream) debugLogStream.write(text);
+      if (!isDebugNoise(text)) io.emit('logs', text);
     });
 
     emulatorProcess.stderr.on('data', (data) => {
       const text = data.toString();
-      io.emit('logs', text);
       if (debugLogStream) debugLogStream.write(text);
+      if (!isDebugNoise(text)) io.emit('logs', text);
     });
 
     emulatorProcess.on('error', (error) => {

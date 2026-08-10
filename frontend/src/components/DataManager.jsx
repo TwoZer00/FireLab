@@ -1,30 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 function DataManager({ projectId, isRunning, onRefreshSnapshots, getHeaders }) {
   const [showSeedEditor, setShowSeedEditor] = useState(false);
-  const [seedScript, setSeedScript] = useState(`// Example seed script
-// Use Firebase Admin SDK or REST API to populate data
+  const [seedScript, setSeedScript] = useState('');
 
-const admin = require('firebase-admin');
-admin.initializeApp({ projectId: '${projectId}' });
-
-const db = admin.firestore();
-
-async function seed() {
-  // Add test users
-  await db.collection('users').doc('user1').set({
-    name: 'Test User',
-    email: 'test@example.com',
-    createdAt: new Date()
-  });
-  
-  console.log('Seed completed!');
-}
-
-seed().catch(console.error);
-`);
+  useEffect(() => {
+    setSeedScript(`// Example seed script\nconst admin = require('firebase-admin');\nadmin.initializeApp({ projectId: '${projectId}' });\n\nconst db = admin.firestore();\n\nasync function seed() {\n  await db.collection('users').doc('user1').set({\n    name: 'Test User',\n    email: 'test@example.com',\n    createdAt: new Date()\n  });\n  console.log('Seed completed!');\n}\n\nseed().catch(console.error);\n`);
+  }, [projectId]);
 
   const clearAllData = async () => {
     if (!confirm('⚠️ Clear ALL emulator data?\n\nThis will delete all data from Firestore, Auth, Storage, etc.\n\nThis cannot be undone.')) {

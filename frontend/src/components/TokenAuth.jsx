@@ -18,13 +18,20 @@ function TokenAuth({ onTokenSet }) {
           setToken(saved);
           setIsAuthenticated(true);
           onTokenSet(saved);
-        } else {
-          // Invalid token, clear it
+        } else if (res.status === 401) {
           localStorage.removeItem('accessToken');
+        } else {
+          // Server error or other issue — keep token, don't clear
+          setToken(saved);
+          setIsAuthenticated(true);
+          onTokenSet(saved);
         }
       })
       .catch(() => {
-        localStorage.removeItem('accessToken');
+        // Network error — keep token, backend may be temporarily down
+        setToken(saved);
+        setIsAuthenticated(true);
+        onTokenSet(saved);
       });
     }
   }, [onTokenSet]);

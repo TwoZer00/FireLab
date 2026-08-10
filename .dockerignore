@@ -8,8 +8,15 @@ npm-debug.log
 dist
 build
 firebase-projects
+firebase-projects-test
 .firebase
 firebase-debug.log
 ui-debug.log
 backend/.jwt-secret
 backend/tokens.json
+backend/.tokens.json
+backend/coverage
+backend/tests
+scripts
+docs
+*.patch

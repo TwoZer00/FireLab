@@ -33,13 +33,25 @@ function ProjectSetup({ projectId, existingProjects, onSelectProject, onCreatePr
   };
 
   const handleCreate = () => {
-    if (!newProjectName.trim()) {
+    const name = newProjectName.trim();
+    if (!name) {
       setNameError('Project name is required');
       return;
     }
-    
+    if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
+      setNameError('Only letters, numbers, hyphens and underscores allowed');
+      return;
+    }
+    if (name.length > 50) {
+      setNameError('Project name must be 50 characters or less');
+      return;
+    }
+    if (existingProjects.includes(name)) {
+      setNameError('A project with this name already exists');
+      return;
+    }
     setNameError('');
-    onCreateProject(newProjectName.trim(), selectedServices);
+    onCreateProject(name, selectedServices);
     setShowNewInput(false);
     setNewProjectName('');
     setSelectedServices({

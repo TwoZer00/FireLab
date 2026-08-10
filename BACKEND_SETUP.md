@@ -40,6 +40,37 @@ npm run dev
 
 Server will run on `http://0.0.0.0:3001` (accessible from network)
 
+## Running Tests
+
+The backend has an integration test suite using [Vitest](https://vitest.dev/) and [supertest](https://github.com/ladjs/supertest). Tests run against a temporary `firebase-projects-test/` directory and clean up after themselves — no Firebase CLI or running emulator required.
+
+```bash
+cd backend
+npm test
+```
+
+To run with coverage report:
+```bash
+npx vitest run --coverage
+```
+
+**Test files:**
+
+| File | What it covers |
+|------|----------------|
+| `tests/api.test.js` | All HTTP endpoints: auth middleware, projects, config, rules, history, indexes, snapshots, emulator guards, export, debug-log, clear, services, connections |
+| `tests/auth.test.js` | `authMiddleware` (revocation, cache), `generateToken`, `checkUsernameExists` |
+| `tests/security.test.js` | `safeJoin` and `validateSegment` path traversal guards |
+
+**Coverage (real files, excluding ESM duplicate rows):**
+
+| File | Statements | Branches | Functions |
+|------|-----------|----------|-----------|
+| `auth.js` | 92.9% | 79.2% | 100% |
+| `server.js` | 41.1% | 56.6% | 40% |
+
+> `server.js` coverage is intentionally limited — endpoints that spawn Firebase CLI processes (`emulator/start`, `deploy`, `seed`, etc.) are not mocked, as doing so would only verify argument passing, not real behavior.
+
 ## Authentication
 
 FireLab uses JWT-based authentication. You must generate a token before accessing the UI.

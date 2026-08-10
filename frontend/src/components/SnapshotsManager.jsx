@@ -2,22 +2,30 @@ import { useState } from 'react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
-function SnapshotsManager({ projectId, snapshots, onExport, onRestore, onDelete, isRunning }) {
+function SnapshotsManager({ projectId, snapshots, onExport, onRestore, onDelete, isRunning, getHeaders }) {
   const [snapshotName, setSnapshotName] = useState('');
   const [showNameInput, setShowNameInput] = useState(false);
 
   const handleExport = () => {
-    if (showNameInput && snapshotName.trim()) {
-      onExport(snapshotName.trim());
+    if (showNameInput) {
+      onExport(snapshotName.trim() || null);
       setSnapshotName('');
       setShowNameInput(false);
-    } else if (!showNameInput) {
+    } else {
       setShowNameInput(true);
     }
   };
 
-  const downloadSnapshot = (snapshot) => {
-    window.open(`${API_URL}/api/snapshots/${projectId}/${snapshot}/download`, '_blank');
+  const downloadSnapshot = async (snapshot) => {
+    const res = await fetch(`${API_URL}/api/snapshots/${projectId}/${snapshot}/download`, { headers: getHeaders() });
+    if (!res.ok) { alert('Failed to download snapshot'); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${snapshot}.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (

@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "node server.js",
-    "generate-token": "node generate-token.js"
+    "generate-token": "node generate-token.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "archiver": "^6.0.1",
@@ -14,5 +16,10 @@
     "jsonwebtoken": "^9.0.3",
     "socket.io": "^4.6.1",
     "unzipper": "^0.10.14"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.9",
+    "supertest": "^7.0.0",
+    "vitest": "^2.0.0"
   }
 }

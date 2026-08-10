@@ -19,10 +19,10 @@ RUN npm install --omit=dev
 COPY backend/ ./
 
 # Create firebase-projects directory for volume mount
-RUN mkdir -p /app/firebase-projects && chmod 777 /app/firebase-projects
+RUN mkdir -p /app/firebase-projects && chmod 755 /app/firebase-projects
 
 # Copy frontend build
-COPY --from=frontend-builder /app/dist ../frontend/dist
+COPY --from=frontend-builder /app/dist /frontend/dist
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD node -e "require('http').get('http://localhost:3001/health', r => r.statusCode === 200 ? process.exit(0) : process.exit(1)).on('error', () => process.exit(1))"
 

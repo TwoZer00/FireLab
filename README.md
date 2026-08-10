@@ -438,7 +438,13 @@ firelab/
 │   ├── server.js              # Main server with Socket.io + static frontend
 │   ├── auth.js                # JWT authentication
 │   ├── generate-token.js      # Token generation script
-│   └── package.json
+│   ├── vitest.config.js       # Test configuration (sequential, 15s timeout)
+│   ├── package.json
+│   └── tests/
+│       ├── setup.js           # Test auth init and temp dir helpers
+│       ├── api.test.js        # Integration tests for all HTTP endpoints
+│       ├── auth.test.js       # Unit tests for auth middleware and token lifecycle
+│       └── security.test.js   # Unit tests for path traversal guards
 ├── frontend/                   # React + Vite UI
 │   ├── .env.example           # Environment variables template
 │   └── src/
@@ -484,6 +490,7 @@ firelab/
 ✅ Real-time log streaming with ANSI colors
 ✅ Configure emulator ports
 ✅ Remote backend support (backend on one machine, frontend on another)
+✅ Integration test suite (62 tests, Vitest + supertest)
 
 ### Data Management
 ✅ Auto-snapshots (every 15 min + on stop)

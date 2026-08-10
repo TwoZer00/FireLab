@@ -1,4 +1,12 @@
-## 1.17.0 (2026-08-10)
+## 1.18.0 (2026-08-10)
+
+* feat: add backend integration test suite with 62 tests and coverage reporting
+* refactor: export app/httpServer from server.js and move listen() behind isMain guard to enable testing
+* refactor: export tokensFile from auth.js for test isolation
+* test: api.test.js — integration tests for all HTTP endpoints (auth, projects, config, rules, history, indexes, snapshots, emulator guards, export, debug-log, clear, services, connections)
+* test: auth.test.js — unit tests for authMiddleware, generateToken, checkUsernameExists covering revocation, cache invalidation, and token lifecycle
+* test: security.test.js — unit tests for safeJoin and validateSegment path traversal guards
+* chore: add vitest + supertest devDependencies, vitest.config.js with sequential execution to prevent token file race conditions
 
 * fix: docker entrypoint, port range, docs screenshots section and readme corrections ([9d2c82c6bded1c78c4ccf073fb6d120eb3ff69b9](https://github.com/TwoZer00/FireLab/commit/9d2c82c6bded1c78c4ccf073fb6d120eb3ff69b9))
 * fix: patch path traversal and input validation in all API endpoints ([505418bfe0151fb356789483d2f33bf3154e76ea](https://github.com/TwoZer00/FireLab/commit/505418bfe0151fb356789483d2f33bf3154e76ea))

@@ -36,7 +36,6 @@ function App() {
   const [availableRules, setAvailableRules] = useState([]);
   const [hasExportData, setHasExportData] = useState(false);
   const [importOnStart, setImportOnStart] = useState(false);
-  const [debugMode, setDebugMode] = useState(() => localStorage.getItem('debugMode') === 'true');
   const [autoSnapshot, setAutoSnapshot] = useState(() => {
     const saved = localStorage.getItem('autoSnapshot');
     return saved === null ? true : saved === 'true';
@@ -44,6 +43,8 @@ function App() {
   const [backendConnected, setBackendConnected] = useState(false);
   const [firebaseLoggedIn, setFirebaseLoggedIn] = useState(false);
   const [snapshots, setSnapshots] = useState([]);
+  const [loginUrl, setLoginUrl] = useState(null);
+  const [loginPending, setLoginPending] = useState(false);
 
   const getHeaders = useCallback(() => ({
     'Content-Type': 'application/json',
@@ -93,6 +94,13 @@ function App() {
     const savedProject = localStorage.getItem('projectId');
     if (savedProject && data.includes(savedProject)) {
       setProjectId(savedProject);
+    } else if (savedProject && !data.includes(savedProject)) {
+      // Project was deleted, clear stale state
+      localStorage.removeItem('projectId');
+      localStorage.removeItem('lastConfig');
+      setProjectId('');
+      setConfig(null);
+      setShowConfig(false);
     }
   }, [getHeaders]);
 
@@ -146,137 +154,139 @@ function App() {
     }
   }, [projectId, rulesType, rulesContent, getHeaders]);
 
-  const startEmulator = useCallback(async () => {
-    if (config) {
-      setLogs(prev => [...prev, '[FireLab] Checking port availability...']);
-      
-      const ports = [];
-      const portMap = {};
-      if (config.emulators?.auth?.port) {
-        ports.push(config.emulators.auth.port);
-        portMap[config.emulators.auth.port] = 'auth';
+  const checkAndFixPorts = useCallback(async (actionLabel) => {
+    if (!config) return true;
+    const ports = [];
+    const portMap = {};
+    const services = ['auth', 'firestore', 'database', 'storage', 'hosting', 'ui'];
+    services.forEach(svc => {
+      if (config.emulators?.[svc]?.port) {
+        ports.push(config.emulators[svc].port);
+        portMap[config.emulators[svc].port] = svc;
       }
-      if (config.emulators?.firestore?.port) {
-        ports.push(config.emulators.firestore.port);
-        portMap[config.emulators.firestore.port] = 'firestore';
-      }
-      if (config.emulators?.database?.port) {
-        ports.push(config.emulators.database.port);
-        portMap[config.emulators.database.port] = 'database';
-      }
-      if (config.emulators?.storage?.port) {
-        ports.push(config.emulators.storage.port);
-        portMap[config.emulators.storage.port] = 'storage';
-      }
-      if (config.emulators?.hosting?.port) {
-        ports.push(config.emulators.hosting.port);
-        portMap[config.emulators.hosting.port] = 'hosting';
-      }
-      if (config.emulators?.ui?.port) {
-        ports.push(config.emulators.ui.port);
-        portMap[config.emulators.ui.port] = 'ui';
-      }
+    });
+    if (ports.length === 0) return true;
 
-      const checkRes = await fetch(`${API_URL}/api/ports/check`, {
+    setLogs(prev => [...prev, '[FireLab] Checking port availability...']);
+    const checkRes = await fetch(`${API_URL}/api/ports/check`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ ports })
+    });
+    if (!checkRes.ok) return true;
+
+    const { conflicts, suggestions } = await checkRes.json();
+    if (conflicts.length === 0) {
+      setLogs(prev => [...prev, '[FireLab] ✅ All ports available']);
+      return true;
+    }
+
+    const portList = conflicts.map(c => c.port).join(', ');
+    setLogs(prev => [...prev, `[FireLab] ⚠️ Port conflicts detected: ${portList}`]);
+    const suggestionText = suggestions.map(s => `  • Port ${s.port} → ${s.alternative || 'N/A'}`).join('\n');
+    const choice = confirm(
+      `⚠️ Port Conflict Detected!\n\nPorts in use: ${portList}\n\nSuggested alternatives:\n${suggestionText}\n\nClick OK to auto-fix ports and ${actionLabel}\nClick Cancel to abort`
+    );
+    if (!choice) {
+      setLogs(prev => [...prev, `[FireLab] ${actionLabel} cancelled by user`]);
+      return false;
+    }
+
+    const newConfig = { ...config, emulators: { ...config.emulators } };
+    const changes = [];
+    suggestions.forEach(s => {
+      if (s.alternative && portMap[s.port]) {
+        newConfig.emulators[portMap[s.port]] = { ...newConfig.emulators[portMap[s.port]], port: s.alternative };
+        changes.push(`${s.port}→${s.alternative}`);
+      }
+    });
+    await fetch(`${API_URL}/api/config/${projectId}`, {
+      method: 'PUT', headers: getHeaders(), body: JSON.stringify(newConfig)
+    });
+    setConfig(newConfig);
+    localStorage.setItem('lastConfig', JSON.stringify(newConfig));
+    setLogs(prev => [...prev, `[FireLab] ✅ Auto-fixed ports: ${changes.join(', ')}`]);
+    return true;
+  }, [config, projectId, getHeaders]);
+
+  const startEmulator = useCallback(async () => {
+    if (!projectId) return;
+    try {
+      const ok = await checkAndFixPorts('start');
+      if (!ok) return;
+      setLogs(prev => [...prev, '[FireLab] Starting emulator...']);
+      const res = await fetch(`${API_URL}/api/emulator/start`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ ports })
+        body: JSON.stringify({ projectId, importData: importOnStart, autoSnapshot })
       });
-
-      if (checkRes.ok) {
-        const { conflicts, suggestions } = await checkRes.json();
-        if (conflicts.length > 0) {
-          const portList = conflicts.map(c => c.port).join(', ');
-          setLogs(prev => [...prev, `[FireLab] ⚠️ Port conflicts detected: ${portList}`]);
-          
-          const suggestionText = suggestions
-            .map(s => `  • Port ${s.port} → ${s.alternative || 'N/A'}`)
-            .join('\n');
-          
-          const choice = confirm(
-            `⚠️ Port Conflict Detected!\n\n` +
-            `Ports in use: ${portList}\n\n` +
-            `Suggested alternatives:\n${suggestionText}\n\n` +
-            `Click OK to auto-fix ports and start\n` +
-            `Click Cancel to abort`
-          );
-          
-          if (!choice) {
-            setLogs(prev => [...prev, '[FireLab] Start cancelled by user']);
-            return;
-          }
-          
-          const newConfig = { ...config };
-          const changes = [];
-          suggestions.forEach(s => {
-            if (s.alternative) {
-              const service = portMap[s.port];
-              if (service && newConfig.emulators[service]) {
-                newConfig.emulators[service].port = s.alternative;
-                changes.push(`${s.port}→${s.alternative}`);
-              }
-            }
-          });
-          
-          setLogs(prev => [...prev, `[FireLab] ✅ Auto-fixed ports: ${changes.join(', ')}`]);
-          
-          await fetch(`${API_URL}/api/config/${projectId}`, {
-            method: 'PUT',
-            headers: getHeaders(),
-            body: JSON.stringify(newConfig)
-          });
-          
-          setConfig(newConfig);
-          localStorage.setItem('lastConfig', JSON.stringify(newConfig));
-          setLogs(prev => [...prev, '[FireLab] Config updated and saved']);
-        } else {
-          setLogs(prev => [...prev, '[FireLab] ✅ All ports available']);
-        }
+      const data = await res.json();
+      if (data.success) {
+        setIsRunning(true);
+        setAutoScroll(true);
+      } else {
+        setLogs(prev => [...prev, '[FireLab] ❌ Failed to start emulator']);
       }
+    } catch (err) {
+      setLogs(prev => [...prev, `[FireLab] ❌ Error starting emulator: ${err.message}`]);
     }
-
-    setLogs(prev => [...prev, `[FireLab] Starting emulator${debugMode ? ' (debug mode)' : ''}...`]);
-    const res = await fetch(`${API_URL}/api/emulator/start`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ projectId, importData: importOnStart, debug: debugMode, autoSnapshot })
-    });
-    const data = await res.json();
-    if (data.success) {
-      setIsRunning(true);
-      setAutoScroll(true);
-    } else {
-      setLogs(prev => [...prev, '[FireLab] ❌ Failed to start emulator']);
-    }
-  }, [config, projectId, importOnStart, debugMode, autoSnapshot, getHeaders]);
+  }, [projectId, checkAndFixPorts, importOnStart, autoSnapshot, getHeaders]);
 
   const stopEmulator = useCallback(async () => {
-    setLogs(prev => [...prev, '[FireLab] Stopping emulator and creating auto-snapshot...']);
-    await fetch(`${API_URL}/api/emulator/stop`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ projectId })
-    });
-    setIsRunning(false);
-    setTimeout(() => {
-      loadSnapshots();
-    }, 3000);
+    try {
+      setLogs(prev => [...prev, '[FireLab] Stopping emulator and creating auto-snapshot...']);
+      await fetch(`${API_URL}/api/emulator/stop`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ projectId })
+      });
+      setIsRunning(false);
+      setTimeout(() => loadSnapshots(), 3000);
+    } catch (err) {
+      setLogs(prev => [...prev, `[FireLab] ❌ Error stopping emulator: ${err.message}`]);
+      setIsRunning(false);
+    }
   }, [projectId, getHeaders, loadSnapshots]);
+
+  const restoreSnapshot = useCallback(async (snapshotName) => {
+    if (isRunning) { alert('Stop the emulator before restoring a snapshot'); return; }
+    if (!confirm(`Restore snapshot '${snapshotName}'?\n\nThis will start the emulator with this snapshot's data.`)) return;
+    setLogs(prev => [...prev, `[FireLab] Restoring snapshot '${snapshotName}'...`]);
+    try {
+      const ok = await checkAndFixPorts('restore');
+      if (!ok) return;
+      const res = await fetch(`${API_URL}/api/emulator/start`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ projectId, importData: true, snapshotName, autoSnapshot })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsRunning(true);
+        setAutoScroll(true);
+      } else {
+        setLogs(prev => [...prev, '[FireLab] ❌ Failed to restore snapshot']);
+      }
+    } catch (err) {
+      setLogs(prev => [...prev, `[FireLab] ❌ Error restoring snapshot: ${err.message}`]);
+    }
+  }, [isRunning, projectId, checkAndFixPorts, autoSnapshot, getHeaders]);
 
   useEffect(() => {
     localStorage.setItem('projectId', projectId);
   }, [projectId]);
 
   useEffect(() => {
-    localStorage.setItem('debugMode', debugMode);
-  }, [debugMode]);
-
-  useEffect(() => {
     localStorage.setItem('autoSnapshot', autoSnapshot);
   }, [autoSnapshot]);
 
   useEffect(() => {
-    localStorage.setItem('logs', JSON.stringify(logs));
+    try {
+      localStorage.setItem('logs', JSON.stringify(logs.slice(-500)));
+    } catch {
+      // QuotaExceededError: trim older logs and retry
+      try { localStorage.setItem('logs', JSON.stringify(logs.slice(-100))); } catch { /* ignore */ }
+    }
   }, [logs]);
 
   useEffect(() => {
@@ -299,14 +309,32 @@ function App() {
     socket.on('disconnect', () => {
       console.log('Disconnected from backend');
       setBackendConnected(false);
+      setLoginPending(false);
+      setLoginUrl(null);
     });
 
     socket.on('logs', (log) => {
       setLogs((prev) => [...prev, log]);
     });
 
+    socket.on('firebase-login-url', (url) => {
+      setLoginUrl(url);
+    });
+
+    socket.on('firebase-login-success', () => {
+      setLoginPending(false);
+      setLoginUrl(null);
+      setFirebaseLoggedIn(true);
+    });
+
+    socket.on('firebase-login-error', () => {
+      setLoginPending(false);
+      setLoginUrl(null);
+    });
+
     if (accessToken) {
       checkStatus();
+      checkFirebaseAuth();
       loadExistingProjects();
       if (projectId) {
         loadConfigForProject(projectId);
@@ -323,6 +351,9 @@ function App() {
       socket.off('logs');
       socket.off('connect');
       socket.off('disconnect');
+      socket.off('firebase-login-url');
+      socket.off('firebase-login-success');
+      socket.off('firebase-login-error');
       socket.disconnect();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -431,117 +462,6 @@ function App() {
     }
   };
 
-  const restoreSnapshot = async (snapshotName) => {
-    if (isRunning) {
-      alert('Stop the emulator before restoring a snapshot');
-      return;
-    }
-
-    if (!confirm(`Restore snapshot '${snapshotName}'?\n\nThis will start the emulator with this snapshot's data.`)) {
-      return;
-    }
-
-    setLogs(prev => [...prev, `[FireLab] Restoring snapshot '${snapshotName}'...`]);
-
-    if (config) {
-      const ports = [];
-      const portMap = {};
-      if (config.emulators?.auth?.port) {
-        ports.push(config.emulators.auth.port);
-        portMap[config.emulators.auth.port] = 'auth';
-      }
-      if (config.emulators?.firestore?.port) {
-        ports.push(config.emulators.firestore.port);
-        portMap[config.emulators.firestore.port] = 'firestore';
-      }
-      if (config.emulators?.database?.port) {
-        ports.push(config.emulators.database.port);
-        portMap[config.emulators.database.port] = 'database';
-      }
-      if (config.emulators?.storage?.port) {
-        ports.push(config.emulators.storage.port);
-        portMap[config.emulators.storage.port] = 'storage';
-      }
-      if (config.emulators?.hosting?.port) {
-        ports.push(config.emulators.hosting.port);
-        portMap[config.emulators.hosting.port] = 'hosting';
-      }
-      if (config.emulators?.ui?.port) {
-        ports.push(config.emulators.ui.port);
-        portMap[config.emulators.ui.port] = 'ui';
-      }
-
-      const checkRes = await fetch(`${API_URL}/api/ports/check`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ ports })
-      });
-
-      if (checkRes.ok) {
-        const { conflicts, suggestions } = await checkRes.json();
-        if (conflicts.length > 0) {
-          const portList = conflicts.map(c => c.port).join(', ');
-          setLogs(prev => [...prev, `[FireLab] ⚠️ Port conflicts detected: ${portList}`]);
-          
-          const suggestionText = suggestions
-            .map(s => `  • Port ${s.port} → ${s.alternative || 'N/A'}`)
-            .join('\n');
-          
-          const choice = confirm(
-            `⚠️ Port Conflict Detected!\n\n` +
-            `Ports in use: ${portList}\n\n` +
-            `Suggested alternatives:\n${suggestionText}\n\n` +
-            `Click OK to auto-fix ports and restore\n` +
-            `Click Cancel to abort`
-          );
-          
-          if (!choice) {
-            setLogs(prev => [...prev, '[FireLab] Restore cancelled by user']);
-            return;
-          }
-          
-          const newConfig = { ...config };
-          const changes = [];
-          suggestions.forEach(s => {
-            if (s.alternative) {
-              const service = portMap[s.port];
-              if (service && newConfig.emulators[service]) {
-                newConfig.emulators[service].port = s.alternative;
-                changes.push(`${s.port}→${s.alternative}`);
-              }
-            }
-          });
-          
-          setLogs(prev => [...prev, `[FireLab] ✅ Auto-fixed ports: ${changes.join(', ')}`]);
-          
-          await fetch(`${API_URL}/api/config/${projectId}`, {
-            method: 'PUT',
-            headers: getHeaders(),
-            body: JSON.stringify(newConfig)
-          });
-          
-          setConfig(newConfig);
-          localStorage.setItem('lastConfig', JSON.stringify(newConfig));
-          setLogs(prev => [...prev, '[FireLab] Config updated and saved']);
-        }
-      }
-    }
-
-    const res = await fetch(`${API_URL}/api/emulator/start`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ projectId, importData: true, snapshotName, debug: debugMode, autoSnapshot })
-    });
-
-    const data = await res.json();
-    if (data.success) {
-      setIsRunning(true);
-      setAutoScroll(true);
-    } else {
-      setLogs(prev => [...prev, '[FireLab] ❌ Failed to restore snapshot']);
-    }
-  };
-
   const deleteSnapshot = async (snapshotName) => {
     if (!confirm(`Delete snapshot '${snapshotName}'?\n\nThis cannot be undone.`)) {
       return;
@@ -571,6 +491,12 @@ function App() {
         [service]: { ...config.emulators[service], port: parseInt(port) }
       }
     });
+  };
+
+  const startFirebaseLogin = async () => {
+    setLoginPending(true);
+    setLoginUrl(null);
+    await fetch(`${API_URL}/api/auth/login`, { method: 'POST', headers: getHeaders() });
   };
 
   const updateHost = async (host) => {
@@ -627,6 +553,7 @@ function App() {
   };
 
   return (
+    <>
     <div className="app">
       <div className="header">
         <h1>🔥 FireLab</h1>
@@ -649,6 +576,18 @@ function App() {
                 </div>
               )}
 
+              {backendConnected && !firebaseLoggedIn && (
+                <div className="section" style={{ padding: '8px 12px' }}>
+                  <button
+                    onClick={startFirebaseLogin}
+                    disabled={loginPending}
+                    style={{ width: '100%', fontSize: '11px', background: '#1f6feb', borderColor: '#388bfd' }}
+                  >
+                    {loginPending ? '⏳ Waiting for login...' : '🔑 Login to Firebase'}
+                  </button>
+                </div>
+              )}
+
               <ProjectSetup
                 projectId={projectId}
                 existingProjects={existingProjects}
@@ -661,8 +600,6 @@ function App() {
                 hasExportData={hasExportData}
                 importOnStart={importOnStart}
                 setImportOnStart={setImportOnStart}
-                debugMode={debugMode}
-                setDebugMode={setDebugMode}
                 autoSnapshot={autoSnapshot}
                 setAutoSnapshot={setAutoSnapshot}
                 onStart={startEmulator}
@@ -704,6 +641,7 @@ function App() {
                     onRestore={restoreSnapshot}
                     onDelete={deleteSnapshot}
                     isRunning={isRunning}
+                    getHeaders={getHeaders}
                   />
 
                   <DataManager
@@ -746,11 +684,46 @@ function App() {
               autoScroll={autoScroll}
               setAutoScroll={setAutoScroll}
               onClear={clearLogs}
+              projectId={projectId}
+              getHeaders={getHeaders}
             />
           )}
         </div>
       </div>
     </div>
+    {loginUrl && (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+        <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '8px', padding: '24px', maxWidth: '500px', width: '90%' }}>
+          <h3 style={{ margin: '0 0 12px' }}>🔑 Firebase Login</h3>
+          <p style={{ color: '#8b949e', fontSize: '13px', margin: '0 0 16px' }}>
+            Open this URL in your browser to authenticate with Firebase:
+          </p>
+          <a
+            href={loginUrl}
+            target="_blank"
+            rel="noreferrer"
+            style={{ display: 'block', wordBreak: 'break-all', color: '#58a6ff', fontSize: '12px', marginBottom: '16px' }}
+          >
+            {loginUrl}
+          </a>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => navigator.clipboard.writeText(loginUrl)}
+              style={{ flex: 1, fontSize: '11px' }}
+            >
+              📋 Copy URL
+            </button>
+            <button
+              onClick={() => { setLoginUrl(null); setLoginPending(false); }}
+              style={{ flex: 1, fontSize: '11px', background: '#21262d', borderColor: '#30363d' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 

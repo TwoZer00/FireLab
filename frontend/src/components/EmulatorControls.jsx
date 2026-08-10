@@ -3,8 +3,6 @@ function EmulatorControls({
   hasExportData, 
   importOnStart, 
   setImportOnStart,
-  debugMode,
-  setDebugMode,
   autoSnapshot,
   setAutoSnapshot,
   onStart, 
@@ -38,17 +36,6 @@ function EmulatorControls({
             <label>
               <input 
                 type="checkbox" 
-                checked={debugMode} 
-                onChange={(e) => setDebugMode(e.target.checked)}
-                style={{ marginRight: '5px' }}
-              />
-              Enable debug logging (shows rules evaluation)
-            </label>
-          </div>
-          <div style={{ marginBottom: '10px' }}>
-            <label>
-              <input 
-                type="checkbox" 
                 checked={autoSnapshot} 
                 onChange={(e) => setAutoSnapshot(e.target.checked)}
                 style={{ marginRight: '5px' }}
@@ -69,6 +56,9 @@ function EmulatorControls({
           <button>Open Emulator UI</button>
         </a>
       )}
+      <div style={{ fontSize: '11px', color: '#8b949e', marginTop: '8px' }}>
+        🔍 Debug logging always active — full log saved to <code style={{ color: '#58a6ff' }}>debug.log</code>
+      </div>
     </div>
   );
 }

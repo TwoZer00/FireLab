@@ -171,7 +171,7 @@ function RulesEditor({
           {showHistory ? 'Hide' : 'Show'} History ({history.length})
         </button>
         <button onClick={() => setShowTester(!showTester)} style={{ padding: '4px 8px', fontSize: '12px' }}>
-          {showTester ? 'Hide' : 'Show'} Tester
+          {showTester ? 'Hide' : 'Show'} Tester ⚠️ Basic
         </button>
         <button
           onClick={async () => {
@@ -220,7 +220,7 @@ function RulesEditor({
 
       {showTester && (
         <div style={{ marginBottom: '15px', background: '#0d1117', padding: '10px', borderRadius: '6px', border: '1px solid #30363d' }}>
-          <div style={{ fontSize: '12px', color: '#8b949e', marginBottom: '8px' }}>Rules Tester (Basic Simulation)</div>
+          <div style={{ fontSize: '12px', color: '#8b949e', marginBottom: '8px' }}>Rules Tester — <span style={{ color: '#e3b341' }}>⚠️ Basic pattern matching only. Complex rules may not evaluate correctly.</span></div>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <input 
               type="text" 

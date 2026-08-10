@@ -5,7 +5,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { spawn } from 'child_process';
-import { readFile, writeFile, mkdir } from 'fs/promises';
+import { readFile, writeFile, mkdir, stat, rename } from 'fs/promises';
 import { existsSync, createReadStream, createWriteStream } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -29,9 +29,39 @@ app.use(express.json({ limit: '1mb' }));
 
 let emulatorProcess = null;
 let snapshotInterval = null;
-const projectsDir = existsSync(path.join(__dirname, '../firebase-projects'))
-  ? path.join(__dirname, '../firebase-projects')
-  : path.join(__dirname, 'firebase-projects');
+let loginProcess = null;
+let exportInProgress = false;
+let debugLogStream = null;
+
+async function openDebugLog(projectPath) {
+  const logPath = path.join(projectPath, 'debug.log');
+  const rotatedPath = path.join(projectPath, 'debug.log.1');
+  try {
+    const s = await stat(logPath);
+    if (s.size > 10 * 1024 * 1024) {
+      if (existsSync(rotatedPath)) {
+        const { unlink } = await import('fs/promises');
+        await unlink(rotatedPath);
+      }
+      await rename(logPath, rotatedPath);
+    }
+  } catch { /* file doesn't exist yet, that's fine */ }
+  const { createWriteStream } = await import('fs');
+  debugLogStream = createWriteStream(logPath, { flags: 'a' });
+  debugLogStream.write(`\n\n--- Session started: ${new Date().toISOString()} ---\n`);
+}
+
+function closeDebugLog() {
+  if (debugLogStream) {
+    debugLogStream.write(`--- Session ended: ${new Date().toISOString()} ---\n`);
+    debugLogStream.end();
+    debugLogStream = null;
+  }
+}
+const projectsDir = process.env.TEST_PROJECTS_DIR ||
+  (existsSync(path.join(__dirname, '../firebase-projects'))
+    ? path.join(__dirname, '../firebase-projects')
+    : path.join(__dirname, 'firebase-projects'));
 
 // Ensure projectsDir exists (important for Docker volume mounts)
 if (!existsSync(projectsDir)) {
@@ -151,7 +181,7 @@ service firebase.storage {
 
 // Start emulator with optional snapshot
 app.post('/api/emulator/start', async (req, res) => {
-  const { projectId, importData, snapshotName, debug, autoSnapshot } = req.body;
+  const { projectId, importData, snapshotName, autoSnapshot } = req.body;
   let projectPath;
   try {
     projectPath = safeJoin(projectsDir, validateSegment(projectId));
@@ -187,11 +217,9 @@ app.post('/api/emulator/start', async (req, res) => {
       }
     }
 
-    // Add debug flag if requested
-    if (debug) {
-      args.push('--debug');
-    }
-    
+    // Always run in debug mode for full rules evaluation logging
+    args.push('--debug');
+
     // Add import flag if requested and data exists
     if (importData) {
       const importPath = snapshotName 
@@ -214,24 +242,32 @@ app.post('/api/emulator/start', async (req, res) => {
       env
     });
 
+    await openDebugLog(projectPath);
+
     emulatorProcess.stdout.on('data', (data) => {
-      io.emit('logs', data.toString());
+      const text = data.toString();
+      io.emit('logs', text);
+      if (debugLogStream) debugLogStream.write(text);
     });
 
     emulatorProcess.stderr.on('data', (data) => {
-      io.emit('logs', data.toString());
+      const text = data.toString();
+      io.emit('logs', text);
+      if (debugLogStream) debugLogStream.write(text);
     });
 
     emulatorProcess.on('error', (error) => {
       const message = `Emulator error: ${error.message}`;
       console.error(message);
       io.emit('logs', message);
+      if (debugLogStream) debugLogStream.write(message + '\n');
     });
 
     emulatorProcess.on('close', (code) => {
       const message = `Emulator process exited with code ${code}`;
       console.log(message);
       io.emit('logs', message);
+      closeDebugLog();
       emulatorProcess = null;
       
       // Clear snapshot interval
@@ -244,11 +280,16 @@ app.post('/api/emulator/start', async (req, res) => {
     // Start auto-snapshot timer (every 15 minutes) if enabled
     if (autoSnapshot !== false) {
       snapshotInterval = setInterval(async () => {
+        if (exportInProgress) {
+          io.emit('logs', '[FireLab] ⏭️ Auto-snapshot skipped: export already in progress');
+          return;
+        }
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
         const snapshotName = `auto-${timestamp}`;
         const exportPath = path.join(projectPath, 'emulator-data', snapshotName);
 
-        const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId], {
+        exportInProgress = true;
+        const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId, '--force'], {
           cwd: projectPath,
           shell: true,
           env: { ...process.env, FORCE_COLOR: '1' }
@@ -263,6 +304,7 @@ app.post('/api/emulator/start', async (req, res) => {
         });
 
         exportProcess.on('close', async (code) => {
+          exportInProgress = false;
           if (code === 0) {
             io.emit('logs', `✅ Auto-snapshot '${snapshotName}' created`);
             
@@ -323,48 +365,46 @@ app.post('/api/emulator/stop', async (req, res) => {
       const snapshotName = `auto-${timestamp}`;
       const exportPath = path.join(projectPath, 'emulator-data', snapshotName);
 
-      const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId], {
-        cwd: projectPath,
-        shell: true,
-        env: { ...process.env, FORCE_COLOR: '1' }
-      });
+      if (!exportInProgress) {
+        exportInProgress = true;
+        const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId, '--force'], {
+          cwd: projectPath,
+          shell: true,
+          env: { ...process.env, FORCE_COLOR: '1' }
+        });
 
-      exportProcess.stdout.on('data', (data) => {
-        io.emit('logs', data.toString());
-      });
+        exportProcess.stdout.on('data', (data) => io.emit('logs', data.toString()));
+        exportProcess.stderr.on('data', (data) => io.emit('logs', data.toString()));
 
-      exportProcess.stderr.on('data', (data) => {
-        io.emit('logs', data.toString());
-      });
+        exportProcess.on('close', async (code) => {
+          exportInProgress = false;
+          if (code === 0) {
+            io.emit('logs', `✅ Auto-snapshot '${snapshotName}' created`);
 
-      exportProcess.on('close', async (code) => {
-        if (code === 0) {
-          io.emit('logs', `✅ Auto-snapshot '${snapshotName}' created`);
-          
-          // Cleanup old auto-snapshots (keep last 5)
-          try {
-            const { readdir, rm } = await import('fs/promises');
-            const snapshotsPath = path.join(projectPath, 'emulator-data');
-            if (existsSync(snapshotsPath)) {
-              const snapshots = await readdir(snapshotsPath, { withFileTypes: true });
-              const autoSnapshots = snapshots
-                .filter(d => d.isDirectory() && d.name.startsWith('auto-'))
-                .map(d => d.name)
-                .sort()
-                .reverse();
-              
-              // Delete all but the last 5
-              for (let i = 5; i < autoSnapshots.length; i++) {
-                const oldSnapshot = path.join(snapshotsPath, autoSnapshots[i]);
-                await rm(oldSnapshot, { recursive: true, force: true });
-                io.emit('logs', `🗑️ Deleted old auto-snapshot: ${autoSnapshots[i]}`);
+            try {
+              const { readdir, rm } = await import('fs/promises');
+              const snapshotsPath = path.join(projectPath, 'emulator-data');
+              if (existsSync(snapshotsPath)) {
+                const snapshots = await readdir(snapshotsPath, { withFileTypes: true });
+                const autoSnapshots = snapshots
+                  .filter(d => d.isDirectory() && d.name.startsWith('auto-'))
+                  .map(d => d.name)
+                  .sort()
+                  .reverse();
+                for (let i = 5; i < autoSnapshots.length; i++) {
+                  const oldSnapshot = path.join(snapshotsPath, autoSnapshots[i]);
+                  await rm(oldSnapshot, { recursive: true, force: true });
+                  io.emit('logs', `🗑️ Deleted old auto-snapshot: ${autoSnapshots[i]}`);
+                }
               }
+            } catch (cleanupError) {
+              console.error('Cleanup error:', cleanupError);
             }
-          } catch (cleanupError) {
-            console.error('Cleanup error:', cleanupError);
           }
-        }
-      });
+        });
+      } else {
+        io.emit('logs', '[FireLab] ⚠️ Auto-snapshot on stop skipped: export already in progress');
+      }
     }
 
     // Kill the entire process tree
@@ -436,6 +476,57 @@ app.post('/api/ports/check', async (req, res) => {
     
     res.json({ conflicts, suggestions });
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Start Firebase login flow
+app.post('/api/auth/login', async (req, res) => {
+  if (loginProcess) {
+    return res.status(400).json({ error: 'Login already in progress' });
+  }
+
+  try {
+    const env = { ...process.env };
+    loginProcess = spawn('firebase', ['login', '--no-localhost'], { shell: true, env });
+
+    let buffer = '';
+    const onData = (data) => {
+      const text = data.toString();
+      buffer += text;
+      const urlMatch = buffer.match(/https:\/\/accounts\.google\.com\S+/);
+      if (urlMatch) {
+        io.emit('firebase-login-url', urlMatch[0]);
+        buffer = '';
+      }
+      io.emit('logs', `[Firebase Login] ${text}`);
+    };
+
+    loginProcess.stdout.on('data', onData);
+    loginProcess.stderr.on('data', onData);
+
+    const loginTimeout = setTimeout(() => {
+      if (loginProcess) {
+        loginProcess.kill();
+        loginProcess = null;
+        io.emit('firebase-login-error', 'Login timed out after 5 minutes');
+      }
+    }, 5 * 60 * 1000);
+
+    loginProcess.on('close', (code) => {
+      clearTimeout(loginTimeout);
+      loginProcess = null;
+      if (code === 0) {
+        io.emit('firebase-login-success');
+        io.emit('logs', '[Firebase Login] ✅ Login successful');
+      } else {
+        io.emit('firebase-login-error', 'Login failed or was cancelled');
+      }
+    });
+
+    res.json({ success: true, message: 'Login process started' });
+  } catch (error) {
+    loginProcess = null;
     res.status(500).json({ error: error.message });
   }
 });
@@ -758,6 +849,11 @@ app.post('/api/deploy/:projectId/:type', async (req, res) => {
 app.post('/api/export/:projectId', async (req, res) => {
   const { projectId } = req.params;
   const { snapshotName } = req.body;
+
+  if (exportInProgress) {
+    return res.status(400).json({ error: 'A snapshot export is already in progress' });
+  }
+
   let projectPath, exportPath, exportName;
   try {
     projectPath = safeJoin(projectsDir, validateSegment(projectId));
@@ -769,21 +865,17 @@ app.post('/api/export/:projectId', async (req, res) => {
   }
 
   try {
-    const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId], {
+    const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId, '--force'], {
       cwd: projectPath,
       shell: true,
       env: { ...process.env, FORCE_COLOR: '1' }
     });
 
-    exportProcess.stdout.on('data', (data) => {
-      io.emit('logs', data.toString());
-    });
-
-    exportProcess.stderr.on('data', (data) => {
-      io.emit('logs', data.toString());
-    });
-
+    exportInProgress = true;
+    exportProcess.stdout.on('data', (data) => io.emit('logs', data.toString()));
+    exportProcess.stderr.on('data', (data) => io.emit('logs', data.toString()));
     exportProcess.on('close', (code) => {
+      exportInProgress = false;
       if (code === 0) {
         io.emit('logs', `✅ Snapshot '${exportName}' created successfully`);
       } else {
@@ -793,6 +885,7 @@ app.post('/api/export/:projectId', async (req, res) => {
 
     res.json({ success: true, message: 'Export started', snapshotName: exportName });
   } catch (error) {
+    exportInProgress = false;
     res.status(500).json({ error: error.message });
   }
 });
@@ -1209,6 +1302,21 @@ app.post('/api/deploy-indexes/:projectId', async (req, res) => {
   }
 });
 
+// Download debug log
+app.get('/api/debug-log/:projectId', (req, res) => {
+  const { projectId } = req.params;
+  let logPath;
+  try {
+    logPath = safeJoin(projectsDir, validateSegment(projectId), 'debug.log');
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
+  if (!existsSync(logPath)) return res.status(404).json({ error: 'No debug log found' });
+  res.setHeader('Content-Type', 'text/plain');
+  res.setHeader('Content-Disposition', `attachment; filename="${projectId}-debug.log"`);
+  createReadStream(logPath).pipe(res);
+});
+
 // List seed scripts
 app.get('/api/seeds/:projectId', async (req, res) => {
   const { projectId } = req.params;
@@ -1254,6 +1362,7 @@ io.on('connection', (socket) => {
   };
   
   connectionHistory.push(clientInfo);
+  if (connectionHistory.length > 200) connectionHistory.splice(0, connectionHistory.length - 200);
   console.log(`Client connected: ${username} (${socket.id}) from ${clientInfo.ip}`);
   
   socket.on('disconnect', () => {
@@ -1278,6 +1387,11 @@ const shutdown = () => {
     clearInterval(snapshotInterval);
     snapshotInterval = null;
   }
+  if (loginProcess) {
+    loginProcess.kill();
+    loginProcess = null;
+  }
+  closeDebugLog();
   if (emulatorProcess) {
     console.log('Stopping emulator...');
     if (process.platform === 'win32') {
@@ -1342,15 +1456,20 @@ function startCLI() {
   promptCommand();
 }
 
-const PORT = 3001;
-httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n🔥 FireLab running on http://0.0.0.0:${PORT}`);
-  if (existsSync(frontendBuildPath)) {
-    console.log(`📱 Frontend: http://localhost:${PORT}`);
-  }
-  console.log(`📡 API: http://localhost:${PORT}/api`);
-  if (process.stdin.isTTY) {
-    console.log(`\nType "token" to generate an access token, "help" for commands\n`);
-    startCLI();
-  }
-});
+export { app, httpServer };
+
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+if (isMain) {
+  const PORT = 3001;
+  httpServer.listen(PORT, '0.0.0.0', () => {
+    console.log(`\n🔥 FireLab running on http://0.0.0.0:${PORT}`);
+    if (existsSync(frontendBuildPath)) {
+      console.log(`📱 Frontend: http://localhost:${PORT}`);
+    }
+    console.log(`📡 API: http://localhost:${PORT}/api`);
+    if (process.stdin.isTTY) {
+      console.log(`\nType "token" to generate an access token, "help" for commands\n`);
+      startCLI();
+    }
+  });
+}

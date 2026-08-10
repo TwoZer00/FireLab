@@ -680,6 +680,13 @@ function App() {
                     onSave={saveConfig}
                     onLoadRules={loadRules}
                     onLoadIndexes={() => { setShowIndexes(true); setShowRules(false); checkFirebaseAuth(); }}
+                    projectId={projectId}
+                    getHeaders={getHeaders}
+                    onServicesUpdated={(newConfig) => {
+                      setConfig(newConfig);
+                      localStorage.setItem('lastConfig', JSON.stringify(newConfig));
+                      loadConfigForProject(projectId);
+                    }}
                   />
 
                   {isRunning && (

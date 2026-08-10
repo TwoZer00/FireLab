@@ -231,7 +231,7 @@ app.post('/api/emulator/start', async (req, res) => {
       }
     }
 
-    const env = { ...process.env, FORCE_COLOR: '1', FIREBASE_EMULATOR_HUB: 'localhost:4400' };
+    const env = { ...process.env, FORCE_COLOR: '3', COLORTERM: 'truecolor', FIREBASE_EMULATOR_HUB: 'localhost:4400' };
     if (process.env.FIREBASE_TOKEN) {
       env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
     }

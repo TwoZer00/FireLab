@@ -152,11 +152,12 @@ function LogsViewer({ logs, autoScroll, setAutoScroll, onClear, projectId, getHe
           filteredLogs.map((log, i) => {
             const htmlLog = sanitizeHtml(ansiConverter.toHtml(log));
             const l = log.toLowerCase();
-            const isError   = l.includes('error') || l.includes('failed');
-            const isWarning = l.includes('warn');
-            const isSuccess = l.includes('emulator') && l.includes('started');
-            const isAllow   = l.includes('allow');
-            const isDeny    = l.includes('deny');
+            const isTable   = /[┌┐└┘├┤┬┴┼─│╔╗╚╝╠╣╦╩╬═║]/.test(log);
+            const isError   = !isTable && (l.includes('error') || l.includes('failed'));
+            const isWarning = !isTable && l.includes('warn');
+            const isSuccess = !isTable && l.includes('emulator') && l.includes('started');
+            const isAllow   = !isTable && l.includes('allow');
+            const isDeny    = !isTable && l.includes('deny');
 
             return (
               <div

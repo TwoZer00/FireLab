@@ -1,3 +1,7 @@
+## <small>1.18.5 (2026-08-10)</small>
+
+* fix: skip color classification for Firebase table lines with box-drawing chars ([b7b4ec809535e6c35ddc7c180072252eb3d56d47](https://github.com/TwoZer00/FireLab/commit/b7b4ec809535e6c35ddc7c180072252eb3d56d47))
+
 ## <small>1.18.4 (2026-08-10)</small>
 
 * fix: add FIREBASE_EMULATOR_HUB to export commands and fix overly aggressive debug filter ([0c70071bdc4543488570f5a860802ee49b3559a2](https://github.com/TwoZer00/FireLab/commit/0c70071bdc4543488570f5a860802ee49b3559a2))

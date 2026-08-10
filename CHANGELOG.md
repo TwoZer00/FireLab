@@ -1,3 +1,7 @@
+## <small>1.18.6 (2026-08-10)</small>
+
+* fix: remove --debug flag to restore Firebase CLI colored table output ([96109b62002fc37a97357445a66a231723e465ad](https://github.com/TwoZer00/FireLab/commit/96109b62002fc37a97357445a66a231723e465ad))
+
 ## <small>1.18.5 (2026-08-10)</small>
 
 * fix: skip color classification for Firebase table lines with box-drawing chars ([b7b4ec809535e6c35ddc7c180072252eb3d56d47](https://github.com/TwoZer00/FireLab/commit/b7b4ec809535e6c35ddc7c180072252eb3d56d47))

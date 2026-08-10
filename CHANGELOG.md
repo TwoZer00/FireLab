@@ -1,3 +1,7 @@
+## <small>1.18.4 (2026-08-10)</small>
+
+* fix: add FIREBASE_EMULATOR_HUB to export commands and fix overly aggressive debug filter ([0c70071bdc4543488570f5a860802ee49b3559a2](https://github.com/TwoZer00/FireLab/commit/0c70071bdc4543488570f5a860802ee49b3559a2))
+
 ## <small>1.18.3 (2026-08-10)</small>
 
 * fix: filter debug noise line-by-line to preserve emulator table styling ([2ccbb14b06f7abf2261b3d4b5ec500e340765ae9](https://github.com/TwoZer00/FireLab/commit/2ccbb14b06f7abf2261b3d4b5ec500e340765ae9))

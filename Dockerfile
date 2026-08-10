@@ -19,7 +19,7 @@ RUN npm install --omit=dev
 COPY backend/ ./
 
 # Create firebase-projects directory for volume mount
-RUN mkdir -p /app/firebase-projects
+RUN mkdir -p /app/firebase-projects && chmod 777 /app/firebase-projects
 
 # Copy frontend build
 COPY --from=frontend-builder /app/dist ../frontend/dist
@@ -28,4 +28,6 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD node 
 
 EXPOSE 3001
 
-CMD ["node", "server.js"]
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]

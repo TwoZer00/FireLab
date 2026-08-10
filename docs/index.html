@@ -231,8 +231,10 @@
                 <div class="logo">Fire<span>Lab</span></div>
                 <div>
                     <a href="https://github.com/TwoZer00/FireLab">GitHub</a>
+                    <a href="#what-is">What is FireLab</a>
                     <a href="#why-firelab">Why FireLab</a>
                     <a href="#pain-points">Pain Points</a>
+                    <a href="#screenshots">Screenshots</a>
                     <a href="#features">Features</a>
                     <a href="#install">Install</a>
                 </div>
@@ -254,7 +256,7 @@
         </div>
     </section>
 
-    <section style="padding: 60px 0; text-align: center;">
+    <section id="what-is" style="padding: 60px 0; text-align: center;">
         <div class="container">
             <h2 style="font-size: 32px; margin-bottom: 30px; color: #58a6ff;">What is FireLab?</h2>
             <div style="max-width: 800px; margin: 0 auto; font-size: 18px; color: #8b949e;">
@@ -269,6 +271,9 @@
                     <div>✅ Fetch & deploy to production</div>
                     <div>✅ JWT-secured web interface</div>
                     <div>✅ Configurable host binding</div>
+                    <div>✅ Rules tester (ALLOW/DENY simulation)</div>
+                    <div>✅ Version history (last 20 versions)</div>
+                    <div>✅ Persistent logs across reloads</div>
                 </div>
             </div>
         </div>
@@ -379,6 +384,34 @@
         </div>
     </section>
 
+    <section style="padding: 80px 0; background: #161b22;" id="screenshots">
+        <div class="container">
+            <h2 style="text-align: center; font-size: 40px; margin-bottom: 60px;">See It In Action</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 30px;">
+                <div style="border-radius: 8px; overflow: hidden; border: 1px solid #30363d;">
+                    <img src="screenshots/01-dashboard.png" alt="FireLab Dashboard" style="width: 100%; display: block;">
+                    <p style="padding: 12px 16px; background: #0d1117; color: #8b949e; font-size: 14px;">Dashboard — project overview and emulator controls</p>
+                </div>
+                <div style="border-radius: 8px; overflow: hidden; border: 1px solid #30363d;">
+                    <img src="screenshots/02-project-setup.png" alt="Project Setup" style="width: 100%; display: block;">
+                    <p style="padding: 12px 16px; background: #0d1117; color: #8b949e; font-size: 14px;">Project Setup — choose services and configure ports</p>
+                </div>
+                <div style="border-radius: 8px; overflow: hidden; border: 1px solid #30363d;">
+                    <img src="screenshots/05-logs-viewer.png" alt="Logs Viewer" style="width: 100%; display: block;">
+                    <p style="padding: 12px 16px; background: #0d1117; color: #8b949e; font-size: 14px;">Logs Viewer — real-time filtered logs with ANSI colors</p>
+                </div>
+                <div style="border-radius: 8px; overflow: hidden; border: 1px solid #30363d;">
+                    <img src="screenshots/06-snapshots.png" alt="Snapshots Manager" style="width: 100%; display: block;">
+                    <p style="padding: 12px 16px; background: #0d1117; color: #8b949e; font-size: 14px;">Snapshots Manager — create, restore, and download backups</p>
+                </div>
+                <div style="border-radius: 8px; overflow: hidden; border: 1px solid #30363d;">
+                    <img src="screenshots/07-rules-editor.png" alt="Rules Editor" style="width: 100%; display: block;">
+                    <p style="padding: 12px 16px; background: #0d1117; color: #8b949e; font-size: 14px;">Rules Editor — Monaco (VS Code) editor with validation and version history</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="features" id="features">
         <div class="container">
             <h2>Powerful Features</h2>
@@ -396,7 +429,7 @@
                 <div class="feature-card">
                     <div class="feature-icon">✏️</div>
                     <h3>VS Code Editor</h3>
-                    <p>Edit security rules with Monaco Editor. Syntax highlighting, version history, and fetch from production.</p>
+                    <p>Edit security rules with Monaco Editor. Syntax highlighting, JSONC support, version history (last 20), and fetch from production.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📊</div>
@@ -440,8 +473,8 @@
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🧪</div>
-                    <h3>Rules Testing</h3>
-                    <p>Built-in rules tester to simulate ALLOW/DENY operations before deployment.</p>
+                    <h3>Rules Tester</h3>
+                    <p>Simulate ALLOW/DENY operations with custom path, operation, and auth UID before deploying.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📇</div>
@@ -488,7 +521,7 @@
   -p 3001:3001 \
   -p 4000-4010:4000-4010 \
   -p 5000-5010:5000-5010 \
-  -p 8080-8090:8080-8090 \
+  -p 8080-8089:8080-8089 \
   -p 9000-9010:9000-9010 \
   -p 9099-9109:9099-9109 \
   -p 9199-9209:9199-9209 \
@@ -513,7 +546,6 @@ npm run setup
 npm run build
 npm start</pre>
             </div>
-            <p style="color: #8b949e; margin-top: 15px;">Access at: <a href="http://localhost:3001" style="color: #58a6ff;">http://localhost:3001</a></p>
         </div>
     </section>
 
@@ -521,7 +553,7 @@ npm start</pre>
         <div class="container">
             <p>Built with ❤️ for Firebase developers</p>
             <p style="margin-top: 10px;"><a href="https://github.com/TwoZer00/FireLab">GitHub</a> • <a href="https://hub.docker.com/r/leobardo21/firelab">Docker Hub</a> • <a href="https://github.com/TwoZer00/FireLab/issues">Issues</a> • <a href="https://github.com/TwoZer00/FireLab#readme">Documentation</a></p>
-            <p style="margin-top: 10px; font-size: 12px;">v1.16.1 • MIT License</p>
+            <p style="margin-top: 10px; font-size: 12px;">v1.16.1 • MIT License • <a href="https://github.com/TwoZer00/FireLab/blob/main/CHANGELOG.md">Changelog</a></p>
         </div>
     </footer>
 

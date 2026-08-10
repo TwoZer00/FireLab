@@ -216,9 +216,9 @@ FireLab uses JWT-based authentication to secure the web interface.
 
 ### Token Management
 
-- **View existing tokens:** Check `.tokens.json` in the data directory
+- **View existing tokens:** Check `tokens.json` in the backend directory
 - **Generate new token:** Use the `token` CLI command or run `node generate-token.js`
-- **Revoke access:** Delete `.tokens.json` and restart backend
+- **Revoke access:** Delete `tokens.json` and restart backend
 - **Multiple tokens:** Generate separate tokens for team members
 - **Token expiration:** Tokens expire after 365 days but can be revoked earlier
 - **Secure storage:** Tokens stored as bcrypt-hashed values; JWT secret auto-persisted to `.jwt-secret`
@@ -311,6 +311,8 @@ Currently not supported. Requires `firebase login` on backend machine.
 - Output shows in logs with real-time feedback
 - **Example templates** for users, posts, and common data structures
 - Save custom seed scripts for reuse
+
+> ⚠️ **Security Warning:** The seed endpoint executes arbitrary JavaScript on the backend. Only expose FireLab in trusted environments.
 
 ### Project Management
 

@@ -1,3 +1,9 @@
+## <small>1.18.1 (2026-08-10)</small>
+
+* fix: changelog link pointing to master branch instead of main ([a577a459e0832b73dac01388e2dc0164c8e402ce](https://github.com/TwoZer00/FireLab/commit/a577a459e0832b73dac01388e2dc0164c8e402ce))
+* docs: improve SEO - og:locale, image dimensions, alt texts, main element, nav aria-label, sitemap, robots.txt, enriched Schema.org ([18607a2112137c0804ae2a07323d6719d7a9229a](https://github.com/TwoZer00/FireLab/commit/18607a2112137c0804ae2a07323d6719d7a9229a))
+* docs: version badge now fetched dynamically from GitHub releases API ([f9fa40644f8216251571d680431cfb84fa671db2](https://github.com/TwoZer00/FireLab/commit/f9fa40644f8216251571d680431cfb84fa671db2))
+
 ## 1.18.0 (2026-08-10)
 
 * feat: add backend test suite, always-on debug logging, Firebase login flow, and auth improvements ([3157e97d8f39954be8f301e504a8543fa570ecda](https://github.com/TwoZer00/FireLab/commit/3157e97d8f39954be8f301e504a8543fa570ecda))

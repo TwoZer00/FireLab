@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://twozer00.github.io/FireLab/sitemap.xml

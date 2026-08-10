@@ -8,30 +8,36 @@
     <meta name="keywords" content="Firebase, Firebase Emulator, Firebase Development, Firebase Tools, Emulator Management, Firebase UI, Docker Firebase, Firebase Snapshots, Firestore Indexes, Firebase Rules Editor, Firebase Security Rules">
     <meta name="author" content="FireLab">
     <link rel="canonical" href="https://twozer00.github.io/FireLab/">
-    
+
     <!-- Open Graph -->
     <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
     <meta property="og:title" content="FireLab - Firebase Emulator Management Platform">
     <meta property="og:description" content="Manage Firebase emulators with a beautiful web interface. Auto-snapshots, VS Code rules & indexes editor, real-time logs, seed data, and Docker support.">
     <meta property="og:url" content="https://twozer00.github.io/FireLab/">
     <meta property="og:site_name" content="FireLab">
     <meta property="og:image" content="https://twozer00.github.io/FireLab/screenshots/03-project-created.png">
-    
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="FireLab dashboard showing Firebase emulator management with project controls and real-time logs">
+
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="FireLab - Firebase Emulator Management Platform">
     <meta name="twitter:description" content="Manage Firebase emulators with a beautiful web interface. Auto-snapshots, VS Code rules & indexes editor, real-time logs, seed data, and Docker support.">
     <meta name="twitter:image" content="https://twozer00.github.io/FireLab/screenshots/03-project-created.png">
-    
+    <meta name="twitter:image:alt" content="FireLab dashboard showing Firebase emulator management with project controls and real-time logs">
+
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
-    
+
     <!-- Schema.org -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "FireLab",
+      "url": "https://twozer00.github.io/FireLab/",
       "description": "Web-based platform to manage and configure Firebase emulators locally with auto-snapshots, rules editor, indexes management, and Docker support",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Windows, macOS, Linux",
@@ -43,8 +49,11 @@
       },
       "author": {
         "@type": "Organization",
-        "name": "FireLab"
-      }
+        "name": "FireLab",
+        "url": "https://github.com/TwoZer00/FireLab"
+      },
+      "downloadUrl": "https://hub.docker.com/r/leobardo21/firelab",
+      "codeRepository": "https://github.com/TwoZer00/FireLab"
     }
     </script>
     <style>
@@ -227,7 +236,7 @@
 <body>
     <header>
         <div class="container">
-            <nav>
+            <nav aria-label="Main navigation">
                 <div class="logo">Fire<span>Lab</span></div>
                 <div>
                     <a href="https://github.com/TwoZer00/FireLab">GitHub</a>
@@ -242,6 +251,7 @@
         </div>
     </header>
 
+    <main>
     <section class="hero">
         <div class="container">
             <h1>Firebase Emulators Made Easy</h1>
@@ -389,23 +399,23 @@
             <h2 style="text-align: center; font-size: 40px; margin-bottom: 60px;">See It In Action</h2>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 30px;">
                 <div style="border-radius: 8px; overflow: hidden; border: 1px solid #30363d;">
-                    <img src="screenshots/01-dashboard.png" alt="FireLab Dashboard" style="width: 100%; display: block;">
+                    <img src="screenshots/01-dashboard.png" alt="FireLab main dashboard with Firebase project selector, emulator start button, and service status indicators" style="width: 100%; display: block;">
                     <p style="padding: 12px 16px; background: #0d1117; color: #8b949e; font-size: 14px;">Dashboard — project overview and emulator controls</p>
                 </div>
                 <div style="border-radius: 8px; overflow: hidden; border: 1px solid #30363d;">
-                    <img src="screenshots/02-project-setup.png" alt="Project Setup" style="width: 100%; display: block;">
+                    <img src="screenshots/02-project-setup.png" alt="FireLab project setup screen showing service selection checkboxes for Auth, Firestore, Database, Storage, and Hosting" style="width: 100%; display: block;">
                     <p style="padding: 12px 16px; background: #0d1117; color: #8b949e; font-size: 14px;">Project Setup — choose services and configure ports</p>
                 </div>
                 <div style="border-radius: 8px; overflow: hidden; border: 1px solid #30363d;">
-                    <img src="screenshots/05-logs-viewer.png" alt="Logs Viewer" style="width: 100%; display: block;">
+                    <img src="screenshots/05-logs-viewer.png" alt="FireLab logs viewer showing real-time Firebase emulator output with ANSI colors and debug filter buttons" style="width: 100%; display: block;">
                     <p style="padding: 12px 16px; background: #0d1117; color: #8b949e; font-size: 14px;">Logs Viewer — real-time filtered logs with ANSI colors</p>
                 </div>
                 <div style="border-radius: 8px; overflow: hidden; border: 1px solid #30363d;">
-                    <img src="screenshots/06-snapshots.png" alt="Snapshots Manager" style="width: 100%; display: block;">
+                    <img src="screenshots/06-snapshots.png" alt="FireLab snapshots manager listing auto and manual snapshots with restore, download, and delete actions" style="width: 100%; display: block;">
                     <p style="padding: 12px 16px; background: #0d1117; color: #8b949e; font-size: 14px;">Snapshots Manager — create, restore, and download backups</p>
                 </div>
                 <div style="border-radius: 8px; overflow: hidden; border: 1px solid #30363d;">
-                    <img src="screenshots/07-rules-editor.png" alt="Rules Editor" style="width: 100%; display: block;">
+                    <img src="screenshots/07-rules-editor.png" alt="FireLab rules editor with Monaco VS Code editor showing Firestore security rules, syntax highlighting, and version history panel" style="width: 100%; display: block;">
                     <p style="padding: 12px 16px; background: #0d1117; color: #8b949e; font-size: 14px;">Rules Editor — Monaco (VS Code) editor with validation and version history</p>
                 </div>
             </div>
@@ -548,6 +558,8 @@ npm start</pre>
             </div>
         </div>
     </section>
+
+    </main>
 
     <footer>
         <div class="container">

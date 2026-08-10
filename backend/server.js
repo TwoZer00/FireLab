@@ -231,7 +231,7 @@ app.post('/api/emulator/start', async (req, res) => {
       }
     }
 
-    const env = { ...process.env, FORCE_COLOR: '1' };
+    const env = { ...process.env, FORCE_COLOR: '1', FIREBASE_EMULATOR_HUB: 'localhost:4400' };
     if (process.env.FIREBASE_TOKEN) {
       env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
     }
@@ -248,11 +248,14 @@ app.post('/api/emulator/start', async (req, res) => {
       /^\s*\[debug\]/i,
       /grpc.*channel/i,
       /firestore.*internal/i,
-      /\[.*\] >>>/,
-      /^\s*>/,
+      /^\s*\[.*\] >>>/,
     ];
     const isNoisyLine = (line) => DEBUG_NOISE.some(p => p.test(line));
-    const filterChunk = (text) => text.split('\n').filter(l => !isNoisyLine(l)).join('\n');
+    const filterChunk = (text) => {
+      const lines = text.split('\n');
+      const filtered = lines.filter(l => !isNoisyLine(l));
+      return filtered.join('\n');
+    };
 
     emulatorProcess.stdout.on('data', (data) => {
       const text = data.toString();
@@ -304,7 +307,7 @@ app.post('/api/emulator/start', async (req, res) => {
         const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId, '--force'], {
           cwd: projectPath,
           shell: true,
-          env: { ...process.env, FORCE_COLOR: '1' }
+          env: { ...process.env, FORCE_COLOR: '1', FIREBASE_EMULATOR_HUB: 'localhost:4400' }
         });
 
         exportProcess.stdout.on('data', (data) => {
@@ -382,7 +385,7 @@ app.post('/api/emulator/stop', async (req, res) => {
         const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId, '--force'], {
           cwd: projectPath,
           shell: true,
-          env: { ...process.env, FORCE_COLOR: '1' }
+          env: { ...process.env, FORCE_COLOR: '1', FIREBASE_EMULATOR_HUB: 'localhost:4400' }
         });
 
         exportProcess.stdout.on('data', (data) => io.emit('logs', data.toString()));
@@ -880,7 +883,7 @@ app.post('/api/export/:projectId', async (req, res) => {
     const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId, '--force'], {
       cwd: projectPath,
       shell: true,
-      env: { ...process.env, FORCE_COLOR: '1' }
+      env: { ...process.env, FORCE_COLOR: '1', FIREBASE_EMULATOR_HUB: 'localhost:4400' }
     });
 
     exportInProgress = true;

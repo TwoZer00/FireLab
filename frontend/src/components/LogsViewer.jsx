@@ -28,6 +28,7 @@ const DEBUG_NOISE = [
   /firestore.*internal/i,
   /grpc.*channel/i,
   /\[.*\] >>>/,
+  /^\s*>/,
 ];
 
 function matchesDebugFilter(log, filter) {

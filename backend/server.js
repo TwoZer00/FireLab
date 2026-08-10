@@ -244,18 +244,28 @@ app.post('/api/emulator/start', async (req, res) => {
 
     await openDebugLog(projectPath);
 
-    const isDebugNoise = (text) => /^\s*\[debug\]/im.test(text);
+    const DEBUG_NOISE = [
+      /^\s*\[debug\]/i,
+      /grpc.*channel/i,
+      /firestore.*internal/i,
+      /\[.*\] >>>/,
+      /^\s*>/,
+    ];
+    const isNoisyLine = (line) => DEBUG_NOISE.some(p => p.test(line));
+    const filterChunk = (text) => text.split('\n').filter(l => !isNoisyLine(l)).join('\n');
 
     emulatorProcess.stdout.on('data', (data) => {
       const text = data.toString();
       if (debugLogStream) debugLogStream.write(text);
-      if (!isDebugNoise(text)) io.emit('logs', text);
+      const filtered = filterChunk(text);
+      if (filtered.trim()) io.emit('logs', filtered);
     });
 
     emulatorProcess.stderr.on('data', (data) => {
       const text = data.toString();
       if (debugLogStream) debugLogStream.write(text);
-      if (!isDebugNoise(text)) io.emit('logs', text);
+      const filtered = filterChunk(text);
+      if (filtered.trim()) io.emit('logs', filtered);
     });
 
     emulatorProcess.on('error', (error) => {

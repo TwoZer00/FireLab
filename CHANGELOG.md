@@ -1,3 +1,7 @@
+## <small>1.19.2 (2026-08-11)</small>
+
+* fix: await export completion before killing emulator on stop ([aeb1dbc136a475671b93a172bfbe278b95631210](https://github.com/TwoZer00/FireLab/commit/aeb1dbc136a475671b93a172bfbe278b95631210))
+
 ## <small>1.19.1 (2026-08-11)</small>
 
 * fix: strip OSC 8 hyperlink sequences to prevent entire log lines being underlined ([f5f271b77aba850f4a7cd278cc1650c5401cda6d](https://github.com/TwoZer00/FireLab/commit/f5f271b77aba850f4a7cd278cc1650c5401cda6d))

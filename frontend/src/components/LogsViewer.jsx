@@ -2,7 +2,12 @@ import { useState, useMemo } from 'react';
 import AnsiToHtml from 'ansi-to-html';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
-const ansiConverter = new AnsiToHtml({ fg: '#d4d4d4', bg: 'transparent' });
+const ansiConverter = new AnsiToHtml({ fg: '#d4d4d4', bg: 'transparent', escapeXML: false });
+
+function stripOscLinks(text) {
+  // Remove OSC 8 hyperlink sequences: \e]8;;url\e\\ and \e]8;;\e\\
+  return text.replace(/\x1b]8;[^\x1b]*\x1b\\/g, '');
+}
 
 function sanitizeHtml(html) {
   return html
@@ -146,7 +151,7 @@ function LogsViewer({ logs, autoScroll, setAutoScroll, onClear, projectId, getHe
           </div>
         ) : (
           filteredLogs.map((log, i) => {
-            const htmlLog = sanitizeHtml(ansiConverter.toHtml(log));
+            const htmlLog = sanitizeHtml(ansiConverter.toHtml(stripOscLinks(log)));
             const l = log.toLowerCase();
             const isError   = l.includes('error') || l.includes('failed');
             const isWarning = l.includes('warn');

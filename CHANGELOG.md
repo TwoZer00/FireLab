@@ -1,3 +1,8 @@
+## <small>1.19.3 (2026-08-11)</small>
+
+* fix: ensure hub in firebase.json for export and fix start endpoint indentation ([356894adf6c91ea491518d0d169c8c6a77ddfec6](https://github.com/TwoZer00/FireLab/commit/356894adf6c91ea491518d0d169c8c6a77ddfec6))
+* fix: remove underline from ANSI SGR4 tags in log lines ([71333e4a6a2fdedc0b9c98fb61be204e6619c4a4](https://github.com/TwoZer00/FireLab/commit/71333e4a6a2fdedc0b9c98fb61be204e6619c4a4))
+
 ## <small>1.19.2 (2026-08-11)</small>
 
 * fix: await export completion before killing emulator on stop ([aeb1dbc136a475671b93a172bfbe278b95631210](https://github.com/TwoZer00/FireLab/commit/aeb1dbc136a475671b93a172bfbe278b95631210))

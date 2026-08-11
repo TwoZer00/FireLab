@@ -1,3 +1,7 @@
+## <small>1.19.4 (2026-08-11)</small>
+
+* fix: create emulator-data dir before export to prevent ENOENT ([d7fa7fbdca903fb597226967c65d4d0d43553bd3](https://github.com/TwoZer00/FireLab/commit/d7fa7fbdca903fb597226967c65d4d0d43553bd3))
+
 ## <small>1.19.3 (2026-08-11)</small>
 
 * fix: ensure hub in firebase.json for export and fix start endpoint indentation ([356894adf6c91ea491518d0d169c8c6a77ddfec6](https://github.com/TwoZer00/FireLab/commit/356894adf6c91ea491518d0d169c8c6a77ddfec6))

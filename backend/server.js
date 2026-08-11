@@ -295,6 +295,7 @@ app.post('/api/emulator/start', async (req, res) => {
         const exportPath = path.join(projectPath, 'emulator-data', snapshotName);
 
         exportInProgress = true;
+        await mkdir(path.join(projectPath, 'emulator-data'), { recursive: true });
         const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId, '--force'], {
           cwd: projectPath,
           shell: true,
@@ -372,6 +373,7 @@ app.post('/api/emulator/stop', async (req, res) => {
       const exportPath = path.join(projectPath, 'emulator-data', snapshotName);
 
       exportInProgress = true;
+      await mkdir(path.join(projectPath, 'emulator-data'), { recursive: true });
       await new Promise((resolve) => {
         const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId, '--force'], {
           cwd: projectPath,
@@ -875,6 +877,7 @@ app.post('/api/export/:projectId', async (req, res) => {
   }
 
   try {
+    await mkdir(path.join(projectPath, 'emulator-data'), { recursive: true });
     const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId, '--force'], {
       cwd: projectPath,
       shell: true,

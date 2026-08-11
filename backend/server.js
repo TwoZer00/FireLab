@@ -358,14 +358,14 @@ app.post('/api/emulator/stop', async (req, res) => {
 
   try {
     // Create auto-snapshot before stopping
-    if (projectId) {
+    if (projectId && !exportInProgress) {
       const projectPath = safeJoin(projectsDir, projectId);
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
       const snapshotName = `auto-${timestamp}`;
       const exportPath = path.join(projectPath, 'emulator-data', snapshotName);
 
-      if (!exportInProgress) {
-        exportInProgress = true;
+      exportInProgress = true;
+      await new Promise((resolve) => {
         const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId, '--force'], {
           cwd: projectPath,
           shell: true,
@@ -379,7 +379,6 @@ app.post('/api/emulator/stop', async (req, res) => {
           exportInProgress = false;
           if (code === 0) {
             io.emit('logs', `✅ Auto-snapshot '${snapshotName}' created`);
-
             try {
               const { readdir, rm } = await import('fs/promises');
               const snapshotsPath = path.join(projectPath, 'emulator-data');
@@ -400,19 +399,20 @@ app.post('/api/emulator/stop', async (req, res) => {
               console.error('Cleanup error:', cleanupError);
             }
           }
+          resolve();
         });
-      } else {
-        io.emit('logs', '[FireLab] ⚠️ Auto-snapshot on stop skipped: export already in progress');
-      }
+      });
+    } else if (exportInProgress) {
+      io.emit('logs', '[FireLab] ⚠️ Auto-snapshot on stop skipped: export already in progress');
     }
 
-    // Kill the entire process tree
+    // Kill after export completes
     if (process.platform === 'win32') {
       spawn('taskkill', ['/pid', emulatorProcess.pid, '/f', '/t'], { shell: true });
     } else {
       emulatorProcess.kill('SIGTERM');
     }
-    
+
     emulatorProcess = null;
     console.log('Emulator stopped');
     res.json({ success: true, message: 'Emulator stopped' });

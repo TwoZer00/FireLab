@@ -121,6 +121,7 @@ app.post('/api/init', async (req, res) => {
     if (services?.hosting) emulators.hosting = { port: 5000, host: '0.0.0.0' };
     if (services?.storage) emulators.storage = { port: 9199, host: '0.0.0.0' };
     if (services?.ui) emulators.ui = { enabled: true, port: 4000, host: '0.0.0.0' };
+    emulators.hub = { host: '0.0.0.0', port: 4400 };
 
     const firebaseConfig = { emulators };
 
@@ -202,7 +203,13 @@ app.post('/api/emulator/start', async (req, res) => {
     if (existsSync(configPath)) {
       const configData = await readFile(configPath, 'utf-8');
       const config = JSON.parse(configData);
-      
+
+      // Ensure hub is configured for export support
+      if (!config.emulators.hub) {
+        config.emulators.hub = { host: '0.0.0.0', port: 4400 };
+        await writeFile(configPath, JSON.stringify(config, null, 2));
+      }
+
       if (config.emulators) {
         const services = [];
         if (config.emulators.auth) services.push('auth');
@@ -210,7 +217,7 @@ app.post('/api/emulator/start', async (req, res) => {
         if (config.emulators.database) services.push('database');
         if (config.emulators.storage) services.push('storage');
         if (config.emulators.hosting) services.push('hosting');
-        
+
         if (services.length > 0) {
           args.push('--only', services.join(','));
         }
@@ -651,11 +658,15 @@ app.put('/api/services/:projectId', async (req, res) => {
       database:  { port: 9000, host },
       hosting:   { port: 5000, host },
       storage:   { port: 9199, host },
-      ui:        { enabled: true, port: 4000, host }
+      ui:        { enabled: true, port: 4000, host },
+      hub:       { host: '0.0.0.0', port: 4400 }
     };
 
+    // Always ensure hub is present
+    if (!emulators.hub) emulators.hub = defaults.hub;
+
     for (const [svc, enabled] of Object.entries(services)) {
-      if (enabled && !emulators[svc]) {
+      if (enabled && !emulators[svc] && svc !== 'hub') {
         emulators[svc] = defaults[svc];
         if (svc === 'firestore') {
           const idxPath = path.join(projectPath, 'firestore.indexes.json');

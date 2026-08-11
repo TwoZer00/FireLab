@@ -1,3 +1,8 @@
+## <small>1.19.1 (2026-08-11)</small>
+
+* fix: strip OSC 8 hyperlink sequences to prevent entire log lines being underlined ([f5f271b77aba850f4a7cd278cc1650c5401cda6d](https://github.com/TwoZer00/FireLab/commit/f5f271b77aba850f4a7cd278cc1650c5401cda6d))
+* chore: normalize FORCE_COLOR to 1, remove leftover COLORTERM ([e43d2e6201848afea8a40cfbe5b8d0db5e70dc0e](https://github.com/TwoZer00/FireLab/commit/e43d2e6201848afea8a40cfbe5b8d0db5e70dc0e))
+
 ## 1.19.0 (2026-08-10)
 
 * feat: merge allow/deny debug filters into single Rules Eval filter ([63ebc4bd8316c8fb87aaa8fbcb6d0423dd029101](https://github.com/TwoZer00/FireLab/commit/63ebc4bd8316c8fb87aaa8fbcb6d0423dd029101))

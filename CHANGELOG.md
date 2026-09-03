@@ -1,3 +1,11 @@
+## <small>1.23.4 (2026-09-03)</small>
+
+* style: replace inline styles with CSS classes across landing page and app UI ([8687c556865f15c8775f840041096fa764abf823](https://github.com/TwoZer00/FireLab/commit/8687c556865f15c8775f840041096fa764abf823))
+* docs: add firebase login feature to landing page ([f45d7a92eb0bdb6633aac3a28291735009551cd0](https://github.com/TwoZer00/FireLab/commit/f45d7a92eb0bdb6633aac3a28291735009551cd0))
+* docs: update README with firebase login flow, token persistence, logout ([e9bf29679c7c58f375673ed30c6293700d1143c6](https://github.com/TwoZer00/FireLab/commit/e9bf29679c7c58f375673ed30c6293700d1143c6))
+* docs: update rules and indexes deploy sections with link requirement and auto-patch note ([d792115fb74fd07647f30a226a99fc1bcd0e2e60](https://github.com/TwoZer00/FireLab/commit/d792115fb74fd07647f30a226a99fc1bcd0e2e60))
+* fix: warn and block deploy when no Firebase project is linked ([210dcdeef0d0821bb43b39fa9764719d84694ebf](https://github.com/TwoZer00/FireLab/commit/210dcdeef0d0821bb43b39fa9764719d84694ebf))
+
 ## <small>1.23.3 (2026-09-03)</small>
 
 * fix: use 127.0.0.1 instead of localhost in healthcheck ([08000ea00993b470cbf8e82a02514a1acae64c81](https://github.com/TwoZer00/FireLab/commit/08000ea00993b470cbf8e82a02514a1acae64c81))

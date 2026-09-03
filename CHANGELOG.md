@@ -1,3 +1,7 @@
+## <small>1.21.3 (2026-09-03)</small>
+
+* fix: update login URL regex to match auth.firebase.tools ([f3c46434d48b4f6a1d251f56baeab66dcd997984](https://github.com/TwoZer00/FireLab/commit/f3c46434d48b4f6a1d251f56baeab66dcd997984))
+
 ## <small>1.21.2 (2026-09-03)</small>
 
 * fix: use unbuffer (expect) for PTY allocation in firebase login:ci ([94773c0e66cf1cdef8ddef2dc66d3d37cab06983](https://github.com/TwoZer00/FireLab/commit/94773c0e66cf1cdef8ddef2dc66d3d37cab06983))

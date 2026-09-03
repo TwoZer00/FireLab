@@ -1,6 +1,6 @@
 {
   "name": "firelab",
-  "version": "1.21.2",
+  "version": "1.21.3",
   "private": true,
   "scripts": {
     "start": "cd backend && node server.js",

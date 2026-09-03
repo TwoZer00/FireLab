@@ -366,7 +366,9 @@ Currently not supported. Requires `firebase login` on backend machine.
 6. **JSONC support** - Database rules support comments
 7. **Fetch from production** - Pull deployed rules from Firebase (requires login)
 8. Save locally with `Ctrl+S`
-9. Deploy to production (requires `firebase login` on backend)
+9. Deploy to production (requires Firebase login + linked project)
+
+> ⚠️ **Before deploying:** Link your local project to a Firebase project via Configuration → 🔗 Link Firebase Project. The deploy button shows ⚠️ and blocks deployment if no project is linked. On first deploy, FireLab automatically adds the required `firestore`, `storage`, or `database` keys to `firebase.json`.
 
 **Rules Tester:**
 - Enter path (e.g., `/users/123`)
@@ -386,6 +388,8 @@ Currently not supported. Requires `firebase login` on backend machine.
 3. **Real-time JSON validation** - Errors shown instantly
 4. **Fetch from Firebase** - Pull deployed indexes from production (requires login)
 5. Save locally or deploy to production
+
+> ⚠️ **Before deploying:** Same as rules — link your project first via 🔗 Link Firebase Project. FireLab auto-patches `firebase.json` with the `firestore` key on first deploy if missing.
 
 **Index Format:**
 ```json

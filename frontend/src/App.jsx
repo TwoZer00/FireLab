@@ -745,6 +745,7 @@ function App() {
               onDeploy={deployRules}
               onClose={() => setShowRules(false)}
               firebaseLoggedIn={firebaseLoggedIn}
+              firebaseProjectId={config?.firebaseProjectId}
               projectId={projectId}
               getHeaders={getHeaders}
             />

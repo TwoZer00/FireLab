@@ -9,6 +9,7 @@ function RulesEditor({
   onDeploy, 
   onClose,
   firebaseLoggedIn,
+  firebaseProjectId,
   projectId,
   getHeaders
 }) {
@@ -156,7 +157,11 @@ function RulesEditor({
       alert(`Validation Error: ${validation.error}\nPlease fix errors before deploying.`);
       return;
     }
-    if (!confirm(`Deploy ${rulesType} rules to Firebase production?`)) {
+    if (!firebaseProjectId) {
+      alert('No Firebase project linked. Go to Configuration → 🔗 Link Firebase Project first.');
+      return;
+    }
+    if (!confirm(`Deploy ${rulesType} rules to Firebase project "${firebaseProjectId}"?`)) {
       return;
     }
     onDeploy();
@@ -287,11 +292,11 @@ function RulesEditor({
       <button onClick={handleSave}>Save Rules</button>
       <button 
         onClick={handleDeploy} 
-        style={{ background: firebaseLoggedIn ? '#4caf50' : '#21262d' }}
+        style={{ background: firebaseLoggedIn && firebaseProjectId ? '#4caf50' : '#21262d' }}
         disabled={!firebaseLoggedIn}
-        title={!firebaseLoggedIn ? 'Firebase login required. Run: firebase login' : 'Deploy to production'}
+        title={!firebaseLoggedIn ? 'Firebase login required' : !firebaseProjectId ? 'No Firebase project linked — go to Configuration → 🔗 Link Firebase Project' : `Deploy to ${firebaseProjectId}`}
       >
-        Deploy to Production {!firebaseLoggedIn && '🔒'}
+        Deploy to Production {!firebaseLoggedIn && '🔒'}{firebaseLoggedIn && !firebaseProjectId && '⚠️'}
       </button>
       <button onClick={onClose}>Close</button>
       </div>

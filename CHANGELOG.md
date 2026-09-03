@@ -1,3 +1,7 @@
+## <small>1.21.1 (2026-09-03)</small>
+
+* fix: replace node require() healthcheck with wget for ESM compatibility ([3200973e23579aa21e06adcc26e95ee46fa73ffc](https://github.com/TwoZer00/FireLab/commit/3200973e23579aa21e06adcc26e95ee46fa73ffc))
+
 ## 1.21.0 (2026-09-03)
 
 * feat: add auth code input to firebase login modal ([3b96607432e5ec5329144b23003a2c940598eeaf](https://github.com/TwoZer00/FireLab/commit/3b96607432e5ec5329144b23003a2c940598eeaf))

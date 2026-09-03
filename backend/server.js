@@ -33,6 +33,13 @@ let loginProcess = null;
 let exportInProgress = false;
 let debugLogStream = null;
 let firebaseToken = process.env.FIREBASE_TOKEN || null;
+const tokenPersistPath = path.join(projectsDir, '.firebase-token');
+
+async function persistFirebaseToken(token) {
+  try {
+    await writeFile(tokenPersistPath, token);
+  } catch { /* non-fatal */ }
+}
 
 async function openDebugLog(projectPath) {
   const logPath = path.join(projectPath, 'debug.log');
@@ -581,6 +588,7 @@ app.post('/api/auth/login', async (req, res) => {
       const tokenMatch = buffer.match(/1\/\/[\w\-]+/);
       if (tokenMatch) {
         firebaseToken = tokenMatch[0];
+        persistFirebaseToken(firebaseToken);
         io.emit('firebase-login-token', tokenMatch[0]);
         buffer = '';
       }
@@ -629,8 +637,23 @@ app.post('/api/auth/token', (req, res) => {
   const { token } = req.body;
   if (!token) return res.status(400).json({ error: 'Token required' });
   firebaseToken = token;
+  persistFirebaseToken(token);
   res.json({ success: true });
 });
+
+// Logout - clear firebase token
+app.post('/api/auth/logout', async (req, res) => {
+  firebaseToken = null;
+  try {
+    const { unlink } = await import('fs/promises');
+    if (existsSync(tokenPersistPath)) await unlink(tokenPersistPath);
+  } catch { /* non-fatal */ }
+  res.json({ success: true });
+});
+
+function checkAuthError(output) {
+  return /Authentication Error|Token.*expired|invalid.*token|not logged in|login.*required|UNAUTHENTICATED/i.test(output);
+}
 
 // Check Firebase login status
 app.get('/api/auth/status', async (req, res) => {
@@ -940,6 +963,10 @@ app.post('/api/deploy/:projectId/:type', async (req, res) => {
       if (code === 0) {
         io.emit('logs', `✅ ${type} rules deployed successfully`);
       } else {
+        if (checkAuthError(output)) {
+          firebaseToken = null;
+          io.emit('firebase-auth-error');
+        }
         io.emit('logs', `❌ Deploy failed with code ${code}`);
       }
     });
@@ -1411,6 +1438,10 @@ app.post('/api/deploy-indexes/:projectId', async (req, res) => {
       if (code === 0) {
         io.emit('logs', '✅ Firestore indexes deployed successfully');
       } else {
+        if (checkAuthError(output)) {
+          firebaseToken = null;
+          io.emit('firebase-auth-error');
+        }
         io.emit('logs', `❌ Index deploy failed with code ${code}`);
       }
     });

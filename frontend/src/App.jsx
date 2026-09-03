@@ -343,6 +343,11 @@ function App() {
       setLoginUrl(null);
     });
 
+    socket.on('firebase-auth-error', () => {
+      setFirebaseLoggedIn(false);
+      setLogs(prev => [...prev, '[FireLab] ⚠️ Firebase token expired or invalid — please log in again']);
+    });
+
     if (accessToken) {
       checkStatus();
       checkFirebaseAuth();
@@ -366,6 +371,7 @@ function App() {
       socket.off('firebase-login-token');
       socket.off('firebase-login-success');
       socket.off('firebase-login-error');
+      socket.off('firebase-auth-error');
       socket.disconnect();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -537,6 +543,11 @@ function App() {
     }
   };
 
+  const logoutFirebase = async () => {
+    await fetch(`${API_URL}/api/auth/logout`, { method: 'POST', headers: getHeaders() });
+    setFirebaseLoggedIn(false);
+  };
+
   const updateHost = async (host) => {
     const updated = { ...config, emulators: { ...config.emulators } };
     Object.keys(updated.emulators).forEach(service => {
@@ -611,6 +622,15 @@ function App() {
               {!backendConnected && (
                 <div className="alert alert-error">
                   ⚠️ Backend not connected
+                </div>
+              )}
+
+              {backendConnected && firebaseLoggedIn && (
+                <div className="section" style={{ padding: '8px 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '11px', color: '#3fb950' }}>✅ Firebase connected</span>
+                    <button onClick={logoutFirebase} style={{ fontSize: '10px', background: '#21262d', borderColor: '#30363d', padding: '2px 8px' }}>Logout</button>
+                  </div>
                 </div>
               )}
 

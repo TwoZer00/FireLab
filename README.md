@@ -471,6 +471,7 @@ firelab/
 │   └── screenshots.js         # Automated screenshot generation
 ├── docs/                       # GitHub Pages landing page & screenshots
 └── firebase-projects/          # Firebase project configs
+    ├── .firebase-token         # Persisted Firebase CI token (auto-loaded on start)
     └── [project-name]/
         ├── firebase.json
         ├── firestore.rules (if Firestore enabled)
@@ -543,21 +544,55 @@ firelab/
 ✅ Semantic versioning with automated releases
 ✅ CI/CD with GitHub Actions (Docker publish + release)
 
+### Firebase Authentication
+✅ Login via UI with OAuth flow (works in Docker/non-interactive environments)
+✅ Manual token input for existing CI tokens
+✅ Token persistence across container restarts (saved to volume)
+✅ Logout button to clear token
+✅ Automatic expired token detection on deploy/fetch failures
+✅ `FIREBASE_TOKEN` env var support
+
 ## Firebase Login (Optional)
 
 Firebase login is **only required** for:
 - Deploying rules to production
-- Importing projects from Firebase cloud (not yet supported)
+- Fetching deployed rules/indexes from Firebase
 
-For local development, no login needed!
+For local development with emulators only, no login needed!
 
-**To enable production deployment:**
+### Login Methods
+
+**Method A: Login via UI (Recommended for Docker)**
+1. Click **🔑 Login to Firebase** in the sidebar
+2. A modal appears with an auth URL — open it in your browser and sign in
+3. Paste the authorization code back into the modal and click **Submit**
+4. The token is automatically stored and persisted across container restarts
+
+**Method B: Set token manually**
+1. Generate a token outside FireLab: `firebase login:ci --no-localhost`
+2. Click **🔐 Set token manually** in the sidebar
+3. Paste the token and click **Set**
+
+**Method C: Environment variable**
 ```bash
-# On backend machine
-firebase login
+docker run -e FIREBASE_TOKEN=your_token ...
 ```
+The token is picked up automatically on startup.
 
-The UI will show login status and disable deploy button when not logged in.
+### Token Persistence
+
+Once set (via any method), the token is saved to `firebase-projects/.firebase-token` on the volume and automatically loaded on container restart — no need to log in again.
+
+### Logout
+
+Click the **Logout** button next to the "✅ Firebase connected" indicator in the sidebar. This clears the token from memory and deletes the persisted file.
+
+### Expired Token Detection
+
+If a deploy or fetch operation fails due to an expired/invalid token, FireLab automatically:
+- Clears the stored token
+- Shows the login button again
+- Logs a warning: `⚠️ Firebase token expired or invalid — please log in again`
 
 ## Advanced Features
 
@@ -627,8 +662,9 @@ Commit message prefixes:
 - Check `CORS_ORIGINS` includes your frontend URL
 
 **Deploy button disabled:**
-- Run `firebase login` on backend machine
-- Refresh frontend to update login status
+- Use **🔑 Login to Firebase** in the sidebar, or set `FIREBASE_TOKEN` env var
+- If token expired, FireLab will show the login button automatically
+- Ensure your local project is linked to a Firebase project via 🔗 Link Firebase Project
 
 **Snapshot restore fails:**
 - Stop emulator before restoring

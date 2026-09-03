@@ -552,8 +552,20 @@ app.post('/api/auth/login', async (req, res) => {
   }
 
   try {
-    const env = { ...process.env };
-    loginProcess = spawn('firebase', ['login:ci', '--no-localhost'], { shell: true, env });
+    const env = { ...process.env, TERM: 'xterm' };
+    delete env.CI;
+    // Use 'script' on Linux/Docker to allocate a pseudo-TTY so Firebase CLI
+    // doesn't refuse with "non-interactive mode" error
+    const isDocker = process.platform !== 'win32';
+    let cmd, args;
+    if (isDocker) {
+      cmd = 'script';
+      args = ['-q', '-c', 'firebase login:ci --no-localhost', '/dev/null'];
+    } else {
+      cmd = 'firebase';
+      args = ['login:ci', '--no-localhost'];
+    }
+    loginProcess = spawn(cmd, args, { shell: true, env });
 
     let buffer = '';
     const onData = (data) => {

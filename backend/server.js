@@ -553,7 +553,7 @@ app.post('/api/auth/login', async (req, res) => {
 
   try {
     const env = { ...process.env };
-    loginProcess = spawn('firebase', ['login', '--no-localhost'], { shell: true, env });
+    loginProcess = spawn('firebase', ['login:ci', '--no-localhost'], { shell: true, env });
 
     let buffer = '';
     const onData = (data) => {
@@ -562,6 +562,12 @@ app.post('/api/auth/login', async (req, res) => {
       const urlMatch = buffer.match(/https:\/\/accounts\.google\.com\S+/);
       if (urlMatch) {
         io.emit('firebase-login-url', urlMatch[0]);
+        buffer = '';
+      }
+      // Capture the CI token from output
+      const tokenMatch = buffer.match(/1\/\/[\w\-]+/);
+      if (tokenMatch) {
+        io.emit('firebase-login-token', tokenMatch[0]);
         buffer = '';
       }
       io.emit('logs', `[Firebase Login] ${text}`);

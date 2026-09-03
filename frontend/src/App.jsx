@@ -45,6 +45,7 @@ function App() {
   const [snapshots, setSnapshots] = useState([]);
   const [loginUrl, setLoginUrl] = useState(null);
   const [loginPending, setLoginPending] = useState(false);
+  const [loginCiToken, setLoginCiToken] = useState(null);
 
   const getHeaders = useCallback(() => ({
     'Content-Type': 'application/json',
@@ -321,6 +322,12 @@ function App() {
       setLoginUrl(url);
     });
 
+    socket.on('firebase-login-token', (token) => {
+      setLoginCiToken(token);
+      setLoginUrl(null);
+      setLoginPending(false);
+    });
+
     socket.on('firebase-login-success', () => {
       setLoginPending(false);
       setLoginUrl(null);
@@ -352,6 +359,7 @@ function App() {
       socket.off('connect');
       socket.off('disconnect');
       socket.off('firebase-login-url');
+      socket.off('firebase-login-token');
       socket.off('firebase-login-success');
       socket.off('firebase-login-error');
       socket.disconnect();
@@ -496,6 +504,7 @@ function App() {
   const startFirebaseLogin = async () => {
     setLoginPending(true);
     setLoginUrl(null);
+    setLoginCiToken(null);
     await fetch(`${API_URL}/api/auth/login`, { method: 'POST', headers: getHeaders() });
   };
 
@@ -718,6 +727,33 @@ function App() {
               style={{ flex: 1, fontSize: '11px', background: '#21262d', borderColor: '#30363d' }}
             >
               Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    {loginCiToken && (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+        <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '8px', padding: '24px', maxWidth: '500px', width: '90%' }}>
+          <h3 style={{ margin: '0 0 12px' }}>✅ Firebase CI Token</h3>
+          <p style={{ color: '#8b949e', fontSize: '13px', margin: '0 0 8px' }}>
+            Set this as the <code>FIREBASE_TOKEN</code> environment variable on your backend, then restart the server:
+          </p>
+          <code style={{ display: 'block', wordBreak: 'break-all', background: '#0d1117', padding: '10px', borderRadius: '4px', fontSize: '12px', marginBottom: '16px', color: '#58a6ff' }}>
+            {loginCiToken}
+          </code>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => { navigator.clipboard.writeText(loginCiToken); }}
+              style={{ flex: 1, fontSize: '11px' }}
+            >
+              📋 Copy Token
+            </button>
+            <button
+              onClick={() => setLoginCiToken(null)}
+              style={{ flex: 1, fontSize: '11px', background: '#21262d', borderColor: '#30363d' }}
+            >
+              Close
             </button>
           </div>
         </div>

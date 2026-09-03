@@ -1,3 +1,7 @@
+## <small>1.21.2 (2026-09-03)</small>
+
+* fix: use unbuffer (expect) for PTY allocation in firebase login:ci ([94773c0e66cf1cdef8ddef2dc66d3d37cab06983](https://github.com/TwoZer00/FireLab/commit/94773c0e66cf1cdef8ddef2dc66d3d37cab06983))
+
 ## <small>1.21.1 (2026-09-03)</small>
 
 * fix: replace node require() healthcheck with wget for ESM compatibility ([3200973e23579aa21e06adcc26e95ee46fa73ffc](https://github.com/TwoZer00/FireLab/commit/3200973e23579aa21e06adcc26e95ee46fa73ffc))

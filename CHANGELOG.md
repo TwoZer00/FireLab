@@ -1,3 +1,7 @@
+## <small>1.20.1 (2026-09-03)</small>
+
+* fix: use firebase login:ci for non-interactive environments ([eb4c44236d54ed09632cfe6d915d0229b9fb68ff](https://github.com/TwoZer00/FireLab/commit/eb4c44236d54ed09632cfe6d915d0229b9fb68ff))
+
 ## 1.20.0 (2026-09-03)
 
 * feat: link local project to Firebase cloud project ID via dropdown ([77cb9f585ac7d19ef58d826d8af1105f4c2b8c2d](https://github.com/TwoZer00/FireLab/commit/77cb9f585ac7d19ef58d826d8af1105f4c2b8c2d))

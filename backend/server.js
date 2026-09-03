@@ -624,6 +624,14 @@ app.post('/api/auth/login/code', (req, res) => {
   res.json({ success: true });
 });
 
+// Set Firebase token manually
+app.post('/api/auth/token', (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ error: 'Token required' });
+  firebaseToken = token;
+  res.json({ success: true });
+});
+
 // Check Firebase login status
 app.get('/api/auth/status', async (req, res) => {
   try {

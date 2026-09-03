@@ -47,6 +47,8 @@ function App() {
   const [loginPending, setLoginPending] = useState(false);
   const [loginCiToken, setLoginCiToken] = useState(null);
   const [loginAuthCode, setLoginAuthCode] = useState('');
+  const [manualToken, setManualToken] = useState('');
+  const [showManualToken, setShowManualToken] = useState(false);
 
   const getHeaders = useCallback(() => ({
     'Content-Type': 'application/json',
@@ -521,6 +523,20 @@ function App() {
     setLoginAuthCode('');
   };
 
+  const submitManualToken = async () => {
+    if (!manualToken.trim()) return;
+    const res = await fetch(`${API_URL}/api/auth/token`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ token: manualToken.trim() })
+    });
+    if (res.ok) {
+      setFirebaseLoggedIn(true);
+      setManualToken('');
+      setShowManualToken(false);
+    }
+  };
+
   const updateHost = async (host) => {
     const updated = { ...config, emulators: { ...config.emulators } };
     Object.keys(updated.emulators).forEach(service => {
@@ -607,6 +623,25 @@ function App() {
                   >
                     {loginPending ? '⏳ Waiting for login...' : '🔑 Login to Firebase'}
                   </button>
+                  <button
+                    onClick={() => setShowManualToken(v => !v)}
+                    style={{ width: '100%', fontSize: '11px', marginTop: '4px', background: '#21262d', borderColor: '#30363d' }}
+                  >
+                    🔐 Set token manually
+                  </button>
+                  {showManualToken && (
+                    <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
+                      <input
+                        type="password"
+                        value={manualToken}
+                        onChange={e => setManualToken(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && submitManualToken()}
+                        placeholder="Paste FIREBASE_TOKEN..."
+                        style={{ flex: 1, background: '#0d1117', border: '1px solid #30363d', borderRadius: '4px', padding: '4px 8px', color: '#e6edf3', fontSize: '11px' }}
+                      />
+                      <button onClick={submitManualToken} style={{ fontSize: '11px' }} disabled={!manualToken.trim()}>Set</button>
+                    </div>
+                  )}
                 </div>
               )}
 

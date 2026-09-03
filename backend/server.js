@@ -554,13 +554,13 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const env = { ...process.env, TERM: 'xterm' };
     delete env.CI;
-    // Use 'script' on Linux/Docker to allocate a pseudo-TTY so Firebase CLI
-    // doesn't refuse with "non-interactive mode" error
-    const isDocker = process.platform !== 'win32';
+    const isLinux = process.platform !== 'win32';
     let cmd, args, spawnOpts;
-    if (isDocker) {
-      cmd = 'script';
-      args = ['-q', '-c', 'firebase login:ci --no-localhost', '/dev/null'];
+    if (isLinux) {
+      // unbuffer (from expect package) allocates a PTY so Firebase CLI
+      // doesn't refuse with non-interactive error, while still piping I/O
+      cmd = 'unbuffer';
+      args = ['-p', 'firebase', 'login:ci', '--no-localhost'];
       spawnOpts = { shell: false, env };
     } else {
       cmd = 'firebase';

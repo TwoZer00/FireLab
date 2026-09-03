@@ -1,3 +1,7 @@
+## 1.23.0 (2026-09-03)
+
+* feat: persist firebase token, add logout, detect expired token ([6e8d884e7030912074ccbd8b0b2bcb63802ee7df](https://github.com/TwoZer00/FireLab/commit/6e8d884e7030912074ccbd8b0b2bcb63802ee7df))
+
 ## 1.22.0 (2026-09-03)
 
 * feat: add manual firebase token input ([d5d8d05bcd34061391aa20e088e07cd8e08d95cc](https://github.com/TwoZer00/FireLab/commit/d5d8d05bcd34061391aa20e088e07cd8e08d95cc))

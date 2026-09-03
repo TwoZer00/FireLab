@@ -557,15 +557,17 @@ app.post('/api/auth/login', async (req, res) => {
     // Use 'script' on Linux/Docker to allocate a pseudo-TTY so Firebase CLI
     // doesn't refuse with "non-interactive mode" error
     const isDocker = process.platform !== 'win32';
-    let cmd, args;
+    let cmd, args, spawnOpts;
     if (isDocker) {
       cmd = 'script';
       args = ['-q', '-c', 'firebase login:ci --no-localhost', '/dev/null'];
+      spawnOpts = { shell: false, env };
     } else {
       cmd = 'firebase';
       args = ['login:ci', '--no-localhost'];
+      spawnOpts = { shell: true, env };
     }
-    loginProcess = spawn(cmd, args, { shell: true, env });
+    loginProcess = spawn(cmd, args, spawnOpts);
 
     let buffer = '';
     const onData = (data) => {

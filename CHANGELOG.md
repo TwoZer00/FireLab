@@ -1,3 +1,7 @@
+## <small>1.23.1 (2026-09-03)</small>
+
+* fix: move tokenPersistPath after projectsDir initialization ([4a5649e754dbb5c342831856c58800ffa3ff60fa](https://github.com/TwoZer00/FireLab/commit/4a5649e754dbb5c342831856c58800ffa3ff60fa))
+
 ## 1.23.0 (2026-09-03)
 
 * feat: persist firebase token, add logout, detect expired token ([6e8d884e7030912074ccbd8b0b2bcb63802ee7df](https://github.com/TwoZer00/FireLab/commit/6e8d884e7030912074ccbd8b0b2bcb63802ee7df))

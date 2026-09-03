@@ -1,3 +1,7 @@
+## <small>1.20.4 (2026-09-03)</small>
+
+* fix: use shell:false for script PTY spawn to prevent arg mangling ([1b7df5eff24db91a170af42a8c285a8dbeea7892](https://github.com/TwoZer00/FireLab/commit/1b7df5eff24db91a170af42a8c285a8dbeea7892))
+
 ## <small>1.20.3 (2026-09-03)</small>
 
 * fix: add util-linux to Docker image for script PTY support ([74a4a695f3d626aa3c675b91ef2de556a0551bcc](https://github.com/TwoZer00/FireLab/commit/74a4a695f3d626aa3c675b91ef2de556a0551bcc))

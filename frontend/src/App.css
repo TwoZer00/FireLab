@@ -424,3 +424,256 @@ h3 {
   font-size: 14px;
   margin-bottom: 12px;
 }
+
+/* Keyboard shortcut hints */
+.kbd-hint {
+  font-size: 11px;
+  color: #8b949e;
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+kbd {
+  background: #21262d;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid #30363d;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+/* Firebase auth bar */
+.auth-bar {
+  padding: 8px 12px;
+}
+.auth-bar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.auth-connected {
+  font-size: 11px;
+  color: #3fb950;
+}
+.auth-btn-sm {
+  font-size: 10px !important;
+  background: #21262d !important;
+  border-color: #30363d !important;
+  padding: 2px 8px !important;
+  margin: 0 !important;
+}
+.auth-btn-full {
+  width: 100%;
+  font-size: 11px !important;
+  margin-bottom: 4px !important;
+}
+.auth-btn-login {
+  background: #1f6feb !important;
+  border-color: #388bfd !important;
+}
+.auth-btn-secondary {
+  background: #21262d !important;
+  border-color: #30363d !important;
+}
+.auth-token-row {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.auth-token-input {
+  flex: 1;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #e6edf3;
+  font-size: 11px;
+  font-family: inherit;
+}
+
+/* Snapshot rows */
+.snapshot-row {
+  background: #0d1117;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  border: 1px solid #30363d;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.snapshot-name {
+  font-size: 13px;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.snapshot-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.btn-icon {
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+  margin: 0 !important;
+}
+.btn-danger {
+  background: #da3633 !important;
+  border-color: #f85149 !important;
+}
+
+/* Service rows */
+.service-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: #0d1117;
+  border-radius: 6px;
+  border: 1px solid #30363d;
+}
+.service-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.service-dot {
+  color: #3fb950;
+  font-size: 10px;
+}
+.service-name {
+  font-size: 13px;
+}
+.service-port {
+  font-size: 11px;
+  color: #8b949e;
+  background: #161b22;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+}
+.modal h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+.modal-hint {
+  color: #8b949e;
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+.modal-link {
+  display: block;
+  word-break: break-all;
+  color: #58a6ff;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+.modal-code {
+  display: block;
+  word-break: break-all;
+  background: #0d1117;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 16px;
+  color: #58a6ff;
+}
+.modal-input {
+  flex: 1;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  padding: 6px 10px;
+  color: #e6edf3;
+  font-size: 12px;
+  font-family: inherit;
+}
+.modal-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.modal-actions {
+  display: flex;
+  gap: 8px;
+}
+.modal-actions button {
+  flex: 1;
+  font-size: 11px !important;
+  margin: 0 !important;
+}
+
+/* Emulator controls checkboxes */
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.checkbox-row input { cursor: pointer; }
+
+/* Logs toolbar */
+.logs-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.logs-toolbar h2 { margin-bottom: 0; }
+.logs-toolbar-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.logs-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.logs-filters input,
+.logs-filters select {
+  margin: 0 !important;
+}
+.logs-filters input { flex: 1; min-width: 120px; }
+.debug-filter-notice {
+  font-size: 11px;
+  color: #e3b341;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+.logs-empty {
+  color: #888;
+  font-style: italic;
+}

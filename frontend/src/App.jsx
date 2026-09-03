@@ -606,10 +606,10 @@ function App() {
     <div className="app">
       <div className="header">
         <h1>🔥 FireLab</h1>
-        <div style={{ fontSize: '11px', color: '#8b949e', marginTop: '8px' }}>
-          <kbd style={{ background: '#21262d', padding: '2px 6px', borderRadius: '3px', border: '1px solid #30363d' }}>Ctrl+E</kbd> Toggle Emulator · 
-          <kbd style={{ background: '#21262d', padding: '2px 6px', borderRadius: '3px', border: '1px solid #30363d' }}>Ctrl+L</kbd> Clear Logs · 
-          <kbd style={{ background: '#21262d', padding: '2px 6px', borderRadius: '3px', border: '1px solid #30363d' }}>Ctrl+S</kbd> Save
+        <div className="kbd-hint">
+          <kbd>Ctrl+E</kbd> Toggle Emulator ·
+          <kbd>Ctrl+L</kbd> Clear Logs ·
+          <kbd>Ctrl+S</kbd> Save
         </div>
       </div>
 
@@ -626,40 +626,40 @@ function App() {
               )}
 
               {backendConnected && firebaseLoggedIn && (
-                <div className="section" style={{ padding: '8px 12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '11px', color: '#3fb950' }}>✅ Firebase connected</span>
-                    <button onClick={logoutFirebase} style={{ fontSize: '10px', background: '#21262d', borderColor: '#30363d', padding: '2px 8px' }}>Logout</button>
+                <div className="section auth-bar">
+                  <div className="auth-bar-row">
+                    <span className="auth-connected">✅ Firebase connected</span>
+                    <button className="auth-btn-sm" onClick={logoutFirebase}>Logout</button>
                   </div>
                 </div>
               )}
 
               {backendConnected && !firebaseLoggedIn && (
-                <div className="section" style={{ padding: '8px 12px' }}>
+                <div className="section auth-bar">
                   <button
+                    className="auth-btn-full auth-btn-login"
                     onClick={startFirebaseLogin}
                     disabled={loginPending}
-                    style={{ width: '100%', fontSize: '11px', background: '#1f6feb', borderColor: '#388bfd' }}
                   >
                     {loginPending ? '⏳ Waiting for login...' : '🔑 Login to Firebase'}
                   </button>
                   <button
+                    className="auth-btn-full auth-btn-secondary"
                     onClick={() => setShowManualToken(v => !v)}
-                    style={{ width: '100%', fontSize: '11px', marginTop: '4px', background: '#21262d', borderColor: '#30363d' }}
                   >
                     🔐 Set token manually
                   </button>
                   {showManualToken && (
-                    <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
+                    <div className="auth-token-row">
                       <input
                         type="password"
+                        className="auth-token-input"
                         value={manualToken}
                         onChange={e => setManualToken(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && submitManualToken()}
                         placeholder="Paste FIREBASE_TOKEN..."
-                        style={{ flex: 1, background: '#0d1117', border: '1px solid #30363d', borderRadius: '4px', padding: '4px 8px', color: '#e6edf3', fontSize: '11px' }}
                       />
-                      <button onClick={submitManualToken} style={{ fontSize: '11px' }} disabled={!manualToken.trim()}>Set</button>
+                      <button onClick={submitManualToken} disabled={!manualToken.trim()}>Set</button>
                     </div>
                   )}
                 </div>
@@ -770,76 +770,39 @@ function App() {
       </div>
     </div>
     {loginUrl && (
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-        <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '8px', padding: '24px', maxWidth: '500px', width: '90%' }}>
-          <h3 style={{ margin: '0 0 12px' }}>🔑 Firebase Login</h3>
-          <p style={{ color: '#8b949e', fontSize: '13px', margin: '0 0 8px' }}>
-            1. Open this URL and sign in:
-          </p>
-          <a
-            href={loginUrl}
-            target="_blank"
-            rel="noreferrer"
-            style={{ display: 'block', wordBreak: 'break-all', color: '#58a6ff', fontSize: '12px', marginBottom: '16px' }}
-          >
-            {loginUrl}
-          </a>
-          <p style={{ color: '#8b949e', fontSize: '13px', margin: '0 0 8px' }}>
-            2. Paste the authorization code here:
-          </p>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+      <div className="modal-overlay">
+        <div className="modal">
+          <h3>🔑 Firebase Login</h3>
+          <p className="modal-hint">1. Open this URL and sign in:</p>
+          <a href={loginUrl} target="_blank" rel="noreferrer" className="modal-link">{loginUrl}</a>
+          <p className="modal-hint">2. Paste the authorization code here:</p>
+          <div className="modal-row">
             <input
               type="text"
+              className="modal-input"
               value={loginAuthCode}
               onChange={e => setLoginAuthCode(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && submitAuthCode()}
               placeholder="Paste auth code..."
-              style={{ flex: 1, background: '#0d1117', border: '1px solid #30363d', borderRadius: '4px', padding: '6px 10px', color: '#e6edf3', fontSize: '12px' }}
             />
-            <button onClick={submitAuthCode} style={{ fontSize: '11px' }} disabled={!loginAuthCode.trim()}>
-              Submit
-            </button>
+            <button onClick={submitAuthCode} disabled={!loginAuthCode.trim()}>Submit</button>
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              onClick={() => navigator.clipboard.writeText(loginUrl)}
-              style={{ flex: 1, fontSize: '11px' }}
-            >
-              📋 Copy URL
-            </button>
-            <button
-              onClick={() => { setLoginUrl(null); setLoginPending(false); }}
-              style={{ flex: 1, fontSize: '11px', background: '#21262d', borderColor: '#30363d' }}
-            >
-              Cancel
-            </button>
+          <div className="modal-actions">
+            <button onClick={() => navigator.clipboard.writeText(loginUrl)}>📋 Copy URL</button>
+            <button className="btn-secondary" onClick={() => { setLoginUrl(null); setLoginPending(false); }}>Cancel</button>
           </div>
         </div>
       </div>
     )}
     {loginCiToken && (
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-        <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '8px', padding: '24px', maxWidth: '500px', width: '90%' }}>
-          <h3 style={{ margin: '0 0 12px' }}>✅ Firebase CI Token</h3>
-          <p style={{ color: '#8b949e', fontSize: '13px', margin: '0 0 8px' }}>
-            Set this as the <code>FIREBASE_TOKEN</code> environment variable on your backend, then restart the server:
-          </p>
-          <code style={{ display: 'block', wordBreak: 'break-all', background: '#0d1117', padding: '10px', borderRadius: '4px', fontSize: '12px', marginBottom: '16px', color: '#58a6ff' }}>
-            {loginCiToken}
-          </code>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              onClick={() => { navigator.clipboard.writeText(loginCiToken); }}
-              style={{ flex: 1, fontSize: '11px' }}
-            >
-              📋 Copy Token
-            </button>
-            <button
-              onClick={() => setLoginCiToken(null)}
-              style={{ flex: 1, fontSize: '11px', background: '#21262d', borderColor: '#30363d' }}
-            >
-              Close
-            </button>
+      <div className="modal-overlay">
+        <div className="modal">
+          <h3>✅ Firebase CI Token</h3>
+          <p className="modal-hint">Set this as the <code>FIREBASE_TOKEN</code> environment variable on your backend, then restart the server:</p>
+          <code className="modal-code">{loginCiToken}</code>
+          <div className="modal-actions">
+            <button onClick={() => navigator.clipboard.writeText(loginCiToken)}>📋 Copy Token</button>
+            <button className="btn-secondary" onClick={() => setLoginCiToken(null)}>Close</button>
           </div>
         </div>
       </div>

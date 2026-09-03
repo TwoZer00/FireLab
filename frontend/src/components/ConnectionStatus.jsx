@@ -23,44 +23,13 @@ function ConnectionStatus({ config, isRunning, emulatorHost }) {
         if (!service.port) return null;
         const url = emulatorHost.replace(':4000', `:${service.port}`);
         return (
-          <div 
-            key={service.key}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '8px 10px',
-              marginBottom: '6px',
-              background: '#0d1117',
-              borderRadius: '6px',
-              border: '1px solid #30363d'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ color: '#3fb950', fontSize: '10px' }}>●</span>
-              <span style={{ fontSize: '13px' }}>{service.name}</span>
-              <code style={{ 
-                fontSize: '11px', 
-                color: '#8b949e',
-                background: '#161b22',
-                padding: '2px 6px',
-                borderRadius: '3px'
-              }}>
-                :{service.port}
-              </code>
+          <div key={service.key} className="service-row">
+            <div className="service-info">
+              <span className="service-dot">●</span>
+              <span className="service-name">{service.name}</span>
+              <code className="service-port">:{service.port}</code>
             </div>
-            <button
-              onClick={() => copyToClipboard(url)}
-              style={{
-                padding: '4px 8px',
-                fontSize: '11px',
-                background: '#21262d',
-                borderColor: '#30363d'
-              }}
-              title="Copy URL"
-            >
-              📋
-            </button>
+            <button className="btn-icon btn-secondary" onClick={() => copyToClipboard(url)} title="Copy URL">📋</button>
           </div>
         );
       })}

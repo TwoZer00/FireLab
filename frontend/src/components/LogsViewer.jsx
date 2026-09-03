@@ -83,9 +83,9 @@ function LogsViewer({ logs, autoScroll, setAutoScroll, onClear, projectId, getHe
 
   return (
     <div className="section" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexShrink: 0 }}>
-        <h2 style={{ marginBottom: 0 }}>Logs</h2>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+      <div className="logs-toolbar">
+        <h2>Logs</h2>
+        <div className="logs-toolbar-right">
           <label style={{ fontSize: '12px' }}>
             <input
               type="checkbox"
@@ -96,7 +96,7 @@ function LogsViewer({ logs, autoScroll, setAutoScroll, onClear, projectId, getHe
             Auto-scroll
           </label>
           {projectId && (
-            <button onClick={downloadDebugLog} style={{ fontSize: '11px', padding: '4px 8px', background: '#21262d', borderColor: '#30363d' }} title="Download full debug log">
+            <button onClick={downloadDebugLog} className="btn-secondary btn-icon" title="Download full debug log">
               ⬇️ debug.log
             </button>
           )}
@@ -104,19 +104,14 @@ function LogsViewer({ logs, autoScroll, setAutoScroll, onClear, projectId, getHe
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', flexShrink: 0, flexWrap: 'wrap' }}>
+      <div className="logs-filters">
         <input
           type="text"
           placeholder="Search logs..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ flex: 1, minWidth: '120px', marginRight: 0, marginBottom: 0 }}
         />
-        <select
-          value={serviceFilter}
-          onChange={(e) => setServiceFilter(e.target.value)}
-          style={{ marginRight: 0, marginBottom: 0 }}
-        >
+        <select value={serviceFilter} onChange={(e) => setServiceFilter(e.target.value)}>
           <option value="all">All Services</option>
           <option value="firelab">FireLab</option>
           <option value="auth">Auth</option>
@@ -126,12 +121,7 @@ function LogsViewer({ logs, autoScroll, setAutoScroll, onClear, projectId, getHe
           <option value="hosting">Hosting</option>
           <option value="functions">Functions</option>
         </select>
-        <select
-          value={debugFilter}
-          onChange={(e) => setDebugFilter(e.target.value)}
-          style={{ marginRight: 0, marginBottom: 0 }}
-          title="Filter by debug event type"
-        >
+        <select value={debugFilter} onChange={(e) => setDebugFilter(e.target.value)} title="Filter by debug event type">
           {DEBUG_FILTERS.map(f => (
             <option key={f.value} value={f.value}>{f.label}</option>
           ))}
@@ -139,14 +129,14 @@ function LogsViewer({ logs, autoScroll, setAutoScroll, onClear, projectId, getHe
       </div>
 
       {debugFilter !== 'all' && (
-        <div style={{ fontSize: '11px', color: '#e3b341', marginBottom: '8px', flexShrink: 0 }}>
+        <div className="debug-filter-notice">
           ⚠️ Debug filter active — showing only <strong>{DEBUG_FILTERS.find(f => f.value === debugFilter)?.label}</strong> events. Full log saved to <code style={{ color: '#58a6ff' }}>debug.log</code>.
         </div>
       )}
 
       <div className="logs" style={{ flex: 1 }}>
         {filteredLogs.length === 0 ? (
-          <div style={{ color: '#888', fontStyle: 'italic' }}>
+          <div className="logs-empty">
             {logs.length === 0 ? 'No logs yet. Start the emulator to see logs...' : 'No logs match the current filters.'}
           </div>
         ) : (

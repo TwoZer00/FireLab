@@ -68,47 +68,12 @@ function SnapshotsManager({ projectId, snapshots, onExport, onRestore, onDelete,
             {snapshots.length} snapshot{snapshots.length !== 1 ? 's' : ''} available
           </div>
           {snapshots.map(snapshot => (
-            <div 
-              key={snapshot} 
-              style={{ 
-                background: '#0d1117', 
-                padding: '10px', 
-                marginBottom: '8px', 
-                borderRadius: '6px',
-                border: '1px solid #30363d',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}
-            >
-              <span style={{ fontSize: '13px', fontFamily: 'monospace' }}>{snapshot}</span>
-              <div>
-                <button 
-                  onClick={() => downloadSnapshot(snapshot)}
-                  style={{ padding: '4px 8px', fontSize: '11px', marginRight: '4px' }}
-                  title="Download as ZIP"
-                >
-                  ⬇️
-                </button>
-                <button 
-                  onClick={() => onRestore(snapshot)}
-                  style={{ padding: '4px 8px', fontSize: '11px', marginRight: '4px' }}
-                  title="Restore this snapshot"
-                >
-                  ↻ Restore
-                </button>
-                <button 
-                  onClick={() => onDelete(snapshot)}
-                  style={{ 
-                    padding: '4px 8px', 
-                    fontSize: '11px', 
-                    background: '#da3633',
-                    borderColor: '#f85149'
-                  }}
-                  title="Delete this snapshot"
-                >
-                  🗑️
-                </button>
+            <div key={snapshot} className="snapshot-row">
+              <span className="snapshot-name">{snapshot}</span>
+              <div className="snapshot-actions">
+                <button className="btn-icon" onClick={() => downloadSnapshot(snapshot)} title="Download as ZIP">⬇️</button>
+                <button className="btn-icon" onClick={() => onRestore(snapshot)} title="Restore this snapshot">↻ Restore</button>
+                <button className="btn-icon btn-danger" onClick={() => onDelete(snapshot)} title="Delete this snapshot">🗑️</button>
               </div>
             </div>
           ))}

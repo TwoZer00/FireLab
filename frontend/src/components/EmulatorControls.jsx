@@ -20,29 +20,23 @@ function EmulatorControls({
       {!isRunning && (
         <>
           {hasExportData && (
-            <div style={{ marginBottom: '10px' }}>
-              <label>
-                <input 
-                  type="checkbox" 
-                  checked={importOnStart} 
-                  onChange={(e) => setImportOnStart(e.target.checked)}
-                  style={{ marginRight: '5px' }}
-                />
-                Import previous data on start
-              </label>
-            </div>
-          )}
-          <div style={{ marginBottom: '10px' }}>
-            <label>
-              <input 
-                type="checkbox" 
-                checked={autoSnapshot} 
-                onChange={(e) => setAutoSnapshot(e.target.checked)}
-                style={{ marginRight: '5px' }}
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={importOnStart}
+                onChange={(e) => setImportOnStart(e.target.checked)}
               />
-              Auto-snapshot every 15 minutes
+              Import previous data on start
             </label>
-          </div>
+          )}
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={autoSnapshot}
+              onChange={(e) => setAutoSnapshot(e.target.checked)}
+            />
+            Auto-snapshot every 15 minutes
+          </label>
         </>
       )}
       <button onClick={onStart} disabled={isRunning}>

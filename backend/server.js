@@ -573,7 +573,7 @@ app.post('/api/auth/login', async (req, res) => {
     const onData = (data) => {
       const text = data.toString();
       buffer += text;
-      const urlMatch = buffer.match(/https:\/\/accounts\.google\.com\S+/);
+      const urlMatch = buffer.match(/https:\/\/auth\.firebase\.tools\/\S+/);
       if (urlMatch) {
         io.emit('firebase-login-url', urlMatch[0]);
         buffer = '';

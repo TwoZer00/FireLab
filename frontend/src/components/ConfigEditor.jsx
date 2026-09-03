@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
 const ALL_SERVICES = ['auth', 'firestore', 'database', 'storage', 'hosting', 'ui'];
 const SERVICE_LABELS = { auth: 'Authentication', firestore: 'Firestore', database: 'Realtime DB', storage: 'Storage', hosting: 'Hosting', ui: 'Emulator UI' };
 
@@ -7,10 +8,45 @@ function ConfigEditor({ config, availableRules, onUpdatePort, onUpdateHost, onSa
   const [showServices, setShowServices] = useState(false);
   const [pendingServices, setPendingServices] = useState({});
   const [saving, setSaving] = useState(false);
+  const [showLink, setShowLink] = useState(false);
+  const [firebaseProjects, setFirebaseProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [selectedFirebaseId, setSelectedFirebaseId] = useState('');
+  const [linkSaving, setLinkSaving] = useState(false);
 
   if (!config?.emulators) return null;
 
   const currentHost = Object.values(config.emulators).find(s => s.host)?.host || '127.0.0.1';
+
+  const openLink = async () => {
+    setSelectedFirebaseId(config.firebaseProjectId || '');
+    setShowLink(true);
+    setLoadingProjects(true);
+    try {
+      const res = await fetch(`${API_URL}/api/firebase-projects`, { headers: getHeaders() });
+      if (res.ok) setFirebaseProjects(await res.json());
+      else setFirebaseProjects([]);
+    } catch {
+      setFirebaseProjects([]);
+    }
+    setLoadingProjects(false);
+  };
+
+  const saveLink = async () => {
+    setLinkSaving(true);
+    const res = await fetch(`${API_URL}/api/link/${projectId}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ firebaseProjectId: selectedFirebaseId })
+    });
+    setLinkSaving(false);
+    if (res.ok) {
+      onServicesUpdated({ ...config, firebaseProjectId: selectedFirebaseId || undefined });
+      setShowLink(false);
+    } else {
+      alert('Failed to save link');
+    }
+  };
 
   const openServices = () => {
     const current = {};
@@ -21,7 +57,6 @@ function ConfigEditor({ config, availableRules, onUpdatePort, onUpdateHost, onSa
 
   const saveServices = async () => {
     setSaving(true);
-    const API_URL = import.meta.env.VITE_API_URL || '';
     const res = await fetch(`${API_URL}/api/services/${projectId}`, {
       method: 'PUT',
       headers: getHeaders(),
@@ -62,6 +97,36 @@ function ConfigEditor({ config, availableRules, onUpdatePort, onUpdateHost, onSa
         ))}
       </div>
       <button onClick={onSave}>Save Configuration</button>
+      <button onClick={openLink} style={{ marginLeft: '8px' }}>
+        {config.firebaseProjectId ? `🔗 ${config.firebaseProjectId}` : '🔗 Link Firebase Project'}
+      </button>
+
+      {showLink && (
+        <div style={{ marginTop: '12px', padding: '12px', background: '#161b22', borderRadius: '6px', border: '1px solid #30363d' }}>
+          <div style={{ fontSize: '12px', color: '#8b949e', marginBottom: '8px' }}>Select Firebase project to link:</div>
+          {loadingProjects ? (
+            <div style={{ fontSize: '12px', color: '#8b949e' }}>Loading projects...</div>
+          ) : firebaseProjects.length === 0 ? (
+            <div style={{ fontSize: '12px', color: '#f85149' }}>No projects found. Make sure you're logged in to Firebase.</div>
+          ) : (
+            <select
+              value={selectedFirebaseId}
+              onChange={(e) => setSelectedFirebaseId(e.target.value)}
+              style={{ width: '100%', marginBottom: '10px' }}
+            >
+              <option value="">-- None (local only) --</option>
+              {firebaseProjects.map(p => (
+                <option key={p.projectId} value={p.projectId}>
+                  {p.displayName ? `${p.displayName} (${p.projectId})` : p.projectId}
+                </option>
+              ))}
+            </select>
+          )}
+          <button onClick={saveLink} disabled={linkSaving || loadingProjects}>{linkSaving ? 'Saving...' : 'Save'}</button>
+          <button onClick={() => setShowLink(false)} style={{ marginLeft: '8px' }}>Cancel</button>
+        </div>
+      )}
+
       <button onClick={openServices} style={{ marginLeft: '8px' }}>⚙️ Manage Services</button>
 
       {showServices && (

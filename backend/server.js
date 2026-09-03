@@ -96,6 +96,52 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 // Apply auth to all API routes
 app.use('/api', authMiddleware);
 
+// List Firebase cloud projects
+app.get('/api/firebase-projects', async (req, res) => {
+  try {
+    const env = { ...process.env };
+    if (process.env.FIREBASE_TOKEN) env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
+    const proc = spawn('firebase', ['projects:list', '--json'], { shell: true, env });
+    let output = '';
+    proc.stdout.on('data', (d) => { output += d.toString(); });
+    proc.on('close', (code) => {
+      if (code !== 0) return res.status(500).json({ error: 'Not logged in or failed to fetch projects' });
+      try {
+        const parsed = JSON.parse(output);
+        const projects = (parsed.result || []).map(p => ({ projectId: p.projectId, displayName: p.displayName }));
+        res.json(projects);
+      } catch {
+        res.status(500).json({ error: 'Failed to parse projects list' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Link local project to a Firebase cloud project ID
+app.put('/api/link/:projectId', async (req, res) => {
+  const { firebaseProjectId } = req.body;
+  let configPath;
+  try {
+    configPath = safeJoin(projectsDir, validateSegment(req.params.projectId), 'firebase.json');
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
+  try {
+    const config = JSON.parse(await readFile(configPath, 'utf-8'));
+    if (firebaseProjectId) {
+      config.firebaseProjectId = firebaseProjectId;
+    } else {
+      delete config.firebaseProjectId;
+    }
+    await writeFile(configPath, JSON.stringify(config, null, 2));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Initialize project
 app.post('/api/init', async (req, res) => {
   const { projectId, services } = req.body;
@@ -123,7 +169,9 @@ app.post('/api/init', async (req, res) => {
     if (services?.ui) emulators.ui = { enabled: true, port: 4000, host: '0.0.0.0' };
     emulators.hub = { host: '0.0.0.0', port: 4400 };
 
-    const firebaseConfig = { emulators };
+    const firebaseConfig = {};
+    if (req.body.firebaseProjectId) firebaseConfig.firebaseProjectId = req.body.firebaseProjectId;
+    firebaseConfig.emulators = emulators;
 
     await writeFile(
       path.join(projectPath, 'firebase.json'),
@@ -196,7 +244,16 @@ app.post('/api/emulator/start', async (req, res) => {
   }
 
   try {
-    const args = ['emulators:start', '--project', projectId];
+    // Use linked Firebase project ID if available, else fall back to folder name
+    let firebaseProjectArg = projectId;
+    const configPath2 = path.join(projectPath, 'firebase.json');
+    if (existsSync(configPath2)) {
+      try {
+        const cfg = JSON.parse(await readFile(configPath2, 'utf-8'));
+        if (cfg.firebaseProjectId) firebaseProjectArg = cfg.firebaseProjectId;
+      } catch { /* use folder name */ }
+    }
+    const args = ['emulators:start', '--project', firebaseProjectArg];
     
     // Read config to determine which services to start
     const configPath = path.join(projectPath, 'firebase.json');
@@ -205,7 +262,7 @@ app.post('/api/emulator/start', async (req, res) => {
       const config = JSON.parse(configData);
 
       // Ensure hub is configured for export support
-      if (!config.emulators.hub) {
+      if (!config.emulators?.hub) {
         config.emulators.hub = { host: '0.0.0.0', port: 4400 };
         await writeFile(configPath, JSON.stringify(config, null, 2));
       }
@@ -820,13 +877,16 @@ app.post('/api/deploy/:projectId/:type', async (req, res) => {
     else return res.status(400).json({ error: 'Invalid rules type' });
 
     const env = { ...process.env };
-    if (process.env.FIREBASE_TOKEN) {
-      env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
-    }
-
+    if (process.env.FIREBASE_TOKEN) env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
     env.FORCE_COLOR = '1';
 
-    const deployProcess = spawn('firebase', ['deploy', '--only', deployTarget], {
+    let firebaseProjectArg = projectId;
+    try {
+      const cfg = JSON.parse(await readFile(path.join(projectPath, 'firebase.json'), 'utf-8'));
+      if (cfg.firebaseProjectId) firebaseProjectArg = cfg.firebaseProjectId;
+    } catch { /* use folder name */ }
+
+    const deployProcess = spawn('firebase', ['deploy', '--only', deployTarget, '--project', firebaseProjectArg], {
       cwd: projectPath,
       shell: true,
       env
@@ -1151,13 +1211,19 @@ app.get('/api/fetch-rules/:projectId/:type', async (req, res) => {
       env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
     }
 
+    let firebaseProjectArg = projectId;
+    try {
+      const cfg = JSON.parse(await readFile(path.join(projectPath, 'firebase.json'), 'utf-8'));
+      if (cfg.firebaseProjectId) firebaseProjectArg = cfg.firebaseProjectId;
+    } catch { /* use folder name */ }
+
     let args;
     if (type === 'firestore') {
-      args = ['firestore:rules:get', '--json'];
+      args = ['firestore:rules:get', '--json', '--project', firebaseProjectArg];
     } else if (type === 'storage') {
-      args = ['storage:rules:get', '--json'];
+      args = ['storage:rules:get', '--json', '--project', firebaseProjectArg];
     } else if (type === 'database') {
-      args = ['database:get', '/.settings/rules', '--json'];
+      args = ['database:get', '/.settings/rules', '--json', '--project', firebaseProjectArg];
     } else {
       return res.status(400).json({ error: 'Invalid rules type' });
     }
@@ -1211,7 +1277,13 @@ app.get('/api/fetch-indexes/:projectId', async (req, res) => {
       env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
     }
 
-    const fetchProcess = spawn('firebase', ['firestore:indexes', '--json'], {
+    let firebaseProjectArg = projectId;
+    try {
+      const cfg = JSON.parse(await readFile(path.join(projectPath, 'firebase.json'), 'utf-8'));
+      if (cfg.firebaseProjectId) firebaseProjectArg = cfg.firebaseProjectId;
+    } catch { /* use folder name */ }
+
+    const fetchProcess = spawn('firebase', ['firestore:indexes', '--json', '--project', firebaseProjectArg], {
       cwd: projectPath,
       shell: true,
       env
@@ -1295,7 +1367,13 @@ app.post('/api/deploy-indexes/:projectId', async (req, res) => {
       env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
     }
     env.FORCE_COLOR = '1';
-    const deployProcess = spawn('firebase', ['deploy', '--only', 'firestore:indexes'], {
+    let firebaseProjectArg = projectId;
+    try {
+      const cfg = JSON.parse(await readFile(path.join(projectPath, 'firebase.json'), 'utf-8'));
+      if (cfg.firebaseProjectId) firebaseProjectArg = cfg.firebaseProjectId;
+    } catch { /* use folder name */ }
+
+    const deployProcess = spawn('firebase', ['deploy', '--only', 'firestore:indexes', '--project', firebaseProjectArg], {
       cwd: projectPath,
       shell: true,
       env

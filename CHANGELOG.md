@@ -1,3 +1,7 @@
+## 1.20.0 (2026-09-03)
+
+* feat: link local project to Firebase cloud project ID via dropdown ([77cb9f585ac7d19ef58d826d8af1105f4c2b8c2d](https://github.com/TwoZer00/FireLab/commit/77cb9f585ac7d19ef58d826d8af1105f4c2b8c2d))
+
 ## <small>1.19.4 (2026-08-11)</small>
 
 * fix: create emulator-data dir before export to prevent ENOENT ([d7fa7fbdca903fb597226967c65d4d0d43553bd3](https://github.com/TwoZer00/FireLab/commit/d7fa7fbdca903fb597226967c65d4d0d43553bd3))

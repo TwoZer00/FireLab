@@ -1,3 +1,7 @@
+## <small>1.21.4 (2026-09-03)</small>
+
+* fix: store firebase CI token in memory for deploy commands and auth status ([3c32fb33744689749f7ce514f73faca015674db3](https://github.com/TwoZer00/FireLab/commit/3c32fb33744689749f7ce514f73faca015674db3))
+
 ## <small>1.21.3 (2026-09-03)</small>
 
 * fix: update login URL regex to match auth.firebase.tools ([f3c46434d48b4f6a1d251f56baeab66dcd997984](https://github.com/TwoZer00/FireLab/commit/f3c46434d48b4f6a1d251f56baeab66dcd997984))

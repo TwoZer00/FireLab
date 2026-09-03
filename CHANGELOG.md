@@ -1,3 +1,7 @@
+## <small>1.20.2 (2026-09-03)</small>
+
+* fix: use script pty wrapper for firebase login:ci in Docker/non-TTY ([56d2d44e53aa17cf78a3404744d059c7b7b3d97a](https://github.com/TwoZer00/FireLab/commit/56d2d44e53aa17cf78a3404744d059c7b7b3d97a))
+
 ## <small>1.20.1 (2026-09-03)</small>
 
 * fix: use firebase login:ci for non-interactive environments ([eb4c44236d54ed09632cfe6d915d0229b9fb68ff](https://github.com/TwoZer00/FireLab/commit/eb4c44236d54ed09632cfe6d915d0229b9fb68ff))

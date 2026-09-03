@@ -333,6 +333,7 @@ function App() {
       setLoginPending(false);
       setLoginUrl(null);
       setFirebaseLoggedIn(true);
+      checkFirebaseAuth();
     });
 
     socket.on('firebase-login-error', () => {

@@ -32,6 +32,7 @@ let snapshotInterval = null;
 let loginProcess = null;
 let exportInProgress = false;
 let debugLogStream = null;
+let firebaseToken = process.env.FIREBASE_TOKEN || null;
 
 async function openDebugLog(projectPath) {
   const logPath = path.join(projectPath, 'debug.log');
@@ -100,7 +101,7 @@ app.use('/api', authMiddleware);
 app.get('/api/firebase-projects', async (req, res) => {
   try {
     const env = { ...process.env };
-    if (process.env.FIREBASE_TOKEN) env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
+    if (firebaseToken) env.FIREBASE_TOKEN = firebaseToken;
     const proc = spawn('firebase', ['projects:list', '--json'], { shell: true, env });
     let output = '';
     proc.stdout.on('data', (d) => { output += d.toString(); });
@@ -295,9 +296,7 @@ app.post('/api/emulator/start', async (req, res) => {
     }
 
     const env = { ...process.env, FORCE_COLOR: '1', FIREBASE_EMULATOR_HUB: 'localhost:4400' };
-    if (process.env.FIREBASE_TOKEN) {
-      env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
-    }
+    if (firebaseToken) env.FIREBASE_TOKEN = firebaseToken;
 
     emulatorProcess = spawn('firebase', args, {
       cwd: projectPath,
@@ -581,6 +580,7 @@ app.post('/api/auth/login', async (req, res) => {
       // Capture the CI token from output
       const tokenMatch = buffer.match(/1\/\/[\w\-]+/);
       if (tokenMatch) {
+        firebaseToken = tokenMatch[0];
         io.emit('firebase-login-token', tokenMatch[0]);
         buffer = '';
       }
@@ -628,9 +628,7 @@ app.post('/api/auth/login/code', (req, res) => {
 app.get('/api/auth/status', async (req, res) => {
   try {
     const env = { ...process.env };
-    if (process.env.FIREBASE_TOKEN) {
-      env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
-    }
+    if (firebaseToken) env.FIREBASE_TOKEN = firebaseToken;
 
     const checkProcess = spawn('firebase', ['projects:list', '--json'], { shell: true, env });
     
@@ -646,8 +644,7 @@ app.get('/api/auth/status', async (req, res) => {
     });
     
     checkProcess.on('close', (code) => {
-      // Exit code 0 means logged in, regardless of project list
-      if (code === 0) {
+      if (code === 0 || firebaseToken) {
         res.json({ loggedIn: true });
       } else {
         res.json({ loggedIn: false });
@@ -905,7 +902,7 @@ app.post('/api/deploy/:projectId/:type', async (req, res) => {
     else return res.status(400).json({ error: 'Invalid rules type' });
 
     const env = { ...process.env };
-    if (process.env.FIREBASE_TOKEN) env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
+    if (firebaseToken) env.FIREBASE_TOKEN = firebaseToken;
     env.FORCE_COLOR = '1';
 
     let firebaseProjectArg = projectId;
@@ -1235,9 +1232,7 @@ app.get('/api/fetch-rules/:projectId/:type', async (req, res) => {
 
   try {
     const env = { ...process.env };
-    if (process.env.FIREBASE_TOKEN) {
-      env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
-    }
+    if (firebaseToken) env.FIREBASE_TOKEN = firebaseToken;
 
     let firebaseProjectArg = projectId;
     try {
@@ -1301,9 +1296,7 @@ app.get('/api/fetch-indexes/:projectId', async (req, res) => {
 
   try {
     const env = { ...process.env };
-    if (process.env.FIREBASE_TOKEN) {
-      env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
-    }
+    if (firebaseToken) env.FIREBASE_TOKEN = firebaseToken;
 
     let firebaseProjectArg = projectId;
     try {
@@ -1391,9 +1384,7 @@ app.post('/api/deploy-indexes/:projectId', async (req, res) => {
   }
   try {
     const env = { ...process.env };
-    if (process.env.FIREBASE_TOKEN) {
-      env.FIREBASE_TOKEN = process.env.FIREBASE_TOKEN;
-    }
+    if (firebaseToken) env.FIREBASE_TOKEN = firebaseToken;
     env.FORCE_COLOR = '1';
     let firebaseProjectArg = projectId;
     try {

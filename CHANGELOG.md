@@ -1,3 +1,7 @@
+## <small>1.23.3 (2026-09-03)</small>
+
+* fix: use 127.0.0.1 instead of localhost in healthcheck ([08000ea00993b470cbf8e82a02514a1acae64c81](https://github.com/TwoZer00/FireLab/commit/08000ea00993b470cbf8e82a02514a1acae64c81))
+
 ## <small>1.23.2 (2026-09-03)</small>
 
 * fix: add missing firebase.json rules keys before deploy ([aabacb485b1f9b62cdb2c6db012e26f8a5a40b62](https://github.com/TwoZer00/FireLab/commit/aabacb485b1f9b62cdb2c6db012e26f8a5a40b62))

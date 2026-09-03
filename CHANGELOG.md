@@ -1,3 +1,7 @@
+## 1.21.0 (2026-09-03)
+
+* feat: add auth code input to firebase login modal ([3b96607432e5ec5329144b23003a2c940598eeaf](https://github.com/TwoZer00/FireLab/commit/3b96607432e5ec5329144b23003a2c940598eeaf))
+
 ## <small>1.20.4 (2026-09-03)</small>
 
 * fix: use shell:false for script PTY spawn to prevent arg mangling ([1b7df5eff24db91a170af42a8c285a8dbeea7892](https://github.com/TwoZer00/FireLab/commit/1b7df5eff24db91a170af42a8c285a8dbeea7892))

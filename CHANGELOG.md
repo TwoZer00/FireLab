@@ -1,3 +1,7 @@
+## <small>1.23.2 (2026-09-03)</small>
+
+* fix: add missing firebase.json rules keys before deploy ([aabacb485b1f9b62cdb2c6db012e26f8a5a40b62](https://github.com/TwoZer00/FireLab/commit/aabacb485b1f9b62cdb2c6db012e26f8a5a40b62))
+
 ## <small>1.23.1 (2026-09-03)</small>
 
 * fix: move tokenPersistPath after projectsDir initialization ([4a5649e754dbb5c342831856c58800ffa3ff60fa](https://github.com/TwoZer00/FireLab/commit/4a5649e754dbb5c342831856c58800ffa3ff60fa))

@@ -46,6 +46,7 @@ function App() {
   const [loginUrl, setLoginUrl] = useState(null);
   const [loginPending, setLoginPending] = useState(false);
   const [loginCiToken, setLoginCiToken] = useState(null);
+  const [loginAuthCode, setLoginAuthCode] = useState('');
 
   const getHeaders = useCallback(() => ({
     'Content-Type': 'application/json',
@@ -505,7 +506,18 @@ function App() {
     setLoginPending(true);
     setLoginUrl(null);
     setLoginCiToken(null);
+    setLoginAuthCode('');
     await fetch(`${API_URL}/api/auth/login`, { method: 'POST', headers: getHeaders() });
+  };
+
+  const submitAuthCode = async () => {
+    if (!loginAuthCode.trim()) return;
+    await fetch(`${API_URL}/api/auth/login/code`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ code: loginAuthCode.trim() })
+    });
+    setLoginAuthCode('');
   };
 
   const updateHost = async (host) => {
@@ -704,8 +716,8 @@ function App() {
       <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
         <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '8px', padding: '24px', maxWidth: '500px', width: '90%' }}>
           <h3 style={{ margin: '0 0 12px' }}>🔑 Firebase Login</h3>
-          <p style={{ color: '#8b949e', fontSize: '13px', margin: '0 0 16px' }}>
-            Open this URL in your browser to authenticate with Firebase:
+          <p style={{ color: '#8b949e', fontSize: '13px', margin: '0 0 8px' }}>
+            1. Open this URL and sign in:
           </p>
           <a
             href={loginUrl}
@@ -715,6 +727,22 @@ function App() {
           >
             {loginUrl}
           </a>
+          <p style={{ color: '#8b949e', fontSize: '13px', margin: '0 0 8px' }}>
+            2. Paste the authorization code here:
+          </p>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+            <input
+              type="text"
+              value={loginAuthCode}
+              onChange={e => setLoginAuthCode(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && submitAuthCode()}
+              placeholder="Paste auth code..."
+              style={{ flex: 1, background: '#0d1117', border: '1px solid #30363d', borderRadius: '4px', padding: '6px 10px', color: '#e6edf3', fontSize: '12px' }}
+            />
+            <button onClick={submitAuthCode} style={{ fontSize: '11px' }} disabled={!loginAuthCode.trim()}>
+              Submit
+            </button>
+          </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               onClick={() => navigator.clipboard.writeText(loginUrl)}

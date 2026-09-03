@@ -616,6 +616,14 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// Submit auth code to the running login process
+app.post('/api/auth/login/code', (req, res) => {
+  const { code } = req.body;
+  if (!loginProcess) return res.status(400).json({ error: 'No login in progress' });
+  loginProcess.stdin.write(code + '\n');
+  res.json({ success: true });
+});
+
 // Check Firebase login status
 app.get('/api/auth/status', async (req, res) => {
   try {

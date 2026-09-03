@@ -937,10 +937,26 @@ app.post('/api/deploy/:projectId/:type', async (req, res) => {
     env.FORCE_COLOR = '1';
 
     let firebaseProjectArg = projectId;
+    const configFilePath = path.join(projectPath, 'firebase.json');
+    let cfg = {};
     try {
-      const cfg = JSON.parse(await readFile(path.join(projectPath, 'firebase.json'), 'utf-8'));
+      cfg = JSON.parse(await readFile(configFilePath, 'utf-8'));
       if (cfg.firebaseProjectId) firebaseProjectArg = cfg.firebaseProjectId;
     } catch { /* use folder name */ }
+
+    // Ensure firebase.json has the rules/database keys required for deploy
+    let configPatched = false;
+    if (type === 'firestore' && !cfg.firestore) {
+      cfg.firestore = { rules: 'firestore.rules', indexes: 'firestore.indexes.json' };
+      configPatched = true;
+    } else if (type === 'storage' && !cfg.storage) {
+      cfg.storage = { rules: 'storage.rules' };
+      configPatched = true;
+    } else if (type === 'database' && !cfg.database) {
+      cfg.database = { rules: 'database.rules.json' };
+      configPatched = true;
+    }
+    if (configPatched) await writeFile(configFilePath, JSON.stringify(cfg, null, 2));
 
     const deployProcess = spawn('firebase', ['deploy', '--only', deployTarget, '--project', firebaseProjectArg], {
       cwd: projectPath,
@@ -1422,10 +1438,17 @@ app.post('/api/deploy-indexes/:projectId', async (req, res) => {
     if (firebaseToken) env.FIREBASE_TOKEN = firebaseToken;
     env.FORCE_COLOR = '1';
     let firebaseProjectArg = projectId;
+    const idxConfigPath = path.join(projectPath, 'firebase.json');
+    let idxCfg = {};
     try {
-      const cfg = JSON.parse(await readFile(path.join(projectPath, 'firebase.json'), 'utf-8'));
-      if (cfg.firebaseProjectId) firebaseProjectArg = cfg.firebaseProjectId;
+      idxCfg = JSON.parse(await readFile(idxConfigPath, 'utf-8'));
+      if (idxCfg.firebaseProjectId) firebaseProjectArg = idxCfg.firebaseProjectId;
     } catch { /* use folder name */ }
+
+    if (!idxCfg.firestore) {
+      idxCfg.firestore = { rules: 'firestore.rules', indexes: 'firestore.indexes.json' };
+      await writeFile(idxConfigPath, JSON.stringify(idxCfg, null, 2));
+    }
 
     const deployProcess = spawn('firebase', ['deploy', '--only', 'firestore:indexes', '--project', firebaseProjectArg], {
       cwd: projectPath,

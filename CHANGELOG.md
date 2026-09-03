@@ -1,3 +1,7 @@
+## <small>1.20.3 (2026-09-03)</small>
+
+* fix: add util-linux to Docker image for script PTY support ([74a4a695f3d626aa3c675b91ef2de556a0551bcc](https://github.com/TwoZer00/FireLab/commit/74a4a695f3d626aa3c675b91ef2de556a0551bcc))
+
 ## <small>1.20.2 (2026-09-03)</small>
 
 * fix: use script pty wrapper for firebase login:ci in Docker/non-TTY ([56d2d44e53aa17cf78a3404744d059c7b7b3d97a](https://github.com/TwoZer00/FireLab/commit/56d2d44e53aa17cf78a3404744d059c7b7b3d97a))

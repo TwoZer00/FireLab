@@ -1,3 +1,7 @@
+## 1.22.0 (2026-09-03)
+
+* feat: add manual firebase token input ([d5d8d05bcd34061391aa20e088e07cd8e08d95cc](https://github.com/TwoZer00/FireLab/commit/d5d8d05bcd34061391aa20e088e07cd8e08d95cc))
+
 ## <small>1.21.4 (2026-09-03)</small>
 
 * fix: store firebase CI token in memory for deploy commands and auth status ([3c32fb33744689749f7ce514f73faca015674db3](https://github.com/TwoZer00/FireLab/commit/3c32fb33744689749f7ce514f73faca015674db3))

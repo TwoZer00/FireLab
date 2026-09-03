@@ -33,7 +33,6 @@ let loginProcess = null;
 let exportInProgress = false;
 let debugLogStream = null;
 let firebaseToken = process.env.FIREBASE_TOKEN || null;
-const tokenPersistPath = path.join(projectsDir, '.firebase-token');
 
 async function persistFirebaseToken(token) {
   try {
@@ -76,6 +75,7 @@ if (!existsSync(projectsDir)) {
   await mkdir(projectsDir, { recursive: true });
 }
 console.log(`[FireLab] Projects directory: ${projectsDir}`);
+const tokenPersistPath = path.join(projectsDir, '.firebase-token');
 const connectionHistory = [];
 
 // Validate that a resolved path stays within the base directory

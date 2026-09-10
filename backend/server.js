@@ -359,7 +359,7 @@ app.post('/api/emulator/start', async (req, res) => {
 
         exportInProgress = true;
         await mkdir(path.join(projectPath, 'emulator-data'), { recursive: true });
-        const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId, '--force'], {
+        const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', firebaseProjectArg, '--force'], {
           cwd: projectPath,
           shell: true,
           env: { ...process.env, FORCE_COLOR: '1', FIREBASE_EMULATOR_HUB: 'localhost:4400' }
@@ -435,10 +435,17 @@ app.post('/api/emulator/stop', async (req, res) => {
       const snapshotName = `auto-${timestamp}`;
       const exportPath = path.join(projectPath, 'emulator-data', snapshotName);
 
+      // Resolve linked Firebase project ID for export
+      let stopExportProjectArg = projectId;
+      try {
+        const stopCfg = JSON.parse(await readFile(path.join(projectPath, 'firebase.json'), 'utf-8'));
+        if (stopCfg.firebaseProjectId) stopExportProjectArg = stopCfg.firebaseProjectId;
+      } catch { /* use folder name */ }
+
       exportInProgress = true;
       await mkdir(path.join(projectPath, 'emulator-data'), { recursive: true });
       await new Promise((resolve) => {
-        const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId, '--force'], {
+        const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', stopExportProjectArg, '--force'], {
           cwd: projectPath,
           shell: true,
           env: { ...process.env, FORCE_COLOR: '1', FIREBASE_EMULATOR_HUB: 'localhost:4400' }
@@ -1014,7 +1021,14 @@ app.post('/api/export/:projectId', async (req, res) => {
 
   try {
     await mkdir(path.join(projectPath, 'emulator-data'), { recursive: true });
-    const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', projectId, '--force'], {
+    // Resolve linked Firebase project ID for export
+    let manualExportProjectArg = projectId;
+    try {
+      const expCfg = JSON.parse(await readFile(path.join(projectPath, 'firebase.json'), 'utf-8'));
+      if (expCfg.firebaseProjectId) manualExportProjectArg = expCfg.firebaseProjectId;
+    } catch { /* use folder name */ }
+
+    const exportProcess = spawn('firebase', ['emulators:export', exportPath, '--project', manualExportProjectArg, '--force'], {
       cwd: projectPath,
       shell: true,
       env: { ...process.env, FORCE_COLOR: '1', FIREBASE_EMULATOR_HUB: 'localhost:4400' }

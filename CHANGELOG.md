@@ -1,3 +1,8 @@
+## 1.24.0 (2026-09-10)
+
+* feat: add username to rules history entries ([83a0c147108c1522a7efbdbf58a3a6703d4686f0](https://github.com/TwoZer00/FireLab/commit/83a0c147108c1522a7efbdbf58a3a6703d4686f0))
+* fix: use linked firebaseProjectId for all emulators:export calls ([edc746f3c4aa5a3cb1e44a0fca70f3336dc9e1e1](https://github.com/TwoZer00/FireLab/commit/edc746f3c4aa5a3cb1e44a0fca70f3336dc9e1e1))
+
 ## <small>1.23.4 (2026-09-03)</small>
 
 * style: replace inline styles with CSS classes across landing page and app UI ([8687c556865f15c8775f840041096fa764abf823](https://github.com/TwoZer00/FireLab/commit/8687c556865f15c8775f840041096fa764abf823))

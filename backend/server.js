@@ -1150,6 +1150,7 @@ app.post('/api/rules-history/:projectId/:type', async (req, res) => {
 
     history.unshift({
       timestamp: new Date().toISOString(),
+      user: req.user?.username || 'unknown',
       rules
     });
 

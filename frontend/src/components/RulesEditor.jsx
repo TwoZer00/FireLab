@@ -213,6 +213,7 @@ function RulesEditor({
               <div key={idx} style={{ marginBottom: '8px', padding: '8px', background: '#161b22', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#8b949e' }}>
                   {new Date(item.timestamp).toLocaleString()}
+                  {item.user && <span style={{ marginLeft: '8px', color: '#58a6ff' }}>@{item.user}</span>}
                 </span>
                 <button onClick={() => restoreFromHistory(item.rules)} style={{ padding: '2px 6px', fontSize: '11px' }}>
                   Restore

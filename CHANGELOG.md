@@ -1,3 +1,7 @@
+## <small>1.24.1 (2026-09-10)</small>
+
+* fix: show loading state during credential checks on page load ([984a7f4061f80e2d920389a2001c3885c9f4423d](https://github.com/TwoZer00/FireLab/commit/984a7f4061f80e2d920389a2001c3885c9f4423d))
+
 ## 1.24.0 (2026-09-10)
 
 * feat: add username to rules history entries ([83a0c147108c1522a7efbdbf58a3a6703d4686f0](https://github.com/TwoZer00/FireLab/commit/83a0c147108c1522a7efbdbf58a3a6703d4686f0))

@@ -49,6 +49,7 @@ function App() {
   const [loginAuthCode, setLoginAuthCode] = useState('');
   const [manualToken, setManualToken] = useState('');
   const [showManualToken, setShowManualToken] = useState(false);
+  const [firebaseAuthLoading, setFirebaseAuthLoading] = useState(false);
 
   const getHeaders = useCallback(() => ({
     'Content-Type': 'application/json',
@@ -115,12 +116,15 @@ function App() {
   }, [getHeaders]);
 
   const checkFirebaseAuth = useCallback(async () => {
+    setFirebaseAuthLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/auth/status`, { headers: getHeaders() });
       const data = await res.json();
       setFirebaseLoggedIn(data.loggedIn);
     } catch {
       setFirebaseLoggedIn(false);
+    } finally {
+      setFirebaseAuthLoading(false);
     }
   }, [getHeaders]);
 
@@ -625,7 +629,13 @@ function App() {
                 </div>
               )}
 
-              {backendConnected && firebaseLoggedIn && (
+              {backendConnected && firebaseAuthLoading && (
+                <div className="section">
+                  <div style={{ fontSize: '12px', color: '#8b949e' }}>⏳ Checking Firebase auth...</div>
+                </div>
+              )}
+
+              {backendConnected && !firebaseAuthLoading && firebaseLoggedIn && (
                 <div className="section auth-bar">
                   <div className="auth-bar-row">
                     <span className="auth-connected">✅ Firebase connected</span>
@@ -634,7 +644,7 @@ function App() {
                 </div>
               )}
 
-              {backendConnected && !firebaseLoggedIn && (
+              {backendConnected && !firebaseAuthLoading && !firebaseLoggedIn && (
                 <div className="section auth-bar">
                   <button
                     className="auth-btn-full auth-btn-login"

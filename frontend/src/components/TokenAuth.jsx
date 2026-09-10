@@ -3,36 +3,29 @@ import { useState, useEffect } from 'react';
 function TokenAuth({ onTokenSet }) {
   const [token, setToken] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(!!localStorage.getItem('accessToken'));
 
   useEffect(() => {
     const saved = localStorage.getItem('accessToken');
     if (saved) {
-      // Validate token by making a test API call
       fetch(`${import.meta.env.VITE_API_URL || ''}/api/projects`, {
-        headers: {
-          'Authorization': `Bearer ${saved}`
-        }
+        headers: { 'Authorization': `Bearer ${saved}` }
       })
       .then(res => {
-        if (res.ok) {
-          setToken(saved);
-          setIsAuthenticated(true);
-          onTokenSet(saved);
-        } else if (res.status === 401) {
+        if (res.status === 401) {
           localStorage.removeItem('accessToken');
         } else {
-          // Server error or other issue — keep token, don't clear
           setToken(saved);
           setIsAuthenticated(true);
           onTokenSet(saved);
         }
       })
       .catch(() => {
-        // Network error — keep token, backend may be temporarily down
         setToken(saved);
         setIsAuthenticated(true);
         onTokenSet(saved);
-      });
+      })
+      .finally(() => setLoading(false));
     }
   }, [onTokenSet]);
 
@@ -53,6 +46,14 @@ function TokenAuth({ onTokenSet }) {
     setIsAuthenticated(false);
     onTokenSet(null);
   };
+
+  if (loading) {
+    return (
+      <div className="section">
+        <div style={{ fontSize: '12px', color: '#8b949e' }}>⏳ Checking credentials...</div>
+      </div>
+    );
+  }
 
   if (isAuthenticated) {
     return (

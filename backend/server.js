@@ -1342,14 +1342,16 @@ app.post('/api/seed/:projectId', async (req, res) => {
       io.emit('logs', `[FireLab] ⚠️ Package install failed: ${installErr.message}`);
     }
 
-    // Read project config to get actual emulator ports
+    // Read project config to get actual emulator ports and linked project ID
     let firestorePort = 8080, authPort = 9099, storagePort = 9199, databasePort = 9000;
+    let seedProjectId = projectId;
     try {
       const cfg = JSON.parse(await readFile(path.join(projectPath, 'firebase.json'), 'utf-8'));
       if (cfg.emulators?.firestore?.port) firestorePort = cfg.emulators.firestore.port;
       if (cfg.emulators?.auth?.port) authPort = cfg.emulators.auth.port;
       if (cfg.emulators?.storage?.port) storagePort = cfg.emulators.storage.port;
       if (cfg.emulators?.database?.port) databasePort = cfg.emulators.database.port;
+      if (cfg.firebaseProjectId) seedProjectId = cfg.firebaseProjectId;
     } catch { /* use defaults */ }
 
     const seedNodeModules = path.join(seedsDir, 'node_modules');
@@ -1364,9 +1366,9 @@ app.post('/api/seed/:projectId', async (req, res) => {
         FIREBASE_AUTH_EMULATOR_HOST: `127.0.0.1:${authPort}`,
         FIREBASE_STORAGE_EMULATOR_HOST: `127.0.0.1:${storagePort}`,
         FIREBASE_DATABASE_EMULATOR_HOST: `127.0.0.1:${databasePort}`,
-        FIRELAB_PROJECT_ID: projectId,
-        FIRELAB_DATABASE_URL: `http://127.0.0.1:${databasePort}/?ns=${projectId}`,
-        FIRELAB_STORAGE_BUCKET: `${projectId}.appspot.com`,
+        FIRELAB_PROJECT_ID: seedProjectId,
+        FIRELAB_DATABASE_URL: `http://127.0.0.1:${databasePort}/?ns=${seedProjectId}`,
+        FIRELAB_STORAGE_BUCKET: `${seedProjectId}.appspot.com`,
         NODE_PATH: nodePath
       }
     });

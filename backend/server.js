@@ -1296,13 +1296,17 @@ app.post('/api/seed/:projectId', async (req, res) => {
   try {
     projectPath = safeJoin(projectsDir, validateSegment(projectId));
     seedsDir = path.join(projectPath, '.seeds');
-    scriptPath = path.join(seedsDir, `${Date.now()}.js`);
+    scriptPath = path.join(seedsDir, `${Date.now()}.cjs`);
   } catch {
     return res.status(400).json({ error: 'Invalid project ID' });
   }
 
   try {
-    if (!existsSync(seedsDir)) await mkdir(seedsDir, { recursive: true });
+    if (!existsSync(seedsDir)) {
+      await mkdir(seedsDir, { recursive: true });
+      // Force CJS so seed scripts can always use require()
+      await writeFile(path.join(seedsDir, 'package.json'), JSON.stringify({ name: 'firelab-seeds', version: '1.0.0', private: true }, null, 2));
+    }
     await writeFile(scriptPath, script);
 
     // Create pre-seed snapshot before the very first seed run
@@ -1689,7 +1693,7 @@ app.get('/api/seeds/:projectId', async (req, res) => {
     }
     const { readdir } = await import('fs/promises');
     const files = await readdir(seedsDir);
-    const seeds = files.filter(f => f.endsWith('.js'));
+    const seeds = files.filter(f => f.endsWith('.js') || f.endsWith('.cjs'));
     res.json(seeds);
   } catch (error) {
     res.json([]);

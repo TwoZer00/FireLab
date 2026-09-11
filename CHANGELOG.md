@@ -1,3 +1,7 @@
+## 1.25.0 (2026-09-11)
+
+* feat: seed scripting with auto-install, package cache, and pre-seed snapshot ([bec8db61c1d98067f86dc815caa14632d747904a](https://github.com/TwoZer00/FireLab/commit/bec8db61c1d98067f86dc815caa14632d747904a))
+
 ## <small>1.24.1 (2026-09-10)</small>
 
 * fix: show loading state during credential checks on page load ([984a7f4061f80e2d920389a2001c3885c9f4423d](https://github.com/TwoZer00/FireLab/commit/984a7f4061f80e2d920389a2001c3885c9f4423d))

@@ -1,3 +1,7 @@
+## <small>1.26.3 (2026-09-11)</small>
+
+* fix: allow manual deletion of pre-seed snapshot, only block auto-delete rotation ([4f5acbfc20fc611de2c0ecb189f5dc621d80dfad](https://github.com/TwoZer00/FireLab/commit/4f5acbfc20fc611de2c0ecb189f5dc621d80dfad))
+
 ## <small>1.26.2 (2026-09-11)</small>
 
 * fix: use 127.0.0.1 instead of localhost in emulator hosts to avoid IPv6 ECONNREFUSED ([01f876b98686114d7448e045c519f2a860d9a0d7](https://github.com/TwoZer00/FireLab/commit/01f876b98686114d7448e045c519f2a860d9a0d7))

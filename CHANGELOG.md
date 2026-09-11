@@ -1,3 +1,7 @@
+## <small>1.26.1 (2026-09-11)</small>
+
+* fix: use .cjs extension for seed scripts to guarantee require() support ([1441f338bb2f8c108cf156933bc505aa71df5dc5](https://github.com/TwoZer00/FireLab/commit/1441f338bb2f8c108cf156933bc505aa71df5dc5))
+
 ## 1.26.0 (2026-09-11)
 
 * feat: inject FIRELAB_PROJECT_ID, FIRELAB_DATABASE_URL, FIRELAB_STORAGE_BUCKET into seed env ([83bc77c4ff103805ae0fd3b70ed5bb31cfaf06e7](https://github.com/TwoZer00/FireLab/commit/83bc77c4ff103805ae0fd3b70ed5bb31cfaf06e7))

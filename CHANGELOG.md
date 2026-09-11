@@ -1,3 +1,7 @@
+## 1.26.0 (2026-09-11)
+
+* feat: inject FIRELAB_PROJECT_ID, FIRELAB_DATABASE_URL, FIRELAB_STORAGE_BUCKET into seed env ([83bc77c4ff103805ae0fd3b70ed5bb31cfaf06e7](https://github.com/TwoZer00/FireLab/commit/83bc77c4ff103805ae0fd3b70ed5bb31cfaf06e7))
+
 ## 1.25.0 (2026-09-11)
 
 * feat: seed scripting with auto-install, package cache, and pre-seed snapshot ([bec8db61c1d98067f86dc815caa14632d747904a](https://github.com/TwoZer00/FireLab/commit/bec8db61c1d98067f86dc815caa14632d747904a))

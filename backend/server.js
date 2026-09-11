@@ -1360,6 +1360,9 @@ app.post('/api/seed/:projectId', async (req, res) => {
         FIREBASE_AUTH_EMULATOR_HOST: `localhost:${authPort}`,
         FIREBASE_STORAGE_EMULATOR_HOST: `localhost:${storagePort}`,
         FIREBASE_DATABASE_EMULATOR_HOST: `localhost:${databasePort}`,
+        FIRELAB_PROJECT_ID: projectId,
+        FIRELAB_DATABASE_URL: `http://localhost:${databasePort}/?ns=${projectId}`,
+        FIRELAB_STORAGE_BUCKET: `${projectId}.appspot.com`,
         NODE_PATH: nodePath
       }
     });

@@ -5,7 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 const TEMPLATES = {
   firestore: (projectId) => `// Firestore seed
 const admin = require('firebase-admin');
-admin.initializeApp({ projectId: '${projectId}' });
+admin.initializeApp({ projectId: process.env.FIRELAB_PROJECT_ID });
 const db = admin.firestore();
 
 async function seed() {
@@ -21,7 +21,7 @@ seed().catch(console.error);
 `,
   auth: (projectId) => `// Auth seed
 const admin = require('firebase-admin');
-admin.initializeApp({ projectId: '${projectId}' });
+admin.initializeApp({ projectId: process.env.FIRELAB_PROJECT_ID });
 
 async function seed() {
   await admin.auth().createUser({
@@ -36,8 +36,8 @@ seed().catch(console.error);
 `,
   storage: (projectId) => `// Storage seed
 const admin = require('firebase-admin');
-admin.initializeApp({ projectId: '${projectId}' });
-const bucket = admin.storage().bucket('${projectId}.appspot.com');
+admin.initializeApp({ projectId: process.env.FIRELAB_PROJECT_ID });
+const bucket = admin.storage().bucket(process.env.FIRELAB_STORAGE_BUCKET);
 
 async function seed() {
   await bucket.file('hello.txt').save('Hello from FireLab!', {
@@ -50,8 +50,8 @@ seed().catch(console.error);
   database: (projectId) => `// Realtime Database seed
 const admin = require('firebase-admin');
 admin.initializeApp({
-  projectId: '${projectId}',
-  databaseURL: 'http://localhost:9000/?ns=${projectId}'
+  projectId: process.env.FIRELAB_PROJECT_ID,
+  databaseURL: process.env.FIRELAB_DATABASE_URL
 });
 
 async function seed() {
@@ -63,15 +63,15 @@ seed().catch(console.error);
   full: (projectId) => `// Full seed — Firestore + Auth + Storage + Database
 const admin = require('firebase-admin');
 admin.initializeApp({
-  projectId: '${projectId}',
-  databaseURL: 'http://localhost:9000/?ns=${projectId}'
+  projectId: process.env.FIRELAB_PROJECT_ID,
+  databaseURL: process.env.FIRELAB_DATABASE_URL
 });
 
 async function seed() {
   await admin.auth().createUser({ uid: 'user1', email: 'alice@example.com', password: 'password123' });
   await admin.firestore().collection('users').doc('user1').set({ name: 'Alice', email: 'alice@example.com' });
   await admin.database().ref('users/user1').set({ name: 'Alice', online: false });
-  await admin.storage().bucket('${projectId}.appspot.com').file('welcome.txt').save('Welcome!', { metadata: { contentType: 'text/plain' } });
+  await admin.storage().bucket(process.env.FIRELAB_STORAGE_BUCKET).file('welcome.txt').save('Welcome!', { metadata: { contentType: 'text/plain' } });
   console.log('Full seed completed!');
 }
 seed().catch(console.error);
@@ -268,7 +268,7 @@ function DataManager({ projectId, isRunning, onRefreshSnapshots, onRestore, getH
           </div>
 
           <div style={{ fontSize: '12px', color: '#8b949e', marginBottom: '8px' }}>
-            Uses <code>require('firebase-admin')</code> — emulator hosts pre-configured. Any other <code>require()</code> is auto-installed on first run and cached.
+            Uses <code>require('firebase-admin')</code> — emulator hosts and project vars pre-configured via <code>process.env</code>. Any other <code>require()</code> is auto-installed on first run and cached.
           </div>
 
           <textarea

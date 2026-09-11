@@ -375,13 +375,16 @@ const _ = require('lodash');
 | `FIREBASE_AUTH_EMULATOR_HOST` | `localhost:9099` |
 | `FIREBASE_STORAGE_EMULATOR_HOST` | `localhost:9199` |
 | `FIREBASE_DATABASE_EMULATOR_HOST` | `localhost:9000` |
+| `FIRELAB_PROJECT_ID` | your project folder name |
+| `FIRELAB_DATABASE_URL` | `http://localhost:9000/?ns=<projectId>` |
+| `FIRELAB_STORAGE_BUCKET` | `<projectId>.appspot.com` |
 
 Ports reflect your project's actual config — if you changed them in the Config Editor, the seed picks them up automatically.
 
 **Firestore example:**
 ```js
 const admin = require('firebase-admin');
-admin.initializeApp({ projectId: 'my-project' });
+admin.initializeApp({ projectId: process.env.FIRELAB_PROJECT_ID });
 const db = admin.firestore();
 
 await db.collection('users').doc('user1').set({ name: 'Alice' });
@@ -390,7 +393,7 @@ await db.collection('users').doc('user1').set({ name: 'Alice' });
 **Auth example:**
 ```js
 const admin = require('firebase-admin');
-admin.initializeApp({ projectId: 'my-project' });
+admin.initializeApp({ projectId: process.env.FIRELAB_PROJECT_ID });
 
 await admin.auth().createUser({
   uid: 'user1',
@@ -402,8 +405,8 @@ await admin.auth().createUser({
 **Storage example:**
 ```js
 const admin = require('firebase-admin');
-admin.initializeApp({ projectId: 'my-project' });
-const bucket = admin.storage().bucket('my-project.appspot.com');
+admin.initializeApp({ projectId: process.env.FIRELAB_PROJECT_ID });
+const bucket = admin.storage().bucket(process.env.FIRELAB_STORAGE_BUCKET);
 
 await bucket.file('hello.txt').save('Hello!', { metadata: { contentType: 'text/plain' } });
 ```
@@ -412,14 +415,14 @@ await bucket.file('hello.txt').save('Hello!', { metadata: { contentType: 'text/p
 ```js
 const admin = require('firebase-admin');
 admin.initializeApp({
-  projectId: 'my-project',
-  databaseURL: 'http://localhost:9000/?ns=my-project'
+  projectId: process.env.FIRELAB_PROJECT_ID,
+  databaseURL: process.env.FIRELAB_DATABASE_URL
 });
 
 await admin.database().ref('users/user1').set({ name: 'Alice' });
 ```
 
-> **Note:** For Realtime Database you must pass `databaseURL` pointing to the emulator explicitly.
+> **Note:** For Realtime Database you must pass `databaseURL` — use `process.env.FIRELAB_DATABASE_URL` which is pre-set automatically.
 
 ### Project Management
 

@@ -1,3 +1,7 @@
+## <small>1.26.2 (2026-09-11)</small>
+
+* fix: use 127.0.0.1 instead of localhost in emulator hosts to avoid IPv6 ECONNREFUSED ([01f876b98686114d7448e045c519f2a860d9a0d7](https://github.com/TwoZer00/FireLab/commit/01f876b98686114d7448e045c519f2a860d9a0d7))
+
 ## <small>1.26.1 (2026-09-11)</small>
 
 * fix: use .cjs extension for seed scripts to guarantee require() support ([1441f338bb2f8c108cf156933bc505aa71df5dc5](https://github.com/TwoZer00/FireLab/commit/1441f338bb2f8c108cf156933bc505aa71df5dc5))

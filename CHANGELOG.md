@@ -1,3 +1,7 @@
+## <small>1.26.4 (2026-09-11)</small>
+
+* fix: use linked firebaseProjectId in seed env vars to match emulator project ([7cf8733b74d7d270d59a619161812701ab91f915](https://github.com/TwoZer00/FireLab/commit/7cf8733b74d7d270d59a619161812701ab91f915))
+
 ## <small>1.26.3 (2026-09-11)</small>
 
 * fix: allow manual deletion of pre-seed snapshot, only block auto-delete rotation ([4f5acbfc20fc611de2c0ecb189f5dc621d80dfad](https://github.com/TwoZer00/FireLab/commit/4f5acbfc20fc611de2c0ecb189f5dc621d80dfad))

@@ -75,9 +75,7 @@ function SnapshotsManager({ projectId, snapshots, onExport, onRestore, onDelete,
               <div className="snapshot-actions">
                 <button className="btn-icon" onClick={() => downloadSnapshot(snapshot)} title="Download as ZIP">⬇️</button>
                 <button className="btn-icon" onClick={() => onRestore(snapshot)} title="Restore this snapshot">↻ Restore</button>
-                {snapshot !== 'pre-seed' && (
-                  <button className="btn-icon btn-danger" onClick={() => onDelete(snapshot)} title="Delete this snapshot">🗑️</button>
-                )}
+                <button className="btn-icon btn-danger" onClick={() => onDelete(snapshot)} title="Delete this snapshot">🗑️</button>
               </div>
             </div>
           ))}

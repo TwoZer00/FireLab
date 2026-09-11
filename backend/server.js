@@ -1231,6 +1231,57 @@ app.post('/api/snapshots/:projectId/upload', async (req, res) => {
   }
 });
 
+// Node.js built-in modules — never try to npm install these
+const NODE_BUILTINS = new Set([
+  'assert','buffer','child_process','cluster','console','constants','crypto',
+  'dgram','dns','domain','events','fs','fs/promises','http','http2','https',
+  'inspector','module','net','os','path','perf_hooks','process','punycode',
+  'querystring','readline','repl','stream','string_decoder','sys','timers',
+  'timers/promises','tls','trace_events','tty','url','util','v8','vm',
+  'worker_threads','zlib'
+]);
+
+// Packages already available from backend node_modules — no install needed
+const PREINSTALLED = new Set(['firebase-admin', 'firebase']);
+
+function extractRequires(script) {
+  const matches = script.matchAll(/require\(['"]([@\w][\w\-./]*)['"]/g);
+  const pkgs = new Set();
+  for (const [, name] of matches) {
+    // Get the root package name (e.g. '@scope/pkg' or 'pkg', strip subpaths like 'pkg/sub')
+    const root = name.startsWith('@')
+      ? name.split('/').slice(0, 2).join('/')
+      : name.split('/')[0];
+    if (!NODE_BUILTINS.has(root) && !PREINSTALLED.has(root)) pkgs.add(root);
+  }
+  return [...pkgs];
+}
+
+async function installSeedPackages(seedsDir, packages, projectId) {
+  if (packages.length === 0) return;
+  const seedNodeModules = path.join(seedsDir, 'node_modules');
+  // Only install packages not already present
+  const missing = packages.filter(p => !existsSync(path.join(seedNodeModules, p)));
+  if (missing.length === 0) return;
+  io.emit('logs', `[FireLab] 📦 Installing seed packages: ${missing.join(', ')}`);
+  await new Promise((resolve, reject) => {
+    const proc = spawn('npm', ['install', '--prefix', seedsDir, '--no-audit', '--no-fund', ...missing], {
+      shell: true,
+      env: { ...process.env, npm_config_cache: path.join(seedsDir, '.npm-cache') }
+    });
+    proc.stdout.on('data', d => io.emit('logs', `[npm] ${d.toString().trimEnd()}`));
+    proc.stderr.on('data', d => io.emit('logs', `[npm] ${d.toString().trimEnd()}`));
+    proc.on('close', code => {
+      if (code === 0) {
+        io.emit('logs', `[FireLab] ✅ Packages installed: ${missing.join(', ')}`);
+        resolve();
+      } else {
+        reject(new Error(`npm install failed with code ${code}`));
+      }
+    });
+  });
+}
+
 // Run seed script
 // ⚠️ WARNING: This endpoint executes arbitrary JS. Only expose in trusted environments.
 app.post('/api/seed/:projectId', async (req, res) => {
@@ -1251,35 +1302,150 @@ app.post('/api/seed/:projectId', async (req, res) => {
   }
 
   try {
-    if (!existsSync(seedsDir)) {
-      await mkdir(seedsDir, { recursive: true });
+    if (!existsSync(seedsDir)) await mkdir(seedsDir, { recursive: true });
+    await writeFile(scriptPath, script);
+
+    // Create pre-seed snapshot before the very first seed run
+    const preSeedPath = path.join(projectPath, 'emulator-data', 'pre-seed');
+    if (!existsSync(preSeedPath)) {
+      io.emit('logs', '[FireLab] 📸 Creating pre-seed snapshot...');
+      let preSeedProjectArg = projectId;
+      try {
+        const cfg = JSON.parse(await readFile(path.join(projectPath, 'firebase.json'), 'utf-8'));
+        if (cfg.firebaseProjectId) preSeedProjectArg = cfg.firebaseProjectId;
+      } catch { /* use folder name */ }
+      await mkdir(path.join(projectPath, 'emulator-data'), { recursive: true });
+      await new Promise((resolve) => {
+        const snap = spawn('firebase', ['emulators:export', preSeedPath, '--project', preSeedProjectArg, '--force'], {
+          cwd: projectPath, shell: true,
+          env: { ...process.env, FORCE_COLOR: '1', FIREBASE_EMULATOR_HUB: 'localhost:4400' }
+        });
+        snap.stdout.on('data', d => io.emit('logs', d.toString()));
+        snap.stderr.on('data', d => io.emit('logs', d.toString()));
+        snap.on('close', code => {
+          if (code === 0) io.emit('logs', '[FireLab] ✅ Pre-seed snapshot created');
+          else io.emit('logs', '[FireLab] ⚠️ Pre-seed snapshot failed (emulator may not be running)');
+          resolve();
+        });
+      });
     }
 
-    await writeFile(scriptPath, script);
+    // Auto-install any unknown requires into .seeds/node_modules
+    const extraPkgs = extractRequires(script);
+    try {
+      await installSeedPackages(seedsDir, extraPkgs, projectId);
+    } catch (installErr) {
+      io.emit('logs', `[FireLab] ⚠️ Package install failed: ${installErr.message}`);
+    }
+
+    // Read project config to get actual emulator ports
+    let firestorePort = 8080, authPort = 9099, storagePort = 9199, databasePort = 9000;
+    try {
+      const cfg = JSON.parse(await readFile(path.join(projectPath, 'firebase.json'), 'utf-8'));
+      if (cfg.emulators?.firestore?.port) firestorePort = cfg.emulators.firestore.port;
+      if (cfg.emulators?.auth?.port) authPort = cfg.emulators.auth.port;
+      if (cfg.emulators?.storage?.port) storagePort = cfg.emulators.storage.port;
+      if (cfg.emulators?.database?.port) databasePort = cfg.emulators.database.port;
+    } catch { /* use defaults */ }
+
+    const seedNodeModules = path.join(seedsDir, 'node_modules');
+    const nodePath = [path.join(__dirname, 'node_modules'), seedNodeModules].join(path.delimiter);
 
     const seedProcess = spawn('node', [scriptPath], {
       cwd: projectPath,
       shell: true,
-      env: { ...process.env, FIRESTORE_EMULATOR_HOST: 'localhost:8080', FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099' }
-    });
-
-    seedProcess.stdout.on('data', (data) => {
-      io.emit('logs', `[Seed] ${data.toString()}`);
-    });
-
-    seedProcess.stderr.on('data', (data) => {
-      io.emit('logs', `[Seed Error] ${data.toString()}`);
-    });
-
-    seedProcess.on('close', (code) => {
-      if (code === 0) {
-        io.emit('logs', '[FireLab] ✅ Seed script completed');
-      } else {
-        io.emit('logs', `[FireLab] ❌ Seed script failed with code ${code}`);
+      env: {
+        ...process.env,
+        FIRESTORE_EMULATOR_HOST: `localhost:${firestorePort}`,
+        FIREBASE_AUTH_EMULATOR_HOST: `localhost:${authPort}`,
+        FIREBASE_STORAGE_EMULATOR_HOST: `localhost:${storagePort}`,
+        FIREBASE_DATABASE_EMULATOR_HOST: `localhost:${databasePort}`,
+        NODE_PATH: nodePath
       }
     });
 
+    seedProcess.stdout.on('data', d => io.emit('logs', `[Seed] ${d.toString()}`));
+    seedProcess.stderr.on('data', d => io.emit('logs', `[Seed Error] ${d.toString()}`));
+    seedProcess.on('close', code => {
+      if (code === 0) io.emit('logs', '[FireLab] ✅ Seed script completed');
+      else io.emit('logs', `[FireLab] ❌ Seed script failed with code ${code}`);
+    });
+
     res.json({ success: true, message: 'Seed script started' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// List installed seed packages for a project
+app.get('/api/seed/:projectId/packages', async (req, res) => {
+  let seedNodeModules;
+  try {
+    seedNodeModules = safeJoin(projectsDir, validateSegment(req.params.projectId), '.seeds', 'node_modules');
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
+  try {
+    if (!existsSync(seedNodeModules)) return res.json([]);
+    const { readdir } = await import('fs/promises');
+    const entries = await readdir(seedNodeModules, { withFileTypes: true });
+    const pkgs = [];
+    for (const e of entries) {
+      if (!e.isDirectory()) continue;
+      if (e.name.startsWith('@')) {
+        // scoped packages
+        const scoped = await readdir(path.join(seedNodeModules, e.name), { withFileTypes: true });
+        for (const s of scoped) {
+          if (s.isDirectory()) pkgs.push(`${e.name}/${s.name}`);
+        }
+      } else if (e.name !== '.package-lock.json' && e.name !== '.cache') {
+        pkgs.push(e.name);
+      }
+    }
+    res.json(pkgs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete a single seed package
+app.delete('/api/seed/:projectId/packages/:pkg', async (req, res) => {
+  let pkgPath;
+  try {
+    const seedNodeModules = safeJoin(projectsDir, validateSegment(req.params.projectId), '.seeds', 'node_modules');
+    // pkg may be scoped like @scope%2Fname — decode it
+    const pkgName = decodeURIComponent(req.params.pkg);
+    if (pkgName.includes('..')) throw new Error('Invalid package name');
+    pkgPath = path.join(seedNodeModules, pkgName);
+    // Ensure it stays within node_modules
+    if (!pkgPath.startsWith(seedNodeModules)) throw new Error('Path traversal detected');
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID or package name' });
+  }
+  try {
+    const { rm } = await import('fs/promises');
+    await rm(pkgPath, { recursive: true, force: true });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Clear all seed packages (wipe .seeds/node_modules and npm cache)
+app.delete('/api/seed/:projectId/packages', async (req, res) => {
+  let seedsDir;
+  try {
+    seedsDir = safeJoin(projectsDir, validateSegment(req.params.projectId), '.seeds');
+  } catch {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
+  try {
+    const { rm } = await import('fs/promises');
+    await rm(path.join(seedsDir, 'node_modules'), { recursive: true, force: true });
+    await rm(path.join(seedsDir, '.npm-cache'), { recursive: true, force: true });
+    await rm(path.join(seedsDir, 'package.json'), { force: true });
+    await rm(path.join(seedsDir, 'package-lock.json'), { force: true });
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

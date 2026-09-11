@@ -69,11 +69,15 @@ function SnapshotsManager({ projectId, snapshots, onExport, onRestore, onDelete,
           </div>
           {snapshots.map(snapshot => (
             <div key={snapshot} className="snapshot-row">
-              <span className="snapshot-name">{snapshot}</span>
+              <span className="snapshot-name">
+                {snapshot === 'pre-seed' ? '🔒 ' : ''}{snapshot}
+              </span>
               <div className="snapshot-actions">
                 <button className="btn-icon" onClick={() => downloadSnapshot(snapshot)} title="Download as ZIP">⬇️</button>
                 <button className="btn-icon" onClick={() => onRestore(snapshot)} title="Restore this snapshot">↻ Restore</button>
-                <button className="btn-icon btn-danger" onClick={() => onDelete(snapshot)} title="Delete this snapshot">🗑️</button>
+                {snapshot !== 'pre-seed' && (
+                  <button className="btn-icon btn-danger" onClick={() => onDelete(snapshot)} title="Delete this snapshot">🗑️</button>
+                )}
               </div>
             </div>
           ))}

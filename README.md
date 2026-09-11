@@ -339,14 +339,87 @@ Currently not supported. Requires `firebase login` on backend machine.
 
 **Seed Data:**
 - Click "🌱 Seed Data" while emulator is running
-- Write Node.js script to populate test data
-- **Pre-built templates** with Firebase Admin SDK examples
-- Use Firebase Admin SDK or REST API
-- Output shows in logs with real-time feedback
-- **Example templates** for users, posts, and common data structures
-- Save custom seed scripts for reuse
+- Pick a template: **Firestore**, **Auth**, **Storage**, **Database**, or **Full Example**
+- All emulator hosts (`FIRESTORE_EMULATOR_HOST`, `FIREBASE_AUTH_EMULATOR_HOST`, `FIREBASE_STORAGE_EMULATOR_HOST`, `FIREBASE_DATABASE_EMULATOR_HOST`) are injected automatically — no manual config needed
+- Any `require()` beyond `firebase-admin` is **auto-installed on first run** and cached in `.seeds/node_modules` — subsequent runs are instant
+- Edit the script freely, then click **▶️ Run Seed Script**
+- Output streams to the logs panel in real time
+- Click **📦 Packages** to view, remove individual packages, or clear the entire cache
 
 > ⚠️ **Security Warning:** The seed endpoint executes arbitrary JavaScript on the backend. Only expose FireLab in trusted environments.
+
+### Seed Scripting Reference
+
+Seed scripts run as **CommonJS** Node.js files. Always use `require()`, not `import`.
+
+**Built-in packages (no install needed):**
+- `firebase-admin` — Admin SDK (Firestore, Auth, Storage, Database)
+
+**Using extra packages:**
+
+Just `require()` any npm package — FireLab detects it, installs it into `.seeds/node_modules` on first run, and reuses it on every subsequent run:
+```js
+const { faker } = require('@faker-js/faker');
+const _ = require('lodash');
+```
+
+**Managing the package cache:**
+- Click **📦 Packages** in the Data Management section
+- Remove individual packages with the × button
+- **Clear All** wipes `.seeds/node_modules` entirely — packages re-download on next run
+
+**Emulator env vars pre-set by FireLab:**
+| Variable | Default |
+|---|---|
+| `FIRESTORE_EMULATOR_HOST` | `localhost:8080` |
+| `FIREBASE_AUTH_EMULATOR_HOST` | `localhost:9099` |
+| `FIREBASE_STORAGE_EMULATOR_HOST` | `localhost:9199` |
+| `FIREBASE_DATABASE_EMULATOR_HOST` | `localhost:9000` |
+
+Ports reflect your project's actual config — if you changed them in the Config Editor, the seed picks them up automatically.
+
+**Firestore example:**
+```js
+const admin = require('firebase-admin');
+admin.initializeApp({ projectId: 'my-project' });
+const db = admin.firestore();
+
+await db.collection('users').doc('user1').set({ name: 'Alice' });
+```
+
+**Auth example:**
+```js
+const admin = require('firebase-admin');
+admin.initializeApp({ projectId: 'my-project' });
+
+await admin.auth().createUser({
+  uid: 'user1',
+  email: 'alice@example.com',
+  password: 'password123'
+});
+```
+
+**Storage example:**
+```js
+const admin = require('firebase-admin');
+admin.initializeApp({ projectId: 'my-project' });
+const bucket = admin.storage().bucket('my-project.appspot.com');
+
+await bucket.file('hello.txt').save('Hello!', { metadata: { contentType: 'text/plain' } });
+```
+
+**Realtime Database example:**
+```js
+const admin = require('firebase-admin');
+admin.initializeApp({
+  projectId: 'my-project',
+  databaseURL: 'http://localhost:9000/?ns=my-project'
+});
+
+await admin.database().ref('users/user1').set({ name: 'Alice' });
+```
+
+> **Note:** For Realtime Database you must pass `databaseURL` pointing to the emulator explicitly.
 
 ### Project Management
 

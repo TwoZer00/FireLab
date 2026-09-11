@@ -1,5 +1,6 @@
 #!/bin/sh
-chmod -R 755 /app/firebase-projects 2>/dev/null || true
+# Ensure firebase-projects volume is writable (covers .seeds/node_modules installs)
+chmod -R 777 /app/firebase-projects 2>/dev/null || true
 # Load persisted firebase token if present
 if [ -f /app/firebase-projects/.firebase-token ]; then
   export FIREBASE_TOKEN=$(cat /app/firebase-projects/.firebase-token)

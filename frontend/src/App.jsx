@@ -257,10 +257,21 @@ function App() {
   }, [projectId, getHeaders, loadSnapshots]);
 
   const restoreSnapshot = useCallback(async (snapshotName) => {
-    if (isRunning) { alert('Stop the emulator before restoring a snapshot'); return; }
-    if (!confirm(`Restore snapshot '${snapshotName}'?\n\nThis will start the emulator with this snapshot's data.`)) return;
-    setLogs(prev => [...prev, `[FireLab] Restoring snapshot '${snapshotName}'...`]);
+    const msg = isRunning
+      ? `Restore snapshot '${snapshotName}'?\n\nThe emulator will be stopped and restarted with this snapshot's data.`
+      : `Restore snapshot '${snapshotName}'?\n\nThe emulator will start with this snapshot's data.`;
+    if (!confirm(msg)) return;
     try {
+      if (isRunning) {
+        setLogs(prev => [...prev, '[FireLab] Stopping emulator before restore...']);
+        await fetch(`${API_URL}/api/emulator/stop`, {
+          method: 'POST', headers: getHeaders(), body: JSON.stringify({ projectId })
+        });
+        setIsRunning(false);
+        // Brief pause for process to fully exit
+        await new Promise(r => setTimeout(r, 2000));
+      }
+      setLogs(prev => [...prev, `[FireLab] Restoring snapshot '${snapshotName}'...`]);
       const ok = await checkAndFixPorts('restore');
       if (!ok) return;
       const res = await fetch(`${API_URL}/api/emulator/start`, {
@@ -272,13 +283,14 @@ function App() {
       if (data.success) {
         setIsRunning(true);
         setAutoScroll(true);
+        setTimeout(() => loadSnapshots(), 3000);
       } else {
         setLogs(prev => [...prev, '[FireLab] ❌ Failed to restore snapshot']);
       }
     } catch (err) {
       setLogs(prev => [...prev, `[FireLab] ❌ Error restoring snapshot: ${err.message}`]);
     }
-  }, [isRunning, projectId, checkAndFixPorts, autoSnapshot, getHeaders]);
+  }, [isRunning, projectId, checkAndFixPorts, autoSnapshot, getHeaders, loadSnapshots]);
 
   useEffect(() => {
     localStorage.setItem('projectId', projectId);
@@ -735,6 +747,7 @@ function App() {
                     projectId={projectId}
                     isRunning={isRunning}
                     onRefreshSnapshots={loadSnapshots}
+                    onRestore={restoreSnapshot}
                     getHeaders={getHeaders}
                   />
 

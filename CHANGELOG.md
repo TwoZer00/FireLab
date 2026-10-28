@@ -1,3 +1,7 @@
+## 1.27.0 (2026-10-28)
+
+* feat: multiple emulators, snapshot upload, data viewer, rename, env vars, frontend tests, multi-arch docker ([595ff4840daa6477bfd855464b0ec1f6f8e8fa34](https://github.com/TwoZer00/FireLab/commit/595ff4840daa6477bfd855464b0ec1f6f8e8fa34))
+
 ## 1.33.0 (2026-10-28)
 
 * feat: support multiple simultaneous emulator instances per project

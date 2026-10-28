@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toProjectId } from '../utils/projectId';
 
 function ProjectSetup({ projectId, existingProjects, onSelectProject, onCreateProject }) {
   const [showNewInput, setShowNewInput] = useState(false);
@@ -33,17 +34,9 @@ function ProjectSetup({ projectId, existingProjects, onSelectProject, onCreatePr
   };
 
   const handleCreate = () => {
-    const name = newProjectName.trim();
+    const name = toProjectId(newProjectName);
     if (!name) {
       setNameError('Project name is required');
-      return;
-    }
-    if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
-      setNameError('Only letters, numbers, hyphens and underscores allowed');
-      return;
-    }
-    if (name.length > 50) {
-      setNameError('Project name must be 50 characters or less');
       return;
     }
     if (existingProjects.includes(name)) {
@@ -101,12 +94,17 @@ function ProjectSetup({ projectId, existingProjects, onSelectProject, onCreatePr
             style={{ 
               width: '100%', 
               marginRight: 0, 
-              marginBottom: nameError ? '5px' : '10px',
+              marginBottom: '4px',
               borderColor: nameError ? '#f85149' : '#30363d'
             }}
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             autoFocus
           />
+          {newProjectName.trim() && (
+            <div style={{ fontSize: '11px', color: '#8b949e', marginBottom: '4px' }}>
+              ID: <code style={{ color: '#58a6ff' }}>{toProjectId(newProjectName) || '—'}</code>
+            </div>
+          )}
           {nameError && (
             <div style={{ color: '#f85149', fontSize: '12px', marginBottom: '10px' }}>
               {nameError}

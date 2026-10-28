@@ -95,6 +95,18 @@ function validateSegment(segment) {
   return segment;
 }
 
+function toProjectId(input) {
+  return String(input)
+    .trim()
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^[^a-z]+/, '')
+    .replace(/-+$/, '')
+    .slice(0, 30);
+}
+
 // Initialize auth
 await initAuth();
 
@@ -140,8 +152,10 @@ app.put('/api/link/:projectId', async (req, res) => {
     const config = JSON.parse(await readFile(configPath, 'utf-8'));
     if (firebaseProjectId) {
       config.firebaseProjectId = firebaseProjectId;
+      config.projects = { default: firebaseProjectId };
     } else {
       delete config.firebaseProjectId;
+      delete config.projects;
     }
     await writeFile(configPath, JSON.stringify(config, null, 2));
     res.json({ success: true });
@@ -152,10 +166,12 @@ app.put('/api/link/:projectId', async (req, res) => {
 
 // Initialize project
 app.post('/api/init', async (req, res) => {
-  const { projectId, services } = req.body;
+  const { services } = req.body;
+  const projectId = toProjectId(req.body.projectId || '');
   let projectPath;
   try {
-    projectPath = safeJoin(projectsDir, validateSegment(projectId));
+    if (!projectId) return res.status(400).json({ error: 'Invalid project ID' });
+    projectPath = safeJoin(projectsDir, projectId);
   } catch {
     return res.status(400).json({ error: 'Invalid project ID' });
   }
@@ -179,6 +195,7 @@ app.post('/api/init', async (req, res) => {
 
     const firebaseConfig = {};
     if (req.body.firebaseProjectId) firebaseConfig.firebaseProjectId = req.body.firebaseProjectId;
+    firebaseConfig.projects = { default: req.body.firebaseProjectId || projectId };
     firebaseConfig.emulators = emulators;
 
     await writeFile(

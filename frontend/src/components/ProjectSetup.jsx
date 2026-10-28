@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { toProjectId } from '../utils/projectId';
 
-function ProjectSetup({ projectId, existingProjects, onSelectProject, onCreateProject }) {
+function ProjectSetup({ projectId, existingProjects, runningProjects = new Set(), onSelectProject, onCreateProject }) {
   const [showNewInput, setShowNewInput] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [nameError, setNameError] = useState('');
@@ -74,7 +74,9 @@ function ProjectSetup({ projectId, existingProjects, onSelectProject, onCreatePr
           >
             <option value="">-- Select Project --</option>
             {existingProjects.map(proj => (
-              <option key={proj} value={proj}>{proj}</option>
+              <option key={proj} value={proj}>
+                {runningProjects.has(proj) ? '🟢 ' : ''}{proj}
+              </option>
             ))}
             <option value="__create_new__">+ Create New Project</option>
           </select>

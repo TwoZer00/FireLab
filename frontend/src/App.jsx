@@ -11,6 +11,7 @@ import LogsViewer from './components/LogsViewer';
 import SnapshotsManager from './components/SnapshotsManager';
 import ConnectionStatus from './components/ConnectionStatus';
 import DataManager from './components/DataManager';
+import DataViewer from './components/DataViewer';
 import './App.css';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -31,6 +32,7 @@ function App() {
   const [autoScroll, setAutoScroll] = useState(true);
   const [showRules, setShowRules] = useState(false);
   const [showIndexes, setShowIndexes] = useState(false);
+  const [showDataViewer, setShowDataViewer] = useState(false);
   const [rulesType, setRulesType] = useState('firestore');
   const [rulesContent, setRulesContent] = useState('');
   const [availableRules, setAvailableRules] = useState([]);
@@ -42,6 +44,7 @@ function App() {
   });
   const [backendConnected, setBackendConnected] = useState(false);
   const [firebaseLoggedIn, setFirebaseLoggedIn] = useState(false);
+  const [runningProjects, setRunningProjects] = useState(new Set());
   const [snapshots, setSnapshots] = useState([]);
   const [loginUrl, setLoginUrl] = useState(null);
   const [loginPending, setLoginPending] = useState(false);
@@ -112,8 +115,9 @@ function App() {
   const checkStatus = useCallback(async () => {
     const res = await fetch(`${API_URL}/api/emulator/status`, { headers: getHeaders() });
     const data = await res.json();
-    setIsRunning(data.running);
-  }, [getHeaders]);
+    setIsRunning(data.runningProjects?.includes(projectId) ?? data.running);
+    if (data.runningProjects) setRunningProjects(new Set(data.runningProjects));
+  }, [getHeaders, projectId]);
 
   const checkFirebaseAuth = useCallback(async () => {
     setFirebaseAuthLoading(true);
@@ -333,6 +337,15 @@ function App() {
       setLoginUrl(null);
     });
 
+    socket.on('emulator-status', ({ projectId: pid, running }) => {
+      setRunningProjects(prev => {
+        const next = new Set(prev);
+        if (running) next.add(pid); else next.delete(pid);
+        return next;
+      });
+      if (pid === projectId) setIsRunning(running);
+    });
+
     socket.on('logs', (log) => {
       setLogs((prev) => [...prev, log]);
     });
@@ -380,6 +393,7 @@ function App() {
     }
     
     return () => {
+      socket.off('emulator-status');
       socket.off('logs');
       socket.off('connect');
       socket.off('disconnect');
@@ -690,6 +704,7 @@ function App() {
               <ProjectSetup
                 projectId={projectId}
                 existingProjects={existingProjects}
+                runningProjects={runningProjects}
                 onSelectProject={handleSelectProject}
                 onCreateProject={initProject}
               />
@@ -715,7 +730,8 @@ function App() {
                     onUpdateHost={updateHost}
                     onSave={saveConfig}
                     onLoadRules={loadRules}
-                    onLoadIndexes={() => { setShowIndexes(true); setShowRules(false); checkFirebaseAuth(); }}
+                    onLoadIndexes={() => { setShowIndexes(true); setShowRules(false); setShowDataViewer(false); checkFirebaseAuth(); }}
+                    onLoadDataViewer={() => { setShowDataViewer(true); setShowRules(false); setShowIndexes(false); }}
                     projectId={projectId}
                     getHeaders={getHeaders}
                     onServicesUpdated={(newConfig) => {
@@ -739,6 +755,7 @@ function App() {
                     onExport={exportData}
                     onRestore={restoreSnapshot}
                     onDelete={deleteSnapshot}
+                    onRefresh={loadSnapshots}
                     isRunning={isRunning}
                     getHeaders={getHeaders}
                   />
@@ -751,7 +768,12 @@ function App() {
                     getHeaders={getHeaders}
                   />
 
-                  <ProjectActions projectId={projectId} getHeaders={getHeaders} />
+                  <ProjectActions projectId={projectId} getHeaders={getHeaders} onRenamed={(newId) => {
+                      setProjectId(newId);
+                      localStorage.setItem('projectId', newId);
+                      loadExistingProjects();
+                      loadConfigForProject(newId);
+                    }} />
                 </>
               )}
             </>
@@ -778,6 +800,13 @@ function App() {
               getHeaders={getHeaders}
               onClose={() => setShowIndexes(false)}
               firebaseLoggedIn={firebaseLoggedIn}
+            />
+          ) : showDataViewer ? (
+            <DataViewer
+              projectId={projectId}
+              config={config}
+              getHeaders={getHeaders}
+              onClose={() => setShowDataViewer(false)}
             />
           ) : (
             <LogsViewer

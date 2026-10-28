@@ -1,3 +1,13 @@
+## 1.33.0 (2026-10-28)
+
+* feat: support multiple simultaneous emulator instances per project
+* feat: upload snapshots as ZIP via UI
+* feat: add Data Viewer for Firestore, Auth, and Realtime Database
+* feat: rename projects from UI with inline validation
+* feat: per-project environment variables editor with emulator injection
+* test: add frontend test suite — 42 tests across 4 suites (Vitest + Testing Library)
+* ci: add multi-architecture Docker builds (linux/amd64, linux/arm64) with QEMU and GHA cache
+
 ## <small>1.26.5 (2026-10-28)</small>
 
 * fix: add projects.default to firebase.json and normalize project ID on creation ([9ba6bee970e63b3fc1716ab7af35244bc4982557](https://github.com/TwoZer00/FireLab/commit/9ba6bee970e63b3fc1716ab7af35244bc4982557))

@@ -1,10 +1,85 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const ALL_SERVICES = ['auth', 'firestore', 'database', 'storage', 'hosting', 'ui'];
 const SERVICE_LABELS = { auth: 'Authentication', firestore: 'Firestore', database: 'Realtime DB', storage: 'Storage', hosting: 'Hosting', ui: 'Emulator UI' };
 
-function ConfigEditor({ config, availableRules, onUpdatePort, onUpdateHost, onSave, onLoadRules, onLoadIndexes, projectId, getHeaders, onServicesUpdated }) {
+function EnvEditor({ projectId, getHeaders }) {
+  const [vars, setVars] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open || vars !== null) return;
+    fetch(`${API_URL}/api/env/${projectId}`, { headers: getHeaders() })
+      .then(r => r.json()).then(setVars).catch(() => setVars({}));
+  }, [open, projectId, getHeaders, vars]);
+
+  const setVar = (idx, field, value) => {
+    setVars(prev => {
+      const entries = Object.entries(prev);
+      entries[idx] = field === 'key'
+        ? [value, entries[idx][1]]
+        : [entries[idx][0], value];
+      return Object.fromEntries(entries);
+    });
+  };
+
+  const addVar = () => setVars(prev => ({ ...prev, '': '' }));
+
+  const removeVar = (key) => setVars(prev => {
+    const next = { ...prev };
+    delete next[key];
+    return next;
+  });
+
+  const save = async () => {
+    setSaving(true);
+    await fetch(`${API_URL}/api/env/${projectId}`, {
+      method: 'PUT', headers: getHeaders(), body: JSON.stringify(vars)
+    });
+    setSaving(false);
+  };
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      <button onClick={() => setOpen(v => !v)} className="btn-secondary" style={{ fontSize: 12, padding: '4px 10px' }}>
+        {open ? '▼' : '▶'} 🔧 Environment Variables
+      </button>
+      {open && vars !== null && (
+        <div style={{ marginTop: 8, background: '#0d1117', border: '1px solid #30363d', borderRadius: 6, padding: 10 }}>
+          {Object.entries(vars).map(([k, v], idx) => (
+            <div key={idx} style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
+              <input
+                type="text"
+                value={k}
+                onChange={e => setVar(idx, 'key', e.target.value)}
+                placeholder="KEY"
+                style={{ flex: 1, margin: 0, fontFamily: 'monospace', fontSize: 12 }}
+              />
+              <input
+                type="text"
+                value={v}
+                onChange={e => setVar(idx, 'value', e.target.value)}
+                placeholder="value"
+                style={{ flex: 2, margin: 0, fontSize: 12 }}
+              />
+              <button onClick={() => removeVar(k)} className="btn-danger btn-icon" style={{ margin: 0, flexShrink: 0 }}>✕</button>
+            </div>
+          ))}
+          <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+            <button onClick={addVar} className="btn-secondary" style={{ fontSize: 11, padding: '3px 8px', margin: 0 }}>+ Add</button>
+            <button onClick={save} disabled={saving} style={{ fontSize: 11, padding: '3px 8px', margin: 0 }}>
+              {saving ? 'Saving...' : '💾 Save'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ConfigEditor({ config, availableRules, onUpdatePort, onUpdateHost, onSave, onLoadRules, onLoadIndexes, onLoadDataViewer, projectId, getHeaders, onServicesUpdated }) {
   const [showServices, setShowServices] = useState(false);
   const [pendingServices, setPendingServices] = useState({});
   const [saving, setSaving] = useState(false);
@@ -166,6 +241,13 @@ function ConfigEditor({ config, availableRules, onUpdatePort, onUpdateHost, onSa
           <button onClick={onLoadIndexes}>📇 Firestore Indexes</button>
         </div>
       )}
+      {(config.emulators?.firestore || config.emulators?.auth || config.emulators?.database) && (
+        <div style={{ marginTop: '10px' }}>
+          <button onClick={onLoadDataViewer}>🗄️ Data Viewer</button>
+        </div>
+      )}
+
+      <EnvEditor projectId={projectId} getHeaders={getHeaders} />
     </div>
   );
 }

@@ -22,6 +22,12 @@ A full-stack platform to run, manage, and configure Firebase emulators — inclu
 ### Indexes Editor
 Edit, validate, and deploy Firestore composite indexes directly from the UI.
 
+### Data Viewer
+Inspect live emulator data (Firestore, Auth, Realtime Database) directly from the UI — no need to open the Emulator UI on port 4000.
+
+### Environment Variables per Project
+Define per-project environment variables that are automatically injected when the emulator starts.
+
 ## Prerequisites
 
 - Node.js (v18+)
@@ -426,11 +432,53 @@ await admin.database().ref('users/user1').set({ name: 'Alice' });
 
 ### Project Management
 
+**Rename Project:**
+- Located in "Project Actions" section
+- Type a new name — sanitized ID shown in real time
+- Emulator must be stopped before renaming
+- Cannot be undone without manually renaming the folder
+
 **Delete Project:**
 - Located in "Project Actions" section at bottom
 - Deletes entire project folder (config, rules, snapshots)
 - Requires confirmation
 - Cannot be undone
+
+### Viewing Emulator Data
+
+1. Click **🗄️ Data Viewer** in the Config Editor (visible when Firestore, Auth, or Database is enabled)
+2. Select a tab: **🔥 Firestore**, **👤 Auth**, or **🗃️ Database**
+
+**Firestore tab:**
+- Lists all root collections
+- Click a collection to load its documents
+- Fields parsed from Firestore wire format with collapsible JSON tree
+
+**Auth tab:**
+- Lists all users with UID, email, displayName, providers, verified/disabled status
+
+**Database tab:**
+- Enter any path (e.g. `/users/user1`) and click 🔍 Load
+- Collapsible JSON tree
+
+### Uploading Snapshots
+
+- Click **📤 Upload** in the Snapshots section
+- Select a `.zip` file (previously downloaded from FireLab or shared by a teammate)
+- The snapshot name is taken from the filename (without `.zip`)
+- Appears in the list immediately, ready to restore
+
+### Environment Variables per Project
+
+1. Open **Configuration** in the sidebar
+2. Click **▶ 🔧 Environment Variables** to expand the editor
+3. Add key/value pairs and click **💾 Save**
+
+Variables are stored in a `.env` file inside the project folder and injected automatically into the emulator process on next start.
+
+### Multiple Simultaneous Emulators
+
+FireLab supports running multiple Firebase projects at the same time. Each project has independent processes, snapshot intervals, and export state. The project selector shows a 🟢 indicator next to running projects.
 
 ### Editing Security Rules
 
@@ -539,9 +587,16 @@ firelab/
 │       │   ├── LogsViewer.jsx
 │       │   ├── SnapshotsManager.jsx
 │       │   ├── DataManager.jsx
+│       │   ├── DataViewer.jsx
 │       │   ├── DangerZone.jsx
 │       │   ├── TokenAuth.jsx
 │       │   └── ConnectionStatus.jsx
+│       ├── tests/             # Frontend test suite (Vitest + Testing Library)
+│       │   ├── setup.js
+│       │   ├── EmulatorControls.test.jsx
+│       │   ├── ProjectSetup.test.jsx
+│       │   ├── SnapshotsManager.test.jsx
+│       │   └── ProjectActions.test.jsx
 │       └── App.css            # Styles
 ├── scripts/                    # Utility scripts
 │   └── screenshots.js         # Automated screenshot generation
@@ -550,6 +605,7 @@ firelab/
     ├── .firebase-token         # Persisted Firebase CI token (auto-loaded on start)
     └── [project-name]/
         ├── firebase.json
+        ├── .env                (per-project environment variables)
         ├── firestore.rules (if Firestore enabled)
         ├── firestore.indexes.json (if Firestore enabled)
         ├── storage.rules (if Storage enabled)
@@ -568,20 +624,24 @@ firelab/
 ✅ Create and manage Firebase projects
 ✅ Import existing Firebase projects
 ✅ Start/Stop emulators via web UI
+✅ **Multiple simultaneous emulator instances** (run several projects at once)
 ✅ Real-time log streaming with ANSI colors
 ✅ Configure emulator ports
 ✅ Remote backend support (backend on one machine, frontend on another)
 ✅ Integration test suite (62 tests, Vitest + supertest)
+✅ Frontend test suite (42 tests, Vitest + Testing Library)
 
 ### Data Management
 ✅ Auto-snapshots (every 15 min + on stop)
 ✅ Named snapshots with timestamps
 ✅ Download snapshots as ZIP
+✅ **Upload snapshots from ZIP**
 ✅ Create, restore, and delete snapshots
 ✅ Clear all emulator data
 ✅ Seed data with custom scripts
 ✅ Import data on emulator start
 ✅ Persistent data between sessions
+✅ **Data Viewer — browse Firestore, Auth, and Database live**
 
 ### Rules Management
 ✅ Monaco Editor (VS Code editor) with syntax highlighting
@@ -604,6 +664,8 @@ firelab/
 ✅ Unified single-container deployment (frontend + backend on one port)
 ✅ Interactive CLI for token generation
 ✅ Customizable service selection per project
+✅ **Rename projects from UI**
+✅ **Per-project environment variables (.env injected at emulator start)**
 ✅ Port conflict detection with auto-fix
 ✅ Configurable emulator host binding
 ✅ Debug mode toggle (shows rules evaluation)
@@ -618,7 +680,7 @@ firelab/
 ✅ Configurable CORS origins via `CORS_ORIGINS` env var
 ✅ Docker healthcheck for container orchestration (healthy as soon as server starts, no emulator needed)
 ✅ Semantic versioning with automated releases
-✅ CI/CD with GitHub Actions (Docker publish + release)
+✅ **CI/CD with multi-architecture Docker builds (linux/amd64, linux/arm64)**
 
 ### Firebase Authentication
 ✅ Login via UI with OAuth flow (works in Docker/non-interactive environments)
@@ -717,7 +779,7 @@ If a deploy or fetch operation fails due to an expired/invalid token, FireLab au
 The project uses GitHub Actions for automated releases and Docker image publishing:
 
 - **Semantic Release** (`release.yml`) - Automatically bumps version, generates changelog, and creates GitHub releases based on [Conventional Commits](https://www.conventionalcommits.org/)
-- **Docker Publish** (`docker-publish.yml`) - Builds and pushes Docker images to Docker Hub on new releases
+- **Docker Publish** (`docker-publish.yml`) - Builds and pushes multi-architecture Docker images (`linux/amd64`, `linux/arm64`) to Docker Hub on new releases using QEMU emulation and GitHub Actions cache
 
 Commit message prefixes:
 - `feat:` → minor version bump
@@ -746,3 +808,10 @@ Commit message prefixes:
 - Stop emulator before restoring
 - Verify snapshot exists in `emulator-data/` folder
 - Check logs for detailed error messages
+
+**Data Viewer shows no data:**
+- Emulator must be running for the Data Viewer to fetch live data
+- Verify the service (Firestore/Auth/Database) is enabled in the project config
+
+**Rename fails with "Stop the emulator before renaming":**
+- Stop the emulator for that project first, then rename

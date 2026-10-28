@@ -9,5 +9,10 @@ export default defineConfig(({ mode }) => {
       port: parseInt(env.VITE_PORT) || 5173,
       strictPort: true,
     },
+    test: {
+      environment: 'jsdom',
+      globals: true,
+      setupFiles: './src/tests/setup.js',
+    },
   }
 })

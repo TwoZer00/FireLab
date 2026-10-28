@@ -1,3 +1,7 @@
+## <small>1.26.5 (2026-10-28)</small>
+
+* fix: add projects.default to firebase.json and normalize project ID on creation ([9ba6bee970e63b3fc1716ab7af35244bc4982557](https://github.com/TwoZer00/FireLab/commit/9ba6bee970e63b3fc1716ab7af35244bc4982557))
+
 ## <small>1.26.4 (2026-09-11)</small>
 
 * fix: use linked firebaseProjectId in seed env vars to match emulator project ([7cf8733b74d7d270d59a619161812701ab91f915](https://github.com/TwoZer00/FireLab/commit/7cf8733b74d7d270d59a619161812701ab91f915))
